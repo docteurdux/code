@@ -6,7 +6,7 @@ import java.util.Collection;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
-public class AuthenticationAdapter implements Authentication {
+public class AuthenticationDUX implements Authentication {
 
 	private static final long serialVersionUID = 1L;
 	private String name;

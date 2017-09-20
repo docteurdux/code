@@ -2,6 +2,15 @@ package com.github.docteurdux.spring.security.dc;
 
 import java.time.Clock;
 
+import org.springframework.security.access.annotation.Jsr250Voter;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.annotation.SecuredAnnotationSecurityMetadataSource;
+import org.springframework.security.access.event.AuthenticationCredentialsNotFoundEvent;
+import org.springframework.security.access.event.AuthorizationFailureEvent;
+import org.springframework.security.access.event.AuthorizedEvent;
+import org.springframework.security.access.event.LoggerListener;
+import org.springframework.security.access.event.PublicInvocationEvent;
+
 import com.github.docteurdux.spring.security.notes.N;
 
 public class DefaultConstructors {
@@ -12,14 +21,14 @@ public class DefaultConstructors {
 
 		WilVanDerAlst.main(null);
 		ScottAaronson.main(null);
+		HalAbelson.main(null);
+		SergeAbiteboul.main(null);
 
 		Clock clock = Clock.systemUTC();
 		if (clock.millis() < 0) {
 			return;
 		}
 
-		org.springframework.security.access.annotation.SecuredAnnotationSecurityMetadataSource x214 = new org.springframework.security.access.annotation.SecuredAnnotationSecurityMetadataSource();
-		org.springframework.security.access.event.LoggerListener x213 = new org.springframework.security.access.event.LoggerListener();
 		org.springframework.security.access.expression.DenyAllPermissionEvaluator x212 = new org.springframework.security.access.expression.DenyAllPermissionEvaluator();
 		org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler x211 = new org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler();
 		org.springframework.security.access.expression.method.ExpressionBasedPreInvocationAdvice x210 = new org.springframework.security.access.expression.method.ExpressionBasedPreInvocationAdvice();
@@ -235,7 +244,11 @@ public class DefaultConstructors {
 	}
 
 	public void notes(N n) {
-		n.k(ScottAaronson.class).s(" is about ").k(ScottAaronson.class);
+		n.k(ScottAaronson.class).s(" is about ").k(Jsr250Voter.class);
+		n.k(HalAbelson.class).s(" is about ").k(SecuredAnnotationSecurityMetadataSource.class, Secured.class);
+		n.k(SergeAbiteboul.class).s(" is about ").k(LoggerListener.class, PublicInvocationEvent.class,
+				AuthorizedEvent.class, AuthorizationFailureEvent.class, AuthenticationCredentialsNotFoundEvent.class);
+
 	}
 
 }

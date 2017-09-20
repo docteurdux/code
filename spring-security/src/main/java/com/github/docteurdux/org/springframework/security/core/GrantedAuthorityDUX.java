@@ -2,7 +2,7 @@ package com.github.docteurdux.org.springframework.security.core;
 
 import org.springframework.security.core.GrantedAuthority;
 
-public class GrantedAuthorityAdapter implements GrantedAuthority {
+public class GrantedAuthorityDUX implements GrantedAuthority {
 
 	private static final long serialVersionUID = 1L;
 

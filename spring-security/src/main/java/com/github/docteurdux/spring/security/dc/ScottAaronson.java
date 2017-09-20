@@ -7,8 +7,8 @@ import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.annotation.Jsr250SecurityConfig;
 import org.springframework.security.access.annotation.Jsr250Voter;
 
-import com.github.docteurdux.org.springframework.security.core.AuthenticationAdapter;
-import com.github.docteurdux.org.springframework.security.core.GrantedAuthorityAdapter;
+import com.github.docteurdux.org.springframework.security.core.AuthenticationDUX;
+import com.github.docteurdux.org.springframework.security.core.GrantedAuthorityDUX;
 import com.github.docteurdux.spring.security.notes.TU;
 
 public class ScottAaronson {
@@ -53,7 +53,7 @@ public class ScottAaronson {
 		ArrayList<ConfigAttribute> definition = new ArrayList<>();
 		definition.add(new Jsr250SecurityConfig("hello"));
 
-		AuthenticationAdapter authentication = new AuthenticationAdapter();
+		AuthenticationDUX authentication = new AuthenticationDUX();
 		TU.eq(v.vote(authentication, null, definition), AccessDecisionVoter.ACCESS_DENIED);
 	}
 
@@ -61,10 +61,10 @@ public class ScottAaronson {
 		ArrayList<ConfigAttribute> definition = new ArrayList<>();
 		definition.add(new Jsr250SecurityConfig("hello"));
 
-		GrantedAuthorityAdapter grantedAuthority = new GrantedAuthorityAdapter();
+		GrantedAuthorityDUX grantedAuthority = new GrantedAuthorityDUX();
 		grantedAuthority.setAuthority("hello");
 
-		AuthenticationAdapter authentication = new AuthenticationAdapter();
+		AuthenticationDUX authentication = new AuthenticationDUX();
 		authentication.addAuthority(grantedAuthority);
 
 		TU.eq(v.vote(authentication, null, definition), AccessDecisionVoter.ACCESS_GRANTED);
