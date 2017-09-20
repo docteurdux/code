@@ -22,13 +22,14 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.core.Authentication;
 
 import com.github.docteurdux.org.springframework.security.core.AuthenticationDUX;
+import com.github.docteurdux.spring.security.LogUtils;
 import com.github.docteurdux.spring.security.notes.TU;
 
 public class SergeAbiteboul {
 	public static void main(String[] args) {
 
 		List<String> messages = new ArrayList<>();
-		configureLogger(messages);
+		LogUtils.recordAndDumpLog(messages, LoggerListener.class);
 
 		LoggerListener l = new LoggerListener();
 
@@ -76,21 +77,5 @@ public class SergeAbiteboul {
 		l.onApplicationEvent(event);
 	}
 
-	private static void configureLogger(List<String> messages) {
-		Log log = LogFactory.getLog(LoggerListener.class);
-		TU.tru(log instanceof Jdk14Logger);
-
-		Jdk14Logger jlog = (Jdk14Logger) log;
-		Logger logger = jlog.getLogger();
-		logger.setLevel(Level.ALL);
-		logger.setFilter(new Filter() {
-			@Override
-			public boolean isLoggable(LogRecord record) {
-				String m = record.getMessage();
-				System.out.println(m);
-				messages.add(m);
-				return false;
-			}
-		});
-	}
+	
 }

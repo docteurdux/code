@@ -10,6 +10,7 @@ import org.springframework.security.access.event.AuthorizationFailureEvent;
 import org.springframework.security.access.event.AuthorizedEvent;
 import org.springframework.security.access.event.LoggerListener;
 import org.springframework.security.access.event.PublicInvocationEvent;
+import org.springframework.security.access.expression.DenyAllPermissionEvaluator;
 
 import com.github.docteurdux.spring.security.notes.N;
 
@@ -23,14 +24,15 @@ public class DefaultConstructors {
 		ScottAaronson.main(null);
 		HalAbelson.main(null);
 		SergeAbiteboul.main(null);
-
+		SamsonAbramsky.main(null);
+		LeonardAdleman.main(null);
+		
 		Clock clock = Clock.systemUTC();
 		if (clock.millis() < 0) {
 			return;
 		}
 
-		org.springframework.security.access.expression.DenyAllPermissionEvaluator x212 = new org.springframework.security.access.expression.DenyAllPermissionEvaluator();
-		org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler x211 = new org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler();
+		
 		org.springframework.security.access.expression.method.ExpressionBasedPreInvocationAdvice x210 = new org.springframework.security.access.expression.method.ExpressionBasedPreInvocationAdvice();
 		org.springframework.security.access.hierarchicalroles.NullRoleHierarchy x209 = new org.springframework.security.access.hierarchicalroles.NullRoleHierarchy();
 		org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl x208 = new org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl();
@@ -248,6 +250,7 @@ public class DefaultConstructors {
 		n.k(HalAbelson.class).s(" is about ").k(SecuredAnnotationSecurityMetadataSource.class, Secured.class);
 		n.k(SergeAbiteboul.class).s(" is about ").k(LoggerListener.class, PublicInvocationEvent.class,
 				AuthorizedEvent.class, AuthorizationFailureEvent.class, AuthenticationCredentialsNotFoundEvent.class);
+		n.k(SamsonAbramsky.class).s(" is about ").k(DenyAllPermissionEvaluator.class);
 
 	}
 

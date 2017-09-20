@@ -8,6 +8,12 @@ public class TU {
 		}
 	}
 
+	public static void nnil(Object o) {
+		if (o == null) {
+			throw new RuntimeException("Null !");
+		}
+	}
+
 	public static void tru(boolean b) {
 		if (!b) {
 			throw new RuntimeException("Not true !");
@@ -25,6 +31,12 @@ public class TU {
 
 		if (a == null && b != null || !a.equals(b)) {
 			throw new RuntimeException("Not equal !");
+		}
+	}
+
+	public static void fal(boolean b) {
+		if (b) {
+			throw new RuntimeException("Not false !");
 		}
 	}
 
