@@ -1,7 +1,9 @@
-package com.github.docteurdux.spring.security.notes;
+package com.github.docteurdux.spring.security.dc;
 
 import org.springframework.security.access.annotation.Jsr250MethodSecurityMetadataSource;
 import org.springframework.security.access.intercept.aspectj.MethodInvocationAdapter;
+
+import com.github.docteurdux.spring.security.notes.TU;
 
 public class WilVanDerAlst {
 

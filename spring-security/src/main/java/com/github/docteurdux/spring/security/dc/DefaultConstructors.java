@@ -1,22 +1,23 @@
-package com.github.docteurdux.spring.security.notes;
+package com.github.docteurdux.spring.security.dc;
 
 import java.time.Clock;
+
+import com.github.docteurdux.spring.security.notes.N;
 
 public class DefaultConstructors {
 
 	public static void main(String[] args) throws Exception {
 
-
 		// https://en.wikipedia.org/wiki/List_of_computer_scientists
-		
+
 		WilVanDerAlst.main(null);
+		ScottAaronson.main(null);
 
 		Clock clock = Clock.systemUTC();
 		if (clock.millis() < 0) {
 			return;
 		}
 
-		org.springframework.security.access.annotation.Jsr250Voter x215 = new org.springframework.security.access.annotation.Jsr250Voter();
 		org.springframework.security.access.annotation.SecuredAnnotationSecurityMetadataSource x214 = new org.springframework.security.access.annotation.SecuredAnnotationSecurityMetadataSource();
 		org.springframework.security.access.event.LoggerListener x213 = new org.springframework.security.access.event.LoggerListener();
 		org.springframework.security.access.expression.DenyAllPermissionEvaluator x212 = new org.springframework.security.access.expression.DenyAllPermissionEvaluator();
@@ -231,6 +232,10 @@ public class DefaultConstructors {
 		org.springframework.security.web.util.RedirectUrlBuilder x3 = new org.springframework.security.web.util.RedirectUrlBuilder();
 		org.springframework.security.web.util.matcher.RequestMatcherEditor x2 = new org.springframework.security.web.util.matcher.RequestMatcherEditor();
 
+	}
+
+	public void notes(N n) {
+		n.k(ScottAaronson.class).s(" is about ").k(ScottAaronson.class);
 	}
 
 }

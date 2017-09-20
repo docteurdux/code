@@ -14,4 +14,18 @@ public class TU {
 		}
 	}
 
+	public static void eq(int a, int b) {
+		if (a != b) {
+			throw new RuntimeException("Not equal !");
+		}
+
+	}
+
+	public static void eq(String a, String b) {
+
+		if (a == null && b != null || !a.equals(b)) {
+			throw new RuntimeException("Not equal !");
+		}
+	}
+
 }
