@@ -9,5 +9,7 @@ public class JTest {
 	public void testFoo() {
 		Assert.assertEquals(J.foo(3), 6);
 	}
+	
+	
 
 }
