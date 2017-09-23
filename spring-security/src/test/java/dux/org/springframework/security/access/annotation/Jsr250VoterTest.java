@@ -105,8 +105,8 @@ public class Jsr250VoterTest {
 		Assert.assertTrue(v.supports(Object.class));
 	}
 
-	// @Test
-	public void attributes() {
+	@Test
+	public void bonusAttributes() {
 
 		Jsr250SecurityConfig deny = Jsr250SecurityConfig.DENY_ALL_ATTRIBUTE;
 		Assert.assertEquals(deny.getAttribute(), "javax.annotation.security.DenyAll");
@@ -116,36 +116,6 @@ public class Jsr250VoterTest {
 
 		Jsr250SecurityConfig hello = new Jsr250SecurityConfig("hello");
 		Assert.assertEquals(hello.getAttribute(), "hello");
-	}
-
-	// @Test
-	public void customNotSet() {
-
-		Jsr250Voter v = new Jsr250Voter();
-		ArrayList<ConfigAttribute> definition = new ArrayList<>();
-		definition.add(new Jsr250SecurityConfig("hello"));
-
-		DummyAuthentication authentication = new DummyAuthentication();
-
-		int result = v.vote(authentication, null, definition);
-		Assert.assertEquals(result, AccessDecisionVoter.ACCESS_DENIED);
-	}
-
-	// @Test
-	public void customSet() {
-
-		Jsr250Voter v = new Jsr250Voter();
-		ArrayList<ConfigAttribute> definition = new ArrayList<>();
-		definition.add(new Jsr250SecurityConfig("hello"));
-
-		DummyGrantedAuthority grantedAuthority = new DummyGrantedAuthority();
-		grantedAuthority.setAuthority("hello");
-
-		DummyAuthentication authentication = new DummyAuthentication();
-		authentication.addAuthority(grantedAuthority);
-
-		int result = v.vote(authentication, null, definition);
-		Assert.assertEquals(result, AccessDecisionVoter.ACCESS_GRANTED);
 	}
 
 }
