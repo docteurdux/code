@@ -22,12 +22,15 @@ import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
+import com.github.docteurdux.spring.security.annotations.Copied;
+
 /**
  * Voter on JSR-250 configuration attributes.
  *
  * @author Ryan Heaton
  * @since 2.0
  */
+@Copied
 public class Jsr250Voter implements AccessDecisionVoter<Object> {
 
 	/**

@@ -96,7 +96,7 @@ public class Jsr250VoterTest {
 		authentication.addAuthority(ga);
 
 		int result = v.vote(authentication, null, definition);
-		Assert.assertEquals(result, AccessDecisionVoter.ACCESS_DENIED);
+		Assert.assertEquals(result, AccessDecisionVoter.ACCESS_GRANTED);
 	}
 
 	@Test
