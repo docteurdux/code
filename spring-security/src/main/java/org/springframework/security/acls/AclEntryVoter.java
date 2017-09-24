@@ -41,6 +41,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.github.docteurdux.spring.security.annotations.Copied;
+
 /**
  * <p>
  * Given a domain object instance passed as a method argument, ensures the principal has
@@ -95,6 +97,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Ben Alex
  */
+@Copied
 public class AclEntryVoter extends AbstractAclVoter {
 	// ~ Static fields/initializers
 	// =====================================================================================
