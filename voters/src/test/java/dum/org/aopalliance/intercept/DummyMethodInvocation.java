@@ -1,4 +1,4 @@
-package dux.org.aopalliance.intercept;
+package dum.org.aopalliance.intercept;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;

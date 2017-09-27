@@ -1,4 +1,4 @@
-package dux.javax.servlet;
+package dum.javax.servlet;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.EventListener;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -153,8 +154,19 @@ public class DummyServletContext implements ServletContext {
 
 	@Override
 	public Enumeration<String> getInitParameterNames() {
-		// TODO Auto-generated method stub
-		return null;
+		Iterator<String> iterator = parameters.keySet().iterator();
+		return new Enumeration<String>() {
+
+			@Override
+			public boolean hasMoreElements() {
+				return iterator.hasNext();
+			}
+
+			@Override
+			public String nextElement() {
+				return iterator.next();
+			}
+		};
 	}
 
 	@Override
@@ -170,8 +182,19 @@ public class DummyServletContext implements ServletContext {
 
 	@Override
 	public Enumeration<String> getAttributeNames() {
-		// TODO Auto-generated method stub
-		return null;
+		Iterator<String> iterator = attributes.keySet().iterator();
+		return new Enumeration<String>() {
+
+			@Override
+			public boolean hasMoreElements() {
+				return iterator.hasNext();
+			}
+
+			@Override
+			public String nextElement() {
+				return iterator.next();
+			}
+		};
 	}
 
 	@Override

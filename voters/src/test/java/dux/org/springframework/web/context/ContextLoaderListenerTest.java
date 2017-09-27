@@ -3,7 +3,7 @@ package dux.org.springframework.web.context;
 import org.junit.Test;
 import org.springframework.web.context.ContextLoaderListener;
 
-import dux.javax.servlet.DummyServletContext;
+import dum.javax.servlet.DummyServletContext;
 
 public class ContextLoaderListenerTest {
 	@Test
