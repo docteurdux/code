@@ -1,12 +1,16 @@
 package duu.org.springframework.beans.factory.config;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
 import org.springframework.beans.factory.support.ManagedList;
 
 public class BeanDefinitionUtils {
@@ -103,8 +107,18 @@ public class BeanDefinitionUtils {
 		}
 
 		if (expected.isConstructorArgumentValuesSet()) {
-			Assert.assertEquals(expected.getConstructorArgumentValues().getArgumentCount(),
-					actual.getConstructorArgumentValues().getArgumentCount());
+			Map<Integer, Object> expectedIav = expected.getIndexedArgumentValues();
+			ConstructorArgumentValues actualCav = actual.getConstructorArgumentValues();
+			Assert.assertEquals(expectedIav.size(), actualCav.getArgumentCount());
+			for (Entry<Integer, ValueHolder> entry : actualCav.getIndexedArgumentValues().entrySet()) {
+				Integer key = entry.getKey();
+				Object expectedValue = expectedIav.get(key);
+				if (expectedValue instanceof Class) {
+					Class<?> expectedClass = (Class<?>) expectedValue;
+					Object actualValue = entry.getValue().getValue();
+					Assert.assertTrue(expectedClass.isAssignableFrom(actualValue.getClass()));
+				}
+			}
 		}
 
 		if (expected.isAttributesSet()) {

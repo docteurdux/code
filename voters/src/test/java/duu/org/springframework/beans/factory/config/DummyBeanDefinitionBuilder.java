@@ -1,5 +1,6 @@
 package duu.org.springframework.beans.factory.config;
 
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.ManagedList;
 
 public class DummyBeanDefinitionBuilder {
@@ -116,6 +117,11 @@ public class DummyBeanDefinitionBuilder {
 
 	public DummyBeanDefinitionBuilder source(Object source) {
 		definition.setSource(source);
+		return this;
+	}
+
+	public DummyBeanDefinitionBuilder indexedArgumentValues(int i, Class<?> clazz) {
+		definition.setIndexedArgumentValues(i, clazz);
 		return this;
 	}
 }

@@ -1,16 +1,24 @@
 package dux.org.springframework.security.config.http;
 
+import java.util.AbstractList;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.security.config.http.HttpSecurityBeanDefinitionParser;
+import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -37,37 +45,6 @@ public class HttpSecurityBeanDefinitionParserTest {
 		ParserContext pc = ParserContextUtils.getParserContext();
 		parser.parse(element, pc);
 
-		// BeanDefinition bd = pc.getContainingBeanDefinition();
-		// bd.getBeanClassName();
-		// bd.getConstructorArgumentValues();
-		// bd.getDependsOn();
-		// bd.getDescription();
-		// bd.getFactoryBeanName();
-		// bd.getFactoryMethodName();
-		// bd.getOriginatingBeanDefinition();
-		// bd.getParentName();
-		// bd.getPropertyValues();
-		// bd.getResourceDescription();
-		// bd.getRole();
-		// bd.getScope();
-		// bd.isAbstract();
-		// bd.isAutowireCandidate();
-		// bd.isLazyInit();
-		// bd.isPrimary();
-		// bd.isPrototype();
-		// bd.isSingleton();
-		// CompositeComponentDefinition c = pc.getContainingComponent();
-		// c.getName();
-		// c.getSource();
-		// c.getNestedComponents();
-		//
-		// BeanDefinitionParserDelegate d = pc.getDelegate();
-		// d.getAutowireCandidatePatterns();
-		// d.getBeanDefinitionDefaults();
-		// d.getDefaults();
-		// d.getEnvironment();
-		//
-		// XmlReaderContext rc = pc.getReaderContext();
 		BeanDefinitionRegistry registry = pc.getRegistry();
 		Assert.assertNotNull(registry);
 		Assert.assertEquals(3, registry.getBeanDefinitionCount());
@@ -76,6 +53,8 @@ public class HttpSecurityBeanDefinitionParserTest {
 		defaultSecurityFilterChain(registry);
 		filterChainProxy(registry);
 
+		
+
 	}
 
 	private void filterChains(BeanDefinitionRegistry registry) {
@@ -83,12 +62,25 @@ public class HttpSecurityBeanDefinitionParserTest {
 		BeanDefinition filterChains = registry.getBeanDefinition(FILTER_CHAINS);
 
 		BuiltBeanDefinition expected = new DummyBeanDefinitionBuilder()
-				.beanClassName("org.springframework.beans.factory.config.ListFactoryBean").singleton().notPrototype()
-				.notPrimary().notLazyInit().autowireCandidate().notAbstract().scope("").role(0).description(null)
-				.resourceDescription(null).factoryBeanName(null).factoryMethodName(null).parentName(null)
-				.property("sourceList", ManagedList.class).dependsOn(null).originatingBeanDefinition(null)
-				.constructorArgumentValues().attributes().source(null).build();
+
+				.beanClassName("org.springframework.beans.factory.config.ListFactoryBean")
+
+				.singleton().autowireCandidate().notPrototype().notPrimary().notLazyInit().notAbstract()
+
+				.property("sourceList", ManagedList.class)
+
+				.scope("").role(0).description(null).resourceDescription(null).factoryBeanName(null)
+				.factoryMethodName(null).parentName(null).dependsOn(null).originatingBeanDefinition(null)
+				.constructorArgumentValues().attributes().source(null)
+
+				.build();
+
 		BeanDefinitionUtils.match(expected, filterChains);
+		
+		ManagedList ml = (ManagedList) filterChains.getPropertyValues().get("sourceList");
+		Assert.assertEquals(ml.size(), 1);
+		RuntimeBeanReference rbr = (RuntimeBeanReference) ml.get(0);
+		
 
 	}
 
@@ -96,13 +88,21 @@ public class HttpSecurityBeanDefinitionParserTest {
 		Assert.assertTrue(registry.containsBeanDefinition(DEFAULT_SECURITY_FILTER_CHAIN));
 		BeanDefinition defaultSecurityFilterChain = registry.getBeanDefinition(DEFAULT_SECURITY_FILTER_CHAIN);
 
-		// There are some constructor argument values
-		
-		BuiltBeanDefinition expected = new DummyBeanDefinitionBuilder().singleton().notPrototype().notPrimary()
-				.notLazyInit().autowireCandidate().notAbstract().role(0).scope("")
-				.beanClassName("org.springframework.security.web.DefaultSecurityFilterChain").description(null)
-				.resourceDescription(null).factoryBeanName(null).factoryMethodName(null).parentName(null).source(null)
-				.attributes().dependsOn(null).originatingBeanDefinition(null).build();
+		BuiltBeanDefinition expected = new DummyBeanDefinitionBuilder()
+
+				.beanClassName("org.springframework.security.web.DefaultSecurityFilterChain")
+
+				.singleton().autowireCandidate().notPrototype().notPrimary().notLazyInit().notAbstract()
+
+				.indexedArgumentValues(0, RootBeanDefinition.class)
+
+				.indexedArgumentValues(1, AbstractList.class)
+
+				.role(0).scope("").description(null).resourceDescription(null).factoryBeanName(null)
+				.factoryMethodName(null).parentName(null).source(null).attributes().dependsOn(null)
+				.originatingBeanDefinition(null)
+
+				.build();
 
 		BeanDefinitionUtils.match(expected, defaultSecurityFilterChain);
 	}
@@ -110,15 +110,30 @@ public class HttpSecurityBeanDefinitionParserTest {
 	private void filterChainProxy(BeanDefinitionRegistry registry) {
 		Assert.assertTrue(registry.containsBeanDefinition(FILTER_CHAIN_PROXY));
 		BeanDefinition filterChainProxy = registry.getBeanDefinition(FILTER_CHAIN_PROXY);
-		
-		// There are some constructor argument values
-		BuiltBeanDefinition expected = new DummyBeanDefinitionBuilder().singleton().notPrototype().notPrimary()
-				.notLazyInit().autowireCandidate().notAbstract().role(0).scope("")
-				.beanClassName("org.springframework.security.web.FilterChainProxy").description(null)
-				.resourceDescription(null).factoryBeanName(null).factoryMethodName(null).parentName(null).source(null)
-				.property("filterChainValidator", RootBeanDefinition.class).attributes().dependsOn(null)
-				.originatingBeanDefinition(null).build();
-		;
+
+		BuiltBeanDefinition expected = new DummyBeanDefinitionBuilder()
+
+				.beanClassName("org.springframework.security.web.FilterChainProxy")
+
+				.singleton().autowireCandidate().notPrototype().notPrimary().notLazyInit().notAbstract()
+
+				.property("filterChainValidator", RootBeanDefinition.class)
+
+				.indexedArgumentValues(0, RuntimeBeanReference.class)
+
+				.role(0).scope("").description(null).resourceDescription(null).factoryBeanName(null)
+				.factoryMethodName(null).parentName(null).source(null)
+
+				.attributes().dependsOn(null).originatingBeanDefinition(null)
+
+				.build();
+
 		BeanDefinitionUtils.match(expected, filterChainProxy);
+		
+		RootBeanDefinition rbd=(RootBeanDefinition) filterChainProxy.getPropertyValues().get("filterChainValidator");
+		
+		
+		
+		
 	}
 }

@@ -48,6 +48,7 @@ public class BuiltBeanDefinition implements BeanDefinition {
 	private Map<String, Object> attributes = new HashMap<>();
 	private Object source;
 	private boolean sourceSet;
+	private Map<Integer, Object> indexedArgumentValues = new HashMap<>();
 
 	@Override
 	public void setAttribute(String name, Object value) {
@@ -353,6 +354,15 @@ public class BuiltBeanDefinition implements BeanDefinition {
 
 	public boolean isAttributesSet() {
 		return attributesSet;
+	}
+
+	public void setIndexedArgumentValues(int i, Class<?> clazz) {
+		constructorArgumentValuesSet = true;
+		indexedArgumentValues.put(i, clazz);
+	}
+
+	public Map<Integer, Object> getIndexedArgumentValues() {
+		return indexedArgumentValues;
 	}
 
 }
