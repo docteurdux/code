@@ -12,7 +12,7 @@ import org.springframework.security.acls.model.AclService;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.core.Authentication;
 
-import dux.org.aopalliance.intercept.DummyMethodInvocation;
+import dum.org.aopalliance.intercept.DummyMethodInvocation;
 import dux.org.springframework.security.access.DummyConfigAttribute;
 import dux.org.springframework.security.acls.model.DummyAcl;
 import dux.org.springframework.security.acls.model.DummyAclService;

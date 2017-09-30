@@ -26,7 +26,6 @@ public class UsernamePasswordAuthenticationTokenTest {
 		Object principal = null;
 		Object credentials = null;
 		Collection<GrantedAuthority> authorities = null;
-		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, credentials,
-				authorities);
+		new UsernamePasswordAuthenticationToken(principal, credentials, authorities);
 	}
 }

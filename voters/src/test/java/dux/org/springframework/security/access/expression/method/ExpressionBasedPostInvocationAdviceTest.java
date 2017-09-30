@@ -14,6 +14,7 @@ import dux.org.springframework.security.core.DummyAuthentication;
 public class ExpressionBasedPostInvocationAdviceTest {
 
 	private static class Foo {
+		@SuppressWarnings("unused")
 		public void foo() {
 
 		}

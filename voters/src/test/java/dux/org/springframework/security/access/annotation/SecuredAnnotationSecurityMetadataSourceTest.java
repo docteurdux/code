@@ -12,6 +12,7 @@ import org.springframework.security.access.annotation.SecuredAnnotationSecurityM
 public class SecuredAnnotationSecurityMetadataSourceTest {
 
 	private static class Foo {
+		@SuppressWarnings("unused")
 		public void noAttribute() {
 
 		}

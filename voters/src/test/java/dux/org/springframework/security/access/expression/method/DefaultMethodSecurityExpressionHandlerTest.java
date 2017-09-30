@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.util.SimpleMethodInvocation;
@@ -16,6 +15,7 @@ import dux.org.springframework.security.core.DummyAuthentication;
 public class DefaultMethodSecurityExpressionHandlerTest {
 
 	private static class Foo {
+		@SuppressWarnings("unused")
 		public void foo() {
 		}
 	}
