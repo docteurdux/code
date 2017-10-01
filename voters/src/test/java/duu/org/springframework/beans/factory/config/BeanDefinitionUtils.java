@@ -5,13 +5,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.junit.Assert;
-import org.junit.Test;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
-import org.springframework.beans.factory.support.ManagedList;
 
 public class BeanDefinitionUtils {
 

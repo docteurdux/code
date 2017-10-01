@@ -1,8 +1,5 @@
 package duu.org.springframework.beans.factory.config;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.ManagedList;
-
 public class DummyBeanDefinitionBuilder {
 
 	private BuiltBeanDefinition definition;

@@ -2,12 +2,12 @@ package dux.org.springframework.web.context.support.xmlWebApplicationContext;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
+import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -27,6 +27,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.security.web.FilterChainProxy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -71,6 +72,16 @@ public class UserPasswordTest {
 		filterChainProxy.doFilter(request, response, chain);
 		Assert.assertEquals(403, response.getStatus());
 		System.out.println(response.getContentAsString());
+
+		List<SecurityFilterChain> securityFilterChains = filterChainProxy.getFilterChains();
+		System.out.println(securityFilterChains.size());
+		SecurityFilterChain sfc = securityFilterChains.get(0);
+		List<Filter> fil = sfc.getFilters();
+		System.out.println(fil.size());
+		for (Filter f : fil) {
+			System.out.println(f.getClass().getName());
+		}
+		context.close();
 
 	}
 

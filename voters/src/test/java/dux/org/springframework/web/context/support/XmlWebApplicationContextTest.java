@@ -1,7 +1,5 @@
 package dux.org.springframework.web.context.support;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import org.junit.Test;
@@ -10,27 +8,22 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 
 import dum.javax.servlet.DummyServletContext;
 import dum.org.springframework.core.io.DummyProtocolResolver;
-import dum.org.springframework.core.io.DummyResourceLoader;
 
 public class XmlWebApplicationContextTest {
-	private static final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" + 
-			"<beans:beans xmlns=\"http://www.springframework.org/schema/security\"\r\n" + 
-			"	xmlns:beans=\"http://www.springframework.org/schema/beans\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n" + 
-			"	xsi:schemaLocation=\"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd\r\n" + 
-			"						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd\">"
-			+ "<http pattern='/images/**' security='none' />"
-			+ "</beans:beans>";
+	private static final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n"
+			+ "<beans:beans xmlns=\"http://www.springframework.org/schema/security\"\r\n"
+			+ "	xmlns:beans=\"http://www.springframework.org/schema/beans\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\r\n"
+			+ "	xsi:schemaLocation=\"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd\r\n"
+			+ "						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd\">"
+			+ "<http pattern='/images/**' security='none' />" + "</beans:beans>";
 
 	@Test
 	public void test() throws UnsupportedEncodingException {
 		@SuppressWarnings("resource")
 		XmlWebApplicationContext context = new XmlWebApplicationContext();
 		DummyProtocolResolver pr = new DummyProtocolResolver();
-		DummyResourceLoader r = new DummyResourceLoader();
 		ByteArrayResource resource = new ByteArrayResource(xml.getBytes());
-		r.getResources().put("/WEB-INF/applicationContext.xml", resource);
-
-		pr.getResourceLoaders().put("/WEB-INF/applicationContext.xml", r);
+		pr.getResources().put("/WEB-INF/applicationContext.xml", resource);
 		context.addProtocolResolver(pr);
 		//
 		DummyServletContext servletContext = new DummyServletContext();

@@ -68,30 +68,10 @@
 			<artifactId>spring-security-config</artifactId>
 			<version>4.2.3.RELEASE</version>
 		</dependency>
-	<!-- 
 		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-remoting</artifactId>
-			<version>4.2.3.RELEASE</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-ldap</artifactId>
-			<version>4.2.3.RELEASE</version>
-		</dependency>
-		
-		
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-cas</artifactId>
-			<version>4.2.3.RELEASE</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-taglibs</artifactId>
-			<version>4.2.3.RELEASE</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>4.3.11.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
@@ -99,57 +79,33 @@
 			<version>4.2.3.RELEASE</version>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-			<version>4.3.11.RELEASE</version>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.10.19</version>
+			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.9.1</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-websocket</artifactId>
-			<version>4.3.11.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache</artifactId>
-			<version>2.10.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjrt</artifactId>
-			<version>1.8.10</version>
-		</dependency>
-		<dependency>
-			<groupId>org.cryptomator</groupId>
-			<artifactId>cryptolib</artifactId>
-			<version>1.1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-messaging</artifactId>
-			<version>4.3.11.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-messaging</artifactId>
-			<version>4.2.3.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.directory.server</groupId>
-			<artifactId>apacheds-core</artifactId>
-			<version>1.5.7</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.directory.shared</groupId>
-			<artifactId>shared-ldap</artifactId>
-			<version>0.9.7</version>
-		</dependency>
-		
-		 -->
+
+		<!-- <dependency> <groupId>org.springframework.security</groupId> <artifactId>spring-security-remoting</artifactId> 
+			<version>4.2.3.RELEASE</version> </dependency> <dependency> <groupId>org.springframework.security</groupId> 
+			<artifactId>spring-security-ldap</artifactId> <version>4.2.3.RELEASE</version> 
+			</dependency> <dependency> <groupId>org.springframework.security</groupId> 
+			<artifactId>spring-security-cas</artifactId> <version>4.2.3.RELEASE</version> 
+			</dependency> <dependency> <groupId>org.springframework.security</groupId> 
+			<artifactId>spring-security-taglibs</artifactId> <version>4.2.3.RELEASE</version> 
+			</dependency> <dependency> <groupId>com.fasterxml.jackson.core</groupId> 
+			<artifactId>jackson-databind</artifactId> <version>2.9.1</version> </dependency> 
+			<dependency> <groupId>org.springframework</groupId> <artifactId>spring-websocket</artifactId> 
+			<version>4.3.11.RELEASE</version> </dependency> <dependency> <groupId>net.sf.ehcache</groupId> 
+			<artifactId>ehcache</artifactId> <version>2.10.4</version> </dependency> 
+			<dependency> <groupId>org.aspectj</groupId> <artifactId>aspectjrt</artifactId> 
+			<version>1.8.10</version> </dependency> <dependency> <groupId>org.cryptomator</groupId> 
+			<artifactId>cryptolib</artifactId> <version>1.1.0</version> </dependency> 
+			<dependency> <groupId>org.springframework</groupId> <artifactId>spring-messaging</artifactId> 
+			<version>4.3.11.RELEASE</version> </dependency> <dependency> <groupId>org.springframework.security</groupId> 
+			<artifactId>spring-security-messaging</artifactId> <version>4.2.3.RELEASE</version> 
+			</dependency> <dependency> <groupId>org.apache.directory.server</groupId> 
+			<artifactId>apacheds-core</artifactId> <version>1.5.7</version> </dependency> 
+			<dependency> <groupId>org.apache.directory.shared</groupId> <artifactId>shared-ldap</artifactId> 
+			<version>0.9.7</version> </dependency> -->
 	</dependencies>
 </project>

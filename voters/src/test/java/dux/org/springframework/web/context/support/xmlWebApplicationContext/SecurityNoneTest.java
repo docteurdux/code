@@ -55,6 +55,7 @@ public class SecurityNoneTest {
 		@SuppressWarnings("rawtypes")
 		ArrayList fiterChains = (ArrayList) context.getBean("org.springframework.security.filterChains");
 
+		@SuppressWarnings("unused")
 		FilterChainProxy filterChainProxy = (FilterChainProxy) context
 				.getBean("org.springframework.security.filterChainProxy");
 
@@ -68,6 +69,8 @@ public class SecurityNoneTest {
 				.getRequestMatcher();
 
 		Assert.assertEquals("/*", antPathRequestMatcher.getPattern());
+
+		context.close();
 
 	}
 
