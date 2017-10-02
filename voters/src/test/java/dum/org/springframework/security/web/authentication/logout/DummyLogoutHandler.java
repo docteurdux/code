@@ -8,10 +8,15 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 public class DummyLogoutHandler implements LogoutHandler {
 
+	private int count;
+
 	@Override
 	public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-		// TODO Auto-generated method stub
+		++count;
+	}
 
+	public int getCount() {
+		return count;
 	}
 
 }

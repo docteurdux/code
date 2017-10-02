@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PostInvocationAttribute;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.util.SimpleMethodInvocation;
 
-import dux.org.springframework.security.core.DummyAuthentication;
+import dum.org.springframework.security.core.DummyAuthentication;
 
 public class ExpressionBasedPostInvocationAdviceTest {
 

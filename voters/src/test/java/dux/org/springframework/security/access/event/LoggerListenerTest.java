@@ -15,7 +15,7 @@ import org.springframework.security.access.event.PublicInvocationEvent;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 
-import dux.org.springframework.security.core.DummyAuthentication;
+import dum.org.springframework.security.core.DummyAuthentication;
 
 public class LoggerListenerTest {
 	@Test

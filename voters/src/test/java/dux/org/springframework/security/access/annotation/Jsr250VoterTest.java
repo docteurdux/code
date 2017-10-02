@@ -10,8 +10,8 @@ import org.springframework.security.access.annotation.Jsr250SecurityConfig;
 import org.springframework.security.access.annotation.Jsr250Voter;
 import org.springframework.security.core.GrantedAuthority;
 
+import dum.org.springframework.security.core.DummyAuthentication;
 import dux.org.springframework.security.access.DummyConfigAttribute;
-import dux.org.springframework.security.core.DummyAuthentication;
 import dux.org.springframework.security.core.DummyGrantedAuthority;
 
 public class Jsr250VoterTest {

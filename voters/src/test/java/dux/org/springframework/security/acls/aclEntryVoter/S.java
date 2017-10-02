@@ -13,11 +13,11 @@ import org.springframework.security.acls.model.Permission;
 import org.springframework.security.core.Authentication;
 
 import dum.org.aopalliance.intercept.DummyMethodInvocation;
+import dum.org.springframework.security.core.DummyAuthentication;
 import dux.org.springframework.security.access.DummyConfigAttribute;
 import dux.org.springframework.security.acls.model.DummyAcl;
 import dux.org.springframework.security.acls.model.DummyAclService;
 import dux.org.springframework.security.acls.model.DummyPermission;
-import dux.org.springframework.security.core.DummyAuthentication;
 
 public class S {
 

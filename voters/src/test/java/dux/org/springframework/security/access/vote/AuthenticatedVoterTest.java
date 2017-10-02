@@ -13,8 +13,8 @@ import org.springframework.security.authentication.RememberMeAuthenticationToken
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
+import dum.org.springframework.security.core.DummyAuthentication;
 import dux.org.springframework.security.access.DummyConfigAttribute;
-import dux.org.springframework.security.core.DummyAuthentication;
 import dux.org.springframework.security.core.DummyGrantedAuthority;
 
 public class AuthenticatedVoterTest {

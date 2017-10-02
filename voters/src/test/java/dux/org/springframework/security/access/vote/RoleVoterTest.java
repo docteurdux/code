@@ -10,8 +10,8 @@ import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.core.Authentication;
 
+import dum.org.springframework.security.core.DummyAuthentication;
 import dux.org.springframework.security.access.DummyConfigAttribute;
-import dux.org.springframework.security.core.DummyAuthentication;
 import dux.org.springframework.security.core.DummyGrantedAuthority;
 
 public class RoleVoterTest {

@@ -3,7 +3,7 @@ package dux.org.springframework.security.access.expression;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 
-import dux.org.springframework.security.core.DummyAuthentication;
+import dum.org.springframework.security.core.DummyAuthentication;
 
 public class AbstractSecurityExpressionHandlerTest {
 

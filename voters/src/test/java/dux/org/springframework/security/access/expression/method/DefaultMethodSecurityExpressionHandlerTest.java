@@ -9,8 +9,8 @@ import org.springframework.security.access.expression.method.DefaultMethodSecuri
 import org.springframework.security.core.Authentication;
 import org.springframework.security.util.SimpleMethodInvocation;
 
+import dum.org.springframework.security.core.DummyAuthentication;
 import dux.org.springframework.expression.DummyExpression;
-import dux.org.springframework.security.core.DummyAuthentication;
 
 public class DefaultMethodSecurityExpressionHandlerTest {
 

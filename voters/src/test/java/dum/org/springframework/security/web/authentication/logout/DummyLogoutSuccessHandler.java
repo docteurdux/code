@@ -11,11 +11,16 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 
 public class DummyLogoutSuccessHandler implements LogoutSuccessHandler {
 
+	private int count;
+
 	@Override
 	public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+		++count;
+	}
 
+	public int getCount() {
+		return count;
 	}
 
 }

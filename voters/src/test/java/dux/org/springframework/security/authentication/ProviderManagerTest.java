@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 
-import dux.org.springframework.security.core.DummyAuthentication;
+import dum.org.springframework.security.core.DummyAuthentication;
 
 public class ProviderManagerTest {
 	@Test

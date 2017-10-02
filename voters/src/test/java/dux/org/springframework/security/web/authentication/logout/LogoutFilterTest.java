@@ -3,6 +3,7 @@ package dux.org.springframework.security.web.authentication.logout;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,6 +26,8 @@ public class LogoutFilterTest {
 	private MockHttpServletRequest request;
 	private MockHttpServletResponse response;
 	private MockFilterChain filterChain;
+	private DummyLogoutHandler handler;
+	private DummyLogoutSuccessHandler logoutSuccessHandler;
 
 	@Before
 	public void before() {
@@ -33,16 +36,41 @@ public class LogoutFilterTest {
 		request = new MockHttpServletRequest();
 		response = new MockHttpServletResponse();
 		filterChain = new MockFilterChain(servlet, countingFilter);
+		handler = new DummyLogoutHandler();
+		logoutSuccessHandler = new DummyLogoutSuccessHandler();
 	}
 
 	@Test
-	public void test() throws ServletException, IOException {
-		LogoutSuccessHandler logoutSuccessHandler = new DummyLogoutSuccessHandler();
-		LogoutHandler handler = new DummyLogoutHandler();
+	public void testLogoutDefaultNotRequired() throws ServletException, IOException {
 		LogoutFilter filter = new LogoutFilter(logoutSuccessHandler, handler);
-		String logoutSuccessUrl = "/logout/success";
-//		filter = new LogoutFilter(logoutSuccessUrl, handler);
 		filter.doFilter(request, response, filterChain);
 		Assert.assertEquals(1, countingFilter.getCount());
+		Assert.assertEquals(0, handler.getCount());
+		Assert.assertEquals(0, logoutSuccessHandler.getCount());
+	}
+
+	@Test
+	public void testLogoutDefaultRequired() throws ServletException, IOException {
+		request.setServletPath("/logout");
+		LogoutFilter filter = new LogoutFilter(logoutSuccessHandler, handler);
+		filter.doFilter(request, response, filterChain);
+		Assert.assertEquals(0, countingFilter.getCount());
+		Assert.assertEquals(1, handler.getCount());
+		Assert.assertEquals(1, logoutSuccessHandler.getCount());
+	}
+
+	@Test
+	public void testLogoutUrlRequired() throws ServletException, IOException {
+		request.setServletPath("/logout");
+		LogoutFilter filter = new LogoutFilter("/logout/success", handler);
+		filter.doFilter(request, response, filterChain);
+		Assert.assertEquals(0, countingFilter.getCount());
+		Assert.assertEquals(1, handler.getCount());
+		Assert.assertEquals(0, logoutSuccessHandler.getCount());
+
+		Assert.assertEquals("/logout/success", response.getHeader("Location"));
+		Assert.assertEquals(HttpServletResponse.SC_MOVED_TEMPORARILY, response.getStatus());
+		Assert.assertTrue(response.isCommitted());
+
 	}
 }

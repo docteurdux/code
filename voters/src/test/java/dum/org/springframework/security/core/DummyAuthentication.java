@@ -1,4 +1,4 @@
-package dux.org.springframework.security.core;
+package dum.org.springframework.security.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
