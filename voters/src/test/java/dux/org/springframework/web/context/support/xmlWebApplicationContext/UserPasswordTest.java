@@ -3,11 +3,7 @@ package dux.org.springframework.web.context.support.xmlWebApplicationContext;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -23,7 +19,6 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -43,15 +38,22 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.ui.DefaultLoginPageGeneratingFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfLogoutHandler;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.header.writers.CacheControlHeadersWriter;
+import org.springframework.security.web.header.writers.HstsHeaderWriter;
+import org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter;
+import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
+import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.savedrequest.RequestCacheAwareFilter;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 import org.springframework.security.web.session.SessionManagementFilter;
@@ -60,6 +62,8 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.github.docteurdux.test.DuxTest;
+
 import dum.org.springframework.core.io.DummyProtocolResolver;
 import duu.org.springframework.security.web.authentication.AbstractAuthenticationTargetUrlRequestHandlerExposer;
 import duu.org.springframework.security.web.authentication.logout.CompositeLogoutHandlerExposer;
@@ -67,20 +71,7 @@ import duu.org.springframework.security.web.authentication.logout.LogoutFilterEx
 import duu.org.springframework.security.web.csrf.CsrfFilterUtils;
 import duu.org.springframework.security.web.csrf.LazyCsrfTokenRepositoryUtils;
 
-public class UserPasswordTest {
-
-	private static final String X_CONTENT_TYPE_OPTIONS_HEADER_WRITER_CLASSNAME = "org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter";
-	private static final String X_FRAME_OPTIONS_HEADER_WRITER_CLASSNAME = "org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter";
-	private static final String X_XSS_PROTECTION_HEADER_WRITER_CLASSNAME = "org.springframework.security.web.header.writers.XXssProtectionHeaderWriter";
-	private static final String HSTS_HEADER_WRITER_CLASSNAME = "org.springframework.security.web.header.writers.HstsHeaderWriter";
-	private static final String CACHE_CONTROL_HEADERS_WRITER_CLASSNAME = "org.springframework.security.web.header.writers.CacheControlHeadersWriter";
-	private static final String SECURITY_CONTEXT_LOGOUT_HANDLER_CLASS = "org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler";
-	private static final String CSRF_LOGOUT_HANDLER_CLASS = "org.springframework.security.web.csrf.CsrfLogoutHandler";
-
-	public static enum FilterType {
-		SecurityContextPersistenceFilter, WebAsyncManagerIntegrationFilter, HeaderWriterFilter, CsrfFilter, LogoutFilter, UsernamePasswordAuthenticationFilter, DefaultLoginPageGeneratingFilter, BasicAuthenticationFilter, RequestCacheAwareFilter, SecurityContextHolderAwareRequestFilter, AnonymousAuthenticationFilter, SessionManagementFilter, ExceptionTranslationFilter, FilterSecurityInterceptor
-
-	}
+public class UserPasswordTest extends DuxTest {
 
 	private static final String BEANS_XSD = "http://www.springframework.org/schema/beans/spring-beans-3.0.xsd";
 	private static final String BEANS_NS = "http://www.springframework.org/schema/beans";
@@ -108,7 +99,7 @@ public class UserPasswordTest {
 			System.out.println(name);
 		}
 
-		Assert.assertEquals(23, context.getBeanDefinitionCount());
+		aeq(23, context.getBeanDefinitionCount());
 
 		FilterChainProxy filterChainProxy = (FilterChainProxy) context
 				.getBean("org.springframework.security.filterChainProxy");
@@ -117,65 +108,66 @@ public class UserPasswordTest {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		FilterChain chain = new MockFilterChain();
 		filterChainProxy.doFilter(request, response, chain);
-		Assert.assertEquals(403, response.getStatus());
+		aeq(403, response.getStatus());
 		System.out.println(response.getContentAsString());
 
-		List<SecurityFilterChain> securityFilterChains = filterChainProxy.getFilterChains();
-		System.out.println(securityFilterChains.size());
-		SecurityFilterChain sfc = securityFilterChains.get(0);
-		List<Filter> filters = sfc.getFilters();
-		System.out.println(filters.size());
+		List<SecurityFilterChain> filterChains = filterChainProxy.getFilterChains();
+		aeq(1, filterChains.size());
 
-		Map<FilterType, Filter> filterMap = new HashMap<>();
-		fillFilterMap(filters, filterMap);
+		List<Filter> filters = filterChains.get(0).getFilters();
 
-		CsrfFilter csrfFilter = (CsrfFilter) filterMap.get(FilterType.CsrfFilter);
+		aeq(14, filters.size());
+		acclass(filters, SecurityContextPersistenceFilter.class);
+		acclass(filters, WebAsyncManagerIntegrationFilter.class);
+		acclass(filters, HeaderWriterFilter.class);
+		acclass(filters, CsrfFilter.class);
+		acclass(filters, LogoutFilter.class);
+		acclass(filters, UsernamePasswordAuthenticationFilter.class);
+		acclass(filters, DefaultLoginPageGeneratingFilter.class);
+		acclass(filters, BasicAuthenticationFilter.class);
+		acclass(filters, RequestCacheAwareFilter.class);
+		acclass(filters, SecurityContextHolderAwareRequestFilter.class);
+		acclass(filters, AnonymousAuthenticationFilter.class);
+		acclass(filters, SessionManagementFilter.class);
+		acclass(filters, ExceptionTranslationFilter.class);
+		acclass(filters, FilterSecurityInterceptor.class);
+
+		CsrfFilter csrfFilter = got(filters, CsrfFilter.class);
 
 		LazyCsrfTokenRepository repository = (LazyCsrfTokenRepository) CsrfFilterUtils.getTokenRepository(csrfFilter);
 		HttpSessionCsrfTokenRepository delegate = (HttpSessionCsrfTokenRepository) LazyCsrfTokenRepositoryUtils
 				.getDelegate(repository);
 
-		HeaderWriterFilter headerWriterFilter = (HeaderWriterFilter) filterMap.get(FilterType.HeaderWriterFilter);
-		Field field = HeaderWriterFilter.class.getDeclaredField("headerWriters");
-		field.setAccessible(true);
-		@SuppressWarnings("unchecked")
-		List<HeaderWriter> headerWriters = (List<HeaderWriter>) field.get(headerWriterFilter);
-		Set<String> headerWriterClassNames = new HashSet<>();
-		for (HeaderWriter headerWriter : headerWriters) {
-			headerWriterClassNames.add(headerWriter.getClass().getName());
-		}
-		Assert.assertTrue(headerWriterClassNames.contains(CACHE_CONTROL_HEADERS_WRITER_CLASSNAME));
-		Assert.assertTrue(headerWriterClassNames.contains(HSTS_HEADER_WRITER_CLASSNAME));
-		Assert.assertTrue(headerWriterClassNames.contains(X_XSS_PROTECTION_HEADER_WRITER_CLASSNAME));
-		Assert.assertTrue(headerWriterClassNames.contains(X_FRAME_OPTIONS_HEADER_WRITER_CLASSNAME));
-		Assert.assertTrue(headerWriterClassNames.contains(X_CONTENT_TYPE_OPTIONS_HEADER_WRITER_CLASSNAME));
+		HeaderWriterFilterExposer headerWriterFilter = new HeaderWriterFilterExposer(
+				got(filters, HeaderWriterFilter.class));
+		List<HeaderWriter> headerWriters = headerWriterFilter.getHeaderWriters();
 
-		LogoutFilterExposer logoutFilter = new LogoutFilterExposer(
-				(LogoutFilter) filterMap.get(FilterType.LogoutFilter));
+		acclass(headerWriters, CacheControlHeadersWriter.class);
+		acclass(headerWriters, HstsHeaderWriter.class);
+		acclass(headerWriters, XXssProtectionHeaderWriter.class);
+		acclass(headerWriters, XFrameOptionsHeaderWriter.class);
+		acclass(headerWriters, XContentTypeOptionsHeaderWriter.class);
+
+		LogoutFilterExposer logoutFilter = new LogoutFilterExposer(got(filters, LogoutFilter.class));
 
 		AbstractAuthenticationTargetUrlRequestHandlerExposer logoutSuccessHandler = getLogoutSuccessHandler(
 				logoutFilter);
 
 		CompositeLogoutHandlerExposer logoutHandler = getLogoutHandler(logoutFilter);
 
-		Assert.assertEquals("/login?logout", logoutSuccessHandler.getDefaultTargetUrl());
+		aeq("/login?logout", logoutSuccessHandler.getDefaultTargetUrl());
 		RedirectStrategy redirectStrategy = logoutSuccessHandler.getRedirectStrategy();
-		Assert.assertTrue(redirectStrategy instanceof DefaultRedirectStrategy);
+		atrue(redirectStrategy instanceof DefaultRedirectStrategy);
 
 		AntPathRequestMatcher logoutRequestMatcher = (AntPathRequestMatcher) logoutFilter.getLogoutRequestMatcher();
-		Assert.assertEquals("/logout", logoutRequestMatcher.getPattern());
+		aeq("/logout", logoutRequestMatcher.getPattern());
 
 		List<LogoutHandler> logoutHandlers = logoutHandler.getLogoutHandlers();
-		Assert.assertEquals(2, logoutHandlers.size());
-		Set<String> logoutHandlersClasses = new HashSet<>();
-		for (LogoutHandler lh : logoutHandlers) {
-			logoutHandlersClasses.add(lh.getClass().getName());
-		}
+		aeq(2, logoutHandlers.size());
 
-		Assert.assertEquals(2, logoutHandlers.size());
-		Assert.assertEquals(2, logoutHandlersClasses.size());
-		Assert.assertTrue(logoutHandlersClasses.contains(CSRF_LOGOUT_HANDLER_CLASS));
-		Assert.assertTrue(logoutHandlersClasses.contains(SECURITY_CONTEXT_LOGOUT_HANDLER_CLASS));
+		aeq(2, logoutHandlers.size());
+		acclass(logoutHandlers, CsrfLogoutHandler.class);
+		acclass(logoutHandlers, SecurityContextLogoutHandler.class);
 
 		context.close();
 
@@ -224,53 +216,6 @@ public class UserPasswordTest {
 		System.out.println(new String(bytes));
 		Resource resource = new ByteArrayResource(bytes);
 		return resource;
-	}
-
-	private void fillFilterMap(List<Filter> filters, Map<FilterType, Filter> filterMap) {
-		for (Filter filter : filters) {
-			if (filter instanceof SecurityContextPersistenceFilter) {
-				filterMap.put(FilterType.SecurityContextPersistenceFilter, filter);
-			}
-			if (filter instanceof WebAsyncManagerIntegrationFilter) {
-				filterMap.put(FilterType.WebAsyncManagerIntegrationFilter, filter);
-			}
-			if (filter instanceof HeaderWriterFilter) {
-				filterMap.put(FilterType.HeaderWriterFilter, filter);
-			}
-			if (filter instanceof CsrfFilter) {
-				filterMap.put(FilterType.CsrfFilter, filter);
-			}
-			if (filter instanceof LogoutFilter) {
-				filterMap.put(FilterType.LogoutFilter, filter);
-			}
-			if (filter instanceof UsernamePasswordAuthenticationFilter) {
-				filterMap.put(FilterType.UsernamePasswordAuthenticationFilter, filter);
-			}
-			if (filter instanceof DefaultLoginPageGeneratingFilter) {
-				filterMap.put(FilterType.DefaultLoginPageGeneratingFilter, filter);
-			}
-			if (filter instanceof BasicAuthenticationFilter) {
-				filterMap.put(FilterType.BasicAuthenticationFilter, filter);
-			}
-			if (filter instanceof RequestCacheAwareFilter) {
-				filterMap.put(FilterType.RequestCacheAwareFilter, filter);
-			}
-			if (filter instanceof SecurityContextHolderAwareRequestFilter) {
-				filterMap.put(FilterType.SecurityContextHolderAwareRequestFilter, filter);
-			}
-			if (filter instanceof AnonymousAuthenticationFilter) {
-				filterMap.put(FilterType.AnonymousAuthenticationFilter, filter);
-			}
-			if (filter instanceof SessionManagementFilter) {
-				filterMap.put(FilterType.SessionManagementFilter, filter);
-			}
-			if (filter instanceof ExceptionTranslationFilter) {
-				filterMap.put(FilterType.ExceptionTranslationFilter, filter);
-			}
-			if (filter instanceof FilterSecurityInterceptor) {
-				filterMap.put(FilterType.FilterSecurityInterceptor, filter);
-			}
-		}
 	}
 
 }
