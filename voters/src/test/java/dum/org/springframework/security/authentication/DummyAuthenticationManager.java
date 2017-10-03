@@ -8,10 +8,14 @@ public class DummyAuthenticationManager implements AuthenticationManager {
 
 	private int count;
 	private Authentication authentication;
+	private AuthenticationException exception;
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		++count;
+		if (exception != null) {
+			throw exception;
+		}
 		return this.authentication;
 	}
 
@@ -21,6 +25,11 @@ public class DummyAuthenticationManager implements AuthenticationManager {
 
 	public int getCount() {
 		return count;
+	}
+
+	public void setException(AuthenticationException exception) {
+		this.exception = exception;
+
 	}
 
 }
