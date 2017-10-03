@@ -24,7 +24,9 @@ public class InspectingFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
-		inspector.inspect(request, response);
+		if (inspector != null) {
+			inspector.inspect(request, response);
+		}
 		chain.doFilter(request, response);
 	}
 
