@@ -14,6 +14,7 @@ public class DummyAccessDeniedHandler implements AccessDeniedHandler {
 	private HttpServletRequest request;
 	private HttpServletResponse response;
 	private AccessDeniedException accessDeniedException;
+	private int count;
 
 	@Override
 	public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -21,6 +22,7 @@ public class DummyAccessDeniedHandler implements AccessDeniedHandler {
 		this.request = request;
 		this.response = response;
 		this.accessDeniedException = accessDeniedException;
+		++count;
 	}
 
 	public HttpServletRequest getRequest() {
@@ -45,6 +47,10 @@ public class DummyAccessDeniedHandler implements AccessDeniedHandler {
 
 	public void setAccessDeniedException(AccessDeniedException accessDeniedException) {
 		this.accessDeniedException = accessDeniedException;
+	}
+
+	public int getCount() {
+		return count;
 	}
 
 }

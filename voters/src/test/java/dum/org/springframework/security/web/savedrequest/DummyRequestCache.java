@@ -10,10 +10,15 @@ public class DummyRequestCache implements RequestCache {
 
 	private SavedRequest savedRequest;
 	private HttpServletRequest matchingRequest;
+	private HttpServletRequest request;
 
 	@Override
 	public void saveRequest(HttpServletRequest request, HttpServletResponse response) {
+		this.request = request;
+	}
 
+	public HttpServletRequest getRequest() {
+		return request;
 	}
 
 	@Override
