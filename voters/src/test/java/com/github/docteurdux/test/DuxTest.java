@@ -12,6 +12,10 @@ public abstract class DuxTest {
 	public void aeq(String expected, String actual) {
 		Assert.assertEquals(expected, actual);
 	}
+	
+	public void aeq(Object expected, Object actual) {
+		Assert.assertEquals(expected, actual);
+	}
 
 	public void aeq(int expected, int actual) {
 		Assert.assertEquals(expected, actual);

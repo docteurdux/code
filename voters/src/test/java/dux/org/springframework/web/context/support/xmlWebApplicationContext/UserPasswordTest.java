@@ -174,7 +174,7 @@ public class UserPasswordTest extends DuxTest {
 		context.close();
 
 	}
-	
+
 	@Test
 	public void test2() throws IOException, ServletException, ParserConfigurationException,
 			TransformerFactoryConfigurationError, TransformerException {
@@ -201,7 +201,7 @@ public class UserPasswordTest extends DuxTest {
 		CountingFilter countingFilter1 = new CountingFilter();
 		InspectingFilter inspectingFilter = new InspectingFilter();
 		CountingFilter countingFilter2 = new CountingFilter();
-		
+
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("GET");
 		MockHttpServletResponse response = new MockHttpServletResponse();
@@ -209,7 +209,7 @@ public class UserPasswordTest extends DuxTest {
 		filterChainProxy.doFilter(request, response, chain);
 
 		aeq(0, countingFilter1.getCount());
-		
+
 		context.close();
 
 	}
