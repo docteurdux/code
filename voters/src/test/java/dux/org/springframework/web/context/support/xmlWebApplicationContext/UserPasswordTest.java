@@ -63,7 +63,10 @@ import org.w3c.dom.Element;
 
 import com.github.docteurdux.test.DuxTest;
 
+import dum.javax.servlet.DummyServlet;
 import dum.org.springframework.core.io.DummyProtocolResolver;
+import duu.javax.servlet.CountingFilter;
+import duu.javax.servlet.InspectingFilter;
 import duu.org.springframework.security.web.authentication.AbstractAuthenticationTargetUrlRequestHandlerExposer;
 import duu.org.springframework.security.web.authentication.logout.CompositeLogoutHandlerExposer;
 import duu.org.springframework.security.web.authentication.logout.LogoutFilterExposer;
@@ -168,6 +171,45 @@ public class UserPasswordTest extends DuxTest {
 		acclass(logoutHandlers, CsrfLogoutHandler.class);
 		acclass(logoutHandlers, SecurityContextLogoutHandler.class);
 
+		context.close();
+
+	}
+	
+	@Test
+	public void test2() throws IOException, ServletException, ParserConfigurationException,
+			TransformerFactoryConfigurationError, TransformerException {
+
+		ServletContext servletContext = new MockServletContext();
+
+		DummyProtocolResolver pr = new DummyProtocolResolver();
+		pr.getResources().put("/WEB-INF/applicationContext.xml", getResource());
+
+		XmlWebApplicationContext context = new XmlWebApplicationContext();
+		context.addProtocolResolver(pr);
+
+		context.setServletContext(servletContext);
+		context.refresh();
+
+		for (String name : context.getBeanDefinitionNames()) {
+			System.out.println(name);
+		}
+
+		FilterChainProxy filterChainProxy = (FilterChainProxy) context
+				.getBean("org.springframework.security.filterChainProxy");
+
+		DummyServlet servlet = new DummyServlet();
+		CountingFilter countingFilter1 = new CountingFilter();
+		InspectingFilter inspectingFilter = new InspectingFilter();
+		CountingFilter countingFilter2 = new CountingFilter();
+		
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("GET");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		FilterChain chain = new MockFilterChain(servlet, countingFilter1, inspectingFilter, countingFilter2);
+		filterChainProxy.doFilter(request, response, chain);
+
+		aeq(0, countingFilter1.getCount());
+		
 		context.close();
 
 	}
