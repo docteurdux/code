@@ -2,22 +2,11 @@ package com.github.docteurdux.test;
 
 import java.util.List;
 
-import javax.servlet.Filter;
-
 import org.junit.Assert;
-import org.springframework.security.web.csrf.CsrfFilter;
 
 public abstract class DuxTest {
 
-	public void aeq(String expected, String actual) {
-		Assert.assertEquals(expected, actual);
-	}
-	
 	public void aeq(Object expected, Object actual) {
-		Assert.assertEquals(expected, actual);
-	}
-
-	public void aeq(int expected, int actual) {
 		Assert.assertEquals(expected, actual);
 	}
 
@@ -43,6 +32,10 @@ public abstract class DuxTest {
 		}
 		Assert.fail();
 		return null;
+	}
+
+	public void foo(Object object) {
+
 	}
 
 }
