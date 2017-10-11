@@ -388,28 +388,41 @@ public class ReflectionHelperTest {
 		}
 	}
 
-	public static class A {
-		public void foo(int n) {
-		}
+	public static interface I {
 
-		public void foo(int[] n) {
-		}
+	}
 
-		public void foo(Object n) {
-		}
-
+	public static class A implements I {
 		public void foo(String s) {
+		}
+
+		public void foo(Object o) {
+		}
+
+		public void foo(I i) {
+		}
+
+		public void foo(A a) {
+		}
+
+		public void foo(int i) {
+		}
+
+		public void foo(Integer i) {
 		}
 	}
 
+	/**
+	 * Types match => 0 weight
+	 */
 	@Test
-	public void test() throws NoSuchMethodException, SecurityException {
+	public void test1() throws NoSuchMethodException, SecurityException {
 
-		Method method1 = A.class.getMethod("foo", Object.class);
+		Method method1 = A.class.getMethod("foo", String.class);
 		MethodParameter methodParameter1 = new MethodParameter(method1, 0);
 		TypeDescriptor typeDescriptor1 = new TypeDescriptor(methodParameter1);
 
-		Method method2 = A.class.getMethod("foo", Object.class);
+		Method method2 = A.class.getMethod("foo", String.class);
 		MethodParameter methodParameter2 = new MethodParameter(method2, 0);
 		TypeDescriptor typeDescriptor2 = new TypeDescriptor(methodParameter2);
 
@@ -421,9 +434,182 @@ public class ReflectionHelperTest {
 
 		int weight = ReflectionHelper.getTypeDifferenceWeight(paramTypes, argTypes);
 
+		Assert.assertEquals(0, weight);
+	}
+
+	/**
+	 * Argument subclass of type parameters => 2
+	 */
+	@Test
+	public void test2() throws NoSuchMethodException, SecurityException {
+
+		Method method1 = A.class.getMethod("foo", Object.class);
+		MethodParameter methodParameter1 = new MethodParameter(method1, 0);
+		TypeDescriptor typeDescriptor1 = new TypeDescriptor(methodParameter1);
+
+		Method method2 = A.class.getMethod("foo", String.class);
+		MethodParameter methodParameter2 = new MethodParameter(method2, 0);
+		TypeDescriptor typeDescriptor2 = new TypeDescriptor(methodParameter2);
+
+		List<TypeDescriptor> paramTypes = new ArrayList<>();
+		paramTypes.add(typeDescriptor1);
+
+		List<TypeDescriptor> argTypes = new ArrayList<>();
+		argTypes.add(typeDescriptor2);
+
+		int weight = ReflectionHelper.getTypeDifferenceWeight(paramTypes, argTypes);
+
+		Assert.assertEquals(2, weight);
+	}
+
+	/**
+	 * Param type is interface => weight 1
+	 */
+	@Test
+	public void test3() throws NoSuchMethodException, SecurityException {
+
+		Method method1 = A.class.getMethod("foo", I.class);
+		MethodParameter methodParameter1 = new MethodParameter(method1, 0);
+		TypeDescriptor typeDescriptor1 = new TypeDescriptor(methodParameter1);
+
+		Method method2 = A.class.getMethod("foo", A.class);
+		MethodParameter methodParameter2 = new MethodParameter(method2, 0);
+		TypeDescriptor typeDescriptor2 = new TypeDescriptor(methodParameter2);
+
+		List<TypeDescriptor> paramTypes = new ArrayList<>();
+		paramTypes.add(typeDescriptor1);
+
+		List<TypeDescriptor> argTypes = new ArrayList<>();
+		argTypes.add(typeDescriptor2);
+
+		int weight = ReflectionHelper.getTypeDifferenceWeight(paramTypes, argTypes);
+
+		Assert.assertEquals(1, weight);
+	}
+
+	/**
+	 * Primitive parameter are treated as objects. Here int=>Object is superclass of
+	 * Integer, which contributes 2, and anything can be assigned to an object, so
+	 * that contributes 2 also
+	 */
+	@Test
+	public void test4() throws NoSuchMethodException, SecurityException {
+
+		Method method1 = A.class.getMethod("foo", int.class);
+		MethodParameter methodParameter1 = new MethodParameter(method1, 0);
+		TypeDescriptor typeDescriptor1 = new TypeDescriptor(methodParameter1);
+
+		Method method2 = A.class.getMethod("foo", Integer.class);
+		MethodParameter methodParameter2 = new MethodParameter(method2, 0);
+		TypeDescriptor typeDescriptor2 = new TypeDescriptor(methodParameter2);
+
+		List<TypeDescriptor> paramTypes = new ArrayList<>();
+		paramTypes.add(typeDescriptor1);
+
+		List<TypeDescriptor> argTypes = new ArrayList<>();
+		argTypes.add(typeDescriptor2);
+
+		int weight = ReflectionHelper.getTypeDifferenceWeight(paramTypes, argTypes);
+
+		Assert.assertEquals(4, weight);
+	}
+
+	/**
+	 * 
+	 */
+	@Test
+	public void test5() throws NoSuchMethodException, SecurityException {
+
+		Method method1 = A.class.getMethod("foo", int.class);
+		MethodParameter methodParameter1 = new MethodParameter(method1, 0);
+		TypeDescriptor typeDescriptor1 = new TypeDescriptor(methodParameter1);
+
+		Method method2 = A.class.getMethod("foo", String.class);
+		MethodParameter methodParameter2 = new MethodParameter(method2, 0);
+		TypeDescriptor typeDescriptor2 = new TypeDescriptor(methodParameter2);
+
+		List<TypeDescriptor> paramTypes = new ArrayList<>();
+		paramTypes.add(typeDescriptor1);
+
+		List<TypeDescriptor> argTypes = new ArrayList<>();
+		argTypes.add(typeDescriptor2);
+
+		int weight = ReflectionHelper.getTypeDifferenceWeight(paramTypes, argTypes);
+
+		Assert.assertEquals(Integer.MAX_VALUE, weight);
+	}
+	
+	/**
+	 * 
+	 */
+	@Test
+	public void test6() throws NoSuchMethodException, SecurityException {
 		
-		Class<?>[] requiredParameterTypes = null;
-		Object args = null;
-		ReflectionHelper.setupArgumentsForVarargsInvocation(requiredParameterTypes, args )
+		Method method1 = A.class.getMethod("foo", int.class);
+		MethodParameter methodParameter1 = new MethodParameter(method1, 0);
+		TypeDescriptor typeDescriptor1 = new TypeDescriptor(methodParameter1);
+		
+		Method method2 = A.class.getMethod("foo", String.class);
+		MethodParameter methodParameter2 = new MethodParameter(method2, 0);
+		TypeDescriptor typeDescriptor2 = new TypeDescriptor(methodParameter2);
+		
+		List<TypeDescriptor> paramTypes = new ArrayList<>();
+		paramTypes.add(typeDescriptor1);
+		
+		List<TypeDescriptor> argTypes = new ArrayList<>();
+		argTypes.add(null);
+		
+		int weight = ReflectionHelper.getTypeDifferenceWeight(paramTypes, argTypes);
+		
+		Assert.assertEquals(Integer.MAX_VALUE, weight);
+	}
+	
+	/**
+	 * 
+	 */
+	@Test
+	public void test7() throws NoSuchMethodException, SecurityException {
+		
+		Method method1 = A.class.getMethod("foo", String.class);
+		MethodParameter methodParameter1 = new MethodParameter(method1, 0);
+		TypeDescriptor typeDescriptor1 = new TypeDescriptor(methodParameter1);
+		
+		Method method2 = A.class.getMethod("foo", int.class);
+		MethodParameter methodParameter2 = new MethodParameter(method2, 0);
+		TypeDescriptor typeDescriptor2 = new TypeDescriptor(methodParameter2);
+		
+		List<TypeDescriptor> paramTypes = new ArrayList<>();
+		paramTypes.add(typeDescriptor1);
+		
+		List<TypeDescriptor> argTypes = new ArrayList<>();
+		argTypes.add(null);
+		
+		int weight = ReflectionHelper.getTypeDifferenceWeight(paramTypes, argTypes);
+		
+		Assert.assertEquals(0, weight);
+	}
+	
+	/**
+	 * 
+	 */
+	@Test
+	public void test8() throws NoSuchMethodException, SecurityException {
+		
+		Method method1 = A.class.getMethod("foo", String.class);
+		MethodParameter methodParameter1 = new MethodParameter(method1, 0);
+		TypeDescriptor typeDescriptor1 = new TypeDescriptor(methodParameter1);
+		
+		Method method2 = A.class.getMethod("foo", int.class);
+		MethodParameter methodParameter2 = new MethodParameter(method2, 0);
+		TypeDescriptor typeDescriptor2 = new TypeDescriptor(methodParameter2);
+		
+		List<TypeDescriptor> paramTypes = new ArrayList<>();
+		paramTypes.add(typeDescriptor1);
+		
+		List<TypeDescriptor> argTypes = new ArrayList<>();
+		
+		int weight = ReflectionHelper.getTypeDifferenceWeight(paramTypes, argTypes);
+		
+		Assert.assertEquals(0, weight);
 	}
 }
