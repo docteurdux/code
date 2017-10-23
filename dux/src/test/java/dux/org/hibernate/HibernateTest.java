@@ -5,7 +5,6 @@ import java.util.Iterator;
 
 import org.hibernate.Hibernate;
 import org.hibernate.bytecode.enhance.spi.interceptor.LazyAttributeLoadingInterceptor;
-import org.hibernate.engine.HibernateIterator;
 import org.hibernate.engine.jdbc.LobCreator;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.spi.PersistentAttributeInterceptor;
