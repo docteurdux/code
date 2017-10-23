@@ -9,8 +9,7 @@ public abstract class TestEventCollector {
 	protected List<TestEvent> testEvents = new ArrayList<TestEvent>();
 
 	public List<TestEvent> getTestEvents() {
-		return Collections.unmodifiableList(testEvents);
+		return testEvents;
 	}
-	
-	
+
 }
