@@ -15,35 +15,40 @@ public class DummyJdbcServices implements JdbcServices {
 
 	private static final long serialVersionUID = 1L;
 	private LobCreator lobCreator;
+	private SqlExceptionHelper sqlExceptionHelper;
+	private SqlStatementLogger sqlStatementLogger;
+	private Dialect dialect;
+	private JdbcConnectionAccess bootstrapJdbcConnectionAccess;
+	private JdbcEnvironment jdbcEnvironment;
+	private ExtractedDatabaseMetaData extractedMetaDataSupport;
+	private ResultSetWrapper resultSetWrapper;
 
 	public JdbcEnvironment getJdbcEnvironment() {
-		// TODO Auto-generated method stub
-		return null;
+		return jdbcEnvironment;
 	}
 
 	public JdbcConnectionAccess getBootstrapJdbcConnectionAccess() {
-		// TODO Auto-generated method stub
-		return null;
+		return bootstrapJdbcConnectionAccess;
 	}
 
 	public Dialect getDialect() {
-		// TODO Auto-generated method stub
-		return null;
+		return dialect;
 	}
 
 	public SqlStatementLogger getSqlStatementLogger() {
-		// TODO Auto-generated method stub
-		return null;
+		return sqlStatementLogger;
 	}
 
 	public SqlExceptionHelper getSqlExceptionHelper() {
-		// TODO Auto-generated method stub
-		return null;
+		return sqlExceptionHelper;
+	}
+
+	public void setSqlExceptionHelper(SqlExceptionHelper sqlExceptionHelper) {
+		this.sqlExceptionHelper = sqlExceptionHelper;
 	}
 
 	public ExtractedDatabaseMetaData getExtractedMetaDataSupport() {
-		// TODO Auto-generated method stub
-		return null;
+		return extractedMetaDataSupport;
 	}
 
 	public LobCreator getLobCreator(LobCreationContext lobCreationContext) {
@@ -51,12 +56,35 @@ public class DummyJdbcServices implements JdbcServices {
 	}
 
 	public ResultSetWrapper getResultSetWrapper() {
-		// TODO Auto-generated method stub
-		return null;
+		return resultSetWrapper;
 	}
 
 	public void setLobCreator(LobCreator lobCreator) {
 		this.lobCreator = lobCreator;
+	}
+
+	public void setSqlStatementLogger(SqlStatementLogger sqlStatementLogger) {
+		this.sqlStatementLogger = sqlStatementLogger;
+	}
+
+	public void setDialect(Dialect dialect) {
+		this.dialect = dialect;
+	}
+
+	public void setBootstrapJdbcConnectionAccess(JdbcConnectionAccess bootstrapJdbcConnectionAccess) {
+		this.bootstrapJdbcConnectionAccess = bootstrapJdbcConnectionAccess;
+	}
+
+	public void setJdbcEnvironment(JdbcEnvironment jdbcEnvironment) {
+		this.jdbcEnvironment = jdbcEnvironment;
+	}
+
+	public void setExtractedMetaDataSupport(ExtractedDatabaseMetaData extractedMetaDataSupport) {
+		this.extractedMetaDataSupport = extractedMetaDataSupport;
+	}
+
+	public void setResultSetWrapper(ResultSetWrapper resultSetWrapper) {
+		this.resultSetWrapper = resultSetWrapper;
 	}
 
 }

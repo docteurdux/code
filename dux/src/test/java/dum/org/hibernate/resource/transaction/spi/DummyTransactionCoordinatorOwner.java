@@ -3,48 +3,57 @@ package dum.org.hibernate.resource.transaction.spi;
 import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorOwner;
 
-public class DummyTransactionCoordinatorOwner implements TransactionCoordinatorOwner {
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+
+public class DummyTransactionCoordinatorOwner extends TestEventCollector implements TransactionCoordinatorOwner {
+
+	private boolean active;
+	private JdbcSessionOwner jdbcSessionOwner;
+	private int timeout;
 
 	@Override
 	public boolean isActive() {
-		// TODO Auto-generated method stub
-		return false;
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 	@Override
 	public void afterTransactionBegin() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("afterTransactionBegin"));
 	}
 
 	@Override
 	public void beforeTransactionCompletion() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("beforeTransactionCompletion"));
 	}
 
 	@Override
 	public void afterTransactionCompletion(boolean successful, boolean delayed) {
-		// TODO Auto-generated method stub
-
+		testEvents.add(
+				new TestEvent("afterTransactionCompletion").prop("successful", successful).prop("delayed", delayed));
 	}
 
 	@Override
 	public JdbcSessionOwner getJdbcSessionOwner() {
-		// TODO Auto-generated method stub
-		return null;
+		return jdbcSessionOwner;
+	}
+
+	public void setJdbcSessionOwner(JdbcSessionOwner jdbcSessionOwner) {
+		this.jdbcSessionOwner = jdbcSessionOwner;
 	}
 
 	@Override
 	public void setTransactionTimeOut(int seconds) {
-		// TODO Auto-generated method stub
-
+		this.timeout = seconds;
 	}
 
 	@Override
 	public void flushBeforeTransactionCompletion() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("flushBeforeTransactionCompletion"));
 	}
 
 }
