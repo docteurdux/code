@@ -1,5 +1,6 @@
 package dux.com.mysql.cj.jdbc;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.sql.SQLException;
@@ -10,6 +11,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.docteurdux.test.InfiniteInputStream;
 import com.mysql.cj.core.conf.url.HostInfo;
 import com.mysql.cj.jdbc.ConnectionImpl;
 
@@ -19,8 +21,11 @@ import dum.java.net.DummySocket;
 
 public class ConnectionImplTest {
 
+	private InfiniteInputStream inputStream;
+
 	@Before
 	public void before() {
+		inputStream = new InfiniteInputStream();
 	}
 
 	@After
@@ -30,10 +35,15 @@ public class ConnectionImplTest {
 	@Test
 	public void test1() throws SQLException {
 
-		Socket connectSocket = new DummySocket();
-		DummySocketFactory.setConnectSocket(connectSocket);
-		DummySocketFactory.setBeforeHandshakeSocket(connectSocket);
-		DummySocketFactory.setAfterHandshakeSocket(connectSocket);
+		inputStream.add(new byte[] { 1, 0, 0, 1 });
+		inputStream.add(new byte[] { 'h' });
+
+		DummySocket socket = new DummySocket();
+
+		socket.setInputStream(inputStream);
+		DummySocketFactory.setConnectSocket(socket);
+		DummySocketFactory.setBeforeHandshakeSocket(socket);
+		DummySocketFactory.setAfterHandshakeSocket(socket);
 
 		DummyDatabaseUrlContainer url = new DummyDatabaseUrlContainer();
 		String databaseUrl = "databaseUrl";

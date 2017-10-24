@@ -1,5 +1,7 @@
 package dum.java.net;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,6 +14,9 @@ import java.net.UnknownHostException;
 import java.nio.channels.SocketChannel;
 
 public class DummySocket extends Socket {
+
+	private InputStream inputStream = new ByteArrayInputStream(new byte[] {});
+	private OutputStream outputStream = new ByteArrayOutputStream();
 
 	public DummySocket() {
 		super();
@@ -85,8 +90,11 @@ public class DummySocket extends Socket {
 
 	@Override
 	public InputStream getInputStream() throws IOException {
-		// TODO Auto-generated method stub
-		return super.getInputStream();
+		return inputStream;
+	}
+
+	public void setInputStream(InputStream inputStream) {
+		this.inputStream = inputStream;
 	}
 
 	@Override
@@ -121,8 +129,11 @@ public class DummySocket extends Socket {
 
 	@Override
 	public OutputStream getOutputStream() throws IOException {
-		// TODO Auto-generated method stub
-		return super.getOutputStream();
+		return outputStream;
+	}
+
+	public void setOutputStream(OutputStream outputStream) {
+		this.outputStream = outputStream;
 	}
 
 	@Override
