@@ -9,15 +9,30 @@ import java.util.Deque;
 public class InfiniteInputStream extends InputStream {
 
 	boolean infinite = true;
-	Deque<Byte> bytes = new ArrayDeque<>();
+	Deque<Number> bytes = new ArrayDeque<>();
+
+	private Integer skyLimit;
+	private int infiniteCount;
 
 	@Override
 	public int read() throws IOException {
 
 		if (bytes.size() == 0) {
-			return infinite ? 0 : -1;
+			if (infinite && infiniteCount < skyLimit) {
+				++infiniteCount;
+				return 0;
+			} else {
+				return -1;
+			}
 		}
-		return bytes.pop();
+		Number pop = bytes.pop();
+		if (pop instanceof Byte) {
+			return (Byte) pop;
+		} else if (pop instanceof Integer) {
+			return (Integer) pop;
+		} else {
+			throw new IllegalArgumentException();
+		}
 
 	}
 
@@ -38,6 +53,18 @@ public class InfiniteInputStream extends InputStream {
 
 	public void setInfinite(boolean infinite) {
 		this.infinite = infinite;
+	}
+
+	public void setSkyLimit(int skyLimit) {
+		this.skyLimit = skyLimit;
+	}
+
+	public int getInfiniteCount() {
+		return infiniteCount;
+	}
+
+	public void addEOF() {
+		this.bytes.add(new Integer(-1));
 	}
 
 }
