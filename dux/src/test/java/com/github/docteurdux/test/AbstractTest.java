@@ -1,30 +1,32 @@
 package com.github.docteurdux.test;
 
+import java.lang.reflect.Field;
+
 import org.junit.Assert;
 
 public abstract class AbstractTest {
 
-	public void at(Boolean b) {
+	protected void at(Boolean b) {
 		Assert.assertTrue(b);
 	}
 
-	public void af(Boolean b) {
+	protected void af(Boolean b) {
 		Assert.assertFalse(b);
 	}
 
-	public void an(Object o) {
+	protected void an(Object o) {
 		Assert.assertNull(o);
 	}
 
-	public void ann(Object o) {
+	protected void ann(Object o) {
 		Assert.assertNotNull(o);
 	}
 
-	public void aeq(Object expected, Object actual) {
+	protected void aeq(Object expected, Object actual) {
 		Assert.assertEquals(expected, actual);
 	}
 
-	public TestEvent event(TestEventCollector collector, String name) {
+	protected TestEvent event(TestEventCollector collector, String name) {
 		for (TestEvent event : collector.getTestEvents()) {
 			if (name.equals(event.getName())) {
 				return event;
@@ -34,7 +36,7 @@ public abstract class AbstractTest {
 		return null;
 	}
 
-	public void noevent(TestEventCollector collector, String name) {
+	protected void noevent(TestEventCollector collector, String name) {
 		for (TestEvent event : collector.getTestEvents()) {
 			if (name.equals(event.getName())) {
 				Assert.fail();
@@ -42,7 +44,28 @@ public abstract class AbstractTest {
 		}
 	}
 
-	public void fail() {
+	protected void fail() {
 		Assert.fail();
+	}
+
+	protected Object getField(Object o, String fieldName) {
+		try {
+			Field field = o.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			return field.get(o);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			fail();
+			return null;
+		}
+	}
+
+	protected String str(Object o) {
+		if (o == null) {
+			return "n$";
+		}
+		if (o instanceof String) {
+			return (String) o;
+		}
+		return o.getClass().getName();
 	}
 }
