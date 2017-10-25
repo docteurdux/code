@@ -1,6 +1,7 @@
 package com.github.docteurdux.test;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 
 import org.junit.Assert;
 
@@ -64,8 +65,12 @@ public abstract class AbstractTest {
 			return "n$";
 		}
 		if (o instanceof String) {
-			return (String) o;
+			return "s$" + o;
 		}
-		return o.getClass().getName();
+		return "c$" + o.getClass().getName();
+	}
+
+	protected void has4(Map<String, ?> map, String key, Class<?> clazz) {
+		aeq(clazz.getName(), map.get(key).getClass().getName());
 	}
 }
