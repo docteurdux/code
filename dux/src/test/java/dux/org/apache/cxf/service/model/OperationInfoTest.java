@@ -162,4 +162,8 @@ public class OperationInfoTest extends AbstractTest {
 		oi.setParameterOrdering(ordering);
 		aeq(ordering, oi.getParameterOrdering());
 	}
+	
+	@Test
+	public void test11() {
+	}
 }
