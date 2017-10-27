@@ -26,6 +26,10 @@ public abstract class AbstractTest {
 	protected void aeq(Object expected, Object actual) {
 		Assert.assertEquals(expected, actual);
 	}
+	
+	protected void aeqr(Object expected, Object actual) {
+		Assert.assertTrue(expected==actual);
+	}
 
 	protected TestEvent event(TestEventCollector collector, String name) {
 		for (TestEvent event : collector.getTestEvents()) {
