@@ -1,5 +1,9 @@
 package dux.org.apache.ws.commons.schema;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.ws.commons.schema.SchemaBuilder;
 import org.apache.ws.commons.schema.TypeReceiver;
 import org.apache.ws.commons.schema.ValidationEvent;
@@ -78,16 +82,44 @@ import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.apache.ws.commons.schema.XmlSchemaWhiteSpaceFacet;
 import org.apache.ws.commons.schema.XmlSchemaXPath;
 import org.apache.ws.commons.schema.XmlSeverityType;
+import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.ws.commons.schema.extensions.DefaultExtensionDeserializer;
+import org.apache.ws.commons.schema.extensions.DefaultExtensionSerializer;
+import org.apache.ws.commons.schema.extensions.ExtensionDeserializer;
+import org.apache.ws.commons.schema.extensions.ExtensionRegistry;
+import org.apache.ws.commons.schema.extensions.ExtensionSerializer;
+import org.apache.ws.commons.schema.resolver.CollectionURIResolver;
+import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
+import org.apache.ws.commons.schema.resolver.URIResolver;
+import org.apache.ws.commons.schema.utils.CollectionFactory;
+import org.apache.ws.commons.schema.utils.DOMUtil;
+import org.apache.ws.commons.schema.utils.NamespaceContextOwner;
+import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.apache.ws.commons.schema.utils.NamespacePrefixList;
+import org.apache.ws.commons.schema.utils.NodeNamespaceContext;
+import org.apache.ws.commons.schema.utils.PrefixCollector;
+import org.apache.ws.commons.schema.utils.TargetNamespaceValidator;
+import org.apache.ws.commons.schema.utils.UtilObjects;
+import org.apache.ws.commons.schema.utils.XDOMUtil;
+import org.apache.ws.commons.schema.utils.XmlSchemaNamed;
+import org.apache.ws.commons.schema.utils.XmlSchemaNamedImpl;
+import org.apache.ws.commons.schema.utils.XmlSchemaNamedWithForm;
+import org.apache.ws.commons.schema.utils.XmlSchemaNamedWithFormImpl;
+import org.apache.ws.commons.schema.utils.XmlSchemaObjectBase;
+import org.apache.ws.commons.schema.utils.XmlSchemaRef;
+import org.apache.ws.commons.schema.utils.XmlSchemaRefBase;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
-import com.github.docteurdux.test.Done;
 
 public class DUXSummaryTest extends AbstractTest {
 
 	@Test
 	public void test() {
-		Class<?>[] classes = new Class<?>[] { SchemaBuilder.class, TypeReceiver.class, ValidationEvent.class,
+
+		List<Class<?>> classes = new ArrayList<>();
+
+		classes.addAll(Arrays.asList(new Class<?>[] { SchemaBuilder.class, TypeReceiver.class, ValidationEvent.class,
 				XmlSchema.class, XmlSchemaAll.class, XmlSchemaAllMember.class, XmlSchemaAnnotated.class,
 				XmlSchemaAnnotation.class, XmlSchemaAnnotationItem.class, XmlSchemaAny.class,
 				XmlSchemaAnyAttribute.class, XmlSchemaAppInfo.class, XmlSchemaAttribute.class,
@@ -111,37 +143,25 @@ public class DUXSummaryTest extends AbstractTest {
 				XmlSchemaSimpleType.class, XmlSchemaSimpleTypeContent.class, XmlSchemaSimpleTypeList.class,
 				XmlSchemaSimpleTypeRestriction.class, XmlSchemaSimpleTypeUnion.class, XmlSchemaTotalDigitsFacet.class,
 				XmlSchemaType.class, XmlSchemaUnique.class, XmlSchemaUse.class, XmlSchemaWhiteSpaceFacet.class,
-				XmlSchemaXPath.class, XmlSeverityType.class };
+				XmlSchemaXPath.class, XmlSeverityType.class }));
 
-		int done = 0;
-		int notDone = 0;
+		classes.addAll(Arrays.asList(new Class<?>[] { CollectionFactory.class, DOMUtil.class,
+				NamespaceContextOwner.class, NamespaceMap.class, NamespacePrefixList.class, NodeNamespaceContext.class,
+				PrefixCollector.class, TargetNamespaceValidator.class, UtilObjects.class, XDOMUtil.class,
+				XmlSchemaNamed.class, XmlSchemaNamedImpl.class, XmlSchemaNamedWithForm.class,
+				XmlSchemaNamedWithFormImpl.class, XmlSchemaObjectBase.class, XmlSchemaRef.class,
+				XmlSchemaRefBase.class }));
 
-		for (Class<?> clazz : classes) {
-			if (clazz.isInterface()) {
-				continue;
-			}
-			String testClassName = "dux." + clazz.getName() + "Test";
-			try {
-				Class<?> testClass = Class.forName(testClassName);
-				if (testClass.isAnnotationPresent(Done.class)) {
-					++done;
-				} else {
-					System.out.println(testClassName + " : not done !");
-					++notDone;
-				}
-			} catch (ClassNotFoundException e) {
-				System.out.println(testClassName + " not found");
-				++notDone;
-			}
-		}
+		classes.addAll(Arrays
+				.asList(new Class<?>[] { CollectionURIResolver.class, DefaultURIResolver.class, URIResolver.class }));
 
-		String packageName = this.getClass().getPackage().getName().substring(4);
+		classes.addAll(
+				Arrays.asList(new Class<?>[] { DefaultExtensionDeserializer.class, DefaultExtensionSerializer.class,
+						ExtensionDeserializer.class, ExtensionRegistry.class, ExtensionSerializer.class }));
 
-		System.out.println(packageName + " : " + done + "/" + (done + notDone));
+		classes.addAll(Arrays.asList(new Class<?>[] { Constants.class }));
 
-		if (this.getClass().isAnnotationPresent(Done.class) && notDone > 0) {
-			fail();
-		}
+		summary(classes.toArray(new Class<?>[] {}));
 
 	}
 }

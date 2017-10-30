@@ -1,7 +1,12 @@
 package com.github.docteurdux.test;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 
@@ -80,5 +85,71 @@ public abstract class AbstractTest {
 
 	protected void has4(Map<String, ?> map, String key, Class<?> clazz) {
 		aeq(clazz.getName(), map.get(key).getClass().getName());
+	}
+
+	protected void summary(Class<?>[] classes) {
+
+		Map<String, Integer> dones = new HashMap<>();
+		Map<String, Integer> notDones = new HashMap<>();
+		Set<String> packageNames = new HashSet<>();
+		List<Class<?>> focus = new ArrayList<>();
+
+		for (Class<?> clazz : classes) {
+			if (clazz.isInterface()) {
+				continue;
+			}
+			if (clazz.isEnum()) {
+				continue;
+			}
+			String testClassName = "dux." + clazz.getName() + "Test";
+			String packageName = clazz.getPackage().getName();
+			packageNames.add(packageName);
+			try {
+				Class<?> testClass = Class.forName(testClassName);
+				if (testClass.isAnnotationPresent(Focus.class)) {
+					focus.add(testClass);
+				}
+				if (testClass.isAnnotationPresent(Done.class)) {
+					dones.put(packageName, get(dones, packageName, 0) + 1);
+				} else {
+					System.out.println(testClassName + " : not done !");
+					notDones.put(packageName, get(notDones, packageName, 0) + 1);
+				}
+			} catch (ClassNotFoundException e) {
+				System.out.println(testClassName + " not found");
+				notDones.put(packageName, get(notDones, packageName, 0) + 1);
+			}
+		}
+
+		int doneTotal = 0;
+		int notDoneTotal = 0;
+		for (String packageName : packageNames) {
+			Integer done = get(dones, packageName, 0);
+			Integer notDone = get(notDones, packageName, 0);
+			System.out.println(packageName + " : " + done + "/" + (done + notDone));
+			doneTotal += done;
+			notDoneTotal += notDone;
+		}
+
+		System.out.println(doneTotal + "/" + (doneTotal + notDoneTotal));
+
+		if (!focus.isEmpty()) {
+			System.out.println("Focus on:");
+			for (Class<?> f : focus) {
+				System.out.println("  " + f.getName());
+			}
+		}
+
+		if (this.getClass().isAnnotationPresent(Done.class) && notDoneTotal > 0) {
+			fail();
+		}
+	}
+
+	private <T, U> U get(Map<T, U> map, T key, U defaultValue) {
+		U value = map.get(key);
+		if (value == null) {
+			return defaultValue;
+		}
+		return value;
 	}
 }

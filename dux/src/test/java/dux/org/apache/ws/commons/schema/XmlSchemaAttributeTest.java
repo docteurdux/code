@@ -1,6 +1,5 @@
 package dux.org.apache.ws.commons.schema;
 
-import javax.net.ssl.X509TrustManager;
 import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
@@ -8,7 +7,6 @@ import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
-import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
