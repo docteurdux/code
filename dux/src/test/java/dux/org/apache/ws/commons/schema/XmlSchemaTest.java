@@ -1,6 +1,7 @@
 package dux.org.apache.ws.commons.schema;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaNotation;
 import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
+import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.utils.NamespacePrefixList;
 import org.junit.Before;
@@ -30,10 +32,11 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Done;
 
 import dum.org.apache.ws.commons.schema.utils.DummyNamespacePrefixList;
-import dux.org.apache.ws.commons.schema.XmlSchemaTest.ItemType;
 
+@Done("good for now")
 public class XmlSchemaTest extends AbstractTest {
 
 	private String namespace1;
@@ -138,9 +141,9 @@ public class XmlSchemaTest extends AbstractTest {
 			aeq("unqualified", schemaAttributes.getNamedItem("attributeFormDefault").getNodeValue());
 			aeq("unqualified", schemaAttributes.getNamedItem("attributeFormDefault").getNodeValue());
 			aeq("unqualified", schemaAttributes.getNamedItem("elementFormDefault").getNodeValue());
-			aeq("namespace", schemaAttributes.getNamedItem("targetNamespace").getNodeValue());
+			aeq(namespace1, schemaAttributes.getNamedItem("targetNamespace").getNodeValue());
 			aeq("http://www.w3.org/2001/XMLSchema", schemaAttributes.getNamedItem("xmlns").getNodeValue());
-			aeq("namespace", schemaAttributes.getNamedItem("xmlns:tns").getNodeValue());
+			aeq(namespace1, schemaAttributes.getNamedItem("xmlns:tns").getNodeValue());
 		}
 	}
 
@@ -284,49 +287,85 @@ public class XmlSchemaTest extends AbstractTest {
 	}
 
 	public static enum ItemType {
-		ATTRIBUTE(XmlSchemaAttribute.class);
 
-		Class<?> classType;
+		ATTRIBUTE(XmlSchemaAttribute.class, "Attribute"),
 
-		private ItemType(Class<?> classType) {
+		ATTRIBUTE_GROUP(XmlSchemaAttributeGroup.class, "AttributeGroup"),
+
+		ELEMENT(XmlSchemaElement.class, "Element"),
+
+		GROUP(XmlSchemaGroup.class, "Group"),
+
+		NOTATION(XmlSchemaNotation.class, "Notation"),
+
+		TYPE(XmlSchemaSimpleType.class, "Type"),
+
+		;
+
+		private Class<?> classType;
+		private String lcname;
+
+		private ItemType(Class<?> classType, String lcname) {
 			this.classType = classType;
+			this.lcname = lcname;
 		}
 
 		public Class<?> getClassType() {
 			return classType;
 		}
 
-		public <T> T construct(XmlSchema schema, Class<T> clazz)
-				throws InstantiationException, IllegalAccessException, IllegalArgumentException,
-				InvocationTargetException, NoSuchMethodException, SecurityException {
-			return clazz.getConstructor(XmlSchema.class, boolean.class).newInstance(schema, true);
+		public <T> T construct(XmlSchema schema, Class<T> clazz) throws InstantiationException, IllegalAccessException,
+				IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+			try {
+				Constructor<T> constructor = clazz.getConstructor(XmlSchema.class, boolean.class);
+				return constructor.newInstance(schema, true);
+			} catch (NoSuchMethodException ex) {
+				Constructor<T> constructor = clazz.getConstructor(XmlSchema.class);
+				return constructor.newInstance(schema);
+			}
 		}
 
 		@SuppressWarnings("unchecked")
 		public <T> Map<QName, T> getAll(XmlSchema schema, Class<T> clazz) throws IllegalAccessException,
 				IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-			return (Map<QName, T>) XmlSchema.class.getMethod("getAttributes").invoke(schema);
+			String getterName = "get" + lcname + "s";
+			if (TYPE.equals(this)) {
+				getterName = "getSchemaTypes";
+			}
+			return (Map<QName, T>) XmlSchema.class.getMethod(getterName).invoke(schema);
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> T getByName(XmlSchema schema, QName aQn) throws IllegalAccessException, IllegalArgumentException,
-				InvocationTargetException, NoSuchMethodException, SecurityException {
-			return (T) XmlSchema.class.getMethod("getAttributeByName", QName.class).invoke(schema, aQn);
+		public <T> T getByName(XmlSchema schema, QName aQn, Class<T> clazz) throws IllegalAccessException,
+				IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+			return (T) XmlSchema.class.getMethod("get" + lcname + "ByName", QName.class).invoke(schema, aQn);
 		}
 	};
 
-	/** When an <item> is added to the schema, it is found **/
-	public <T> void test13(ItemType itemType, Class<T> clazz) {
+	/**
+	 * When an <item> is added to the schema, it is found
+	 **/
+	public <T> void test13(ItemType it, Class<T> clazz) throws InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 
 		QName aQn = new QName("aQn");
-		XmlSchemaAttribute attribute = new XmlSchemaAttribute(schema, true);
-		schema.getAttributes().put(aQn, attribute);
-		aeqr(attribute, schema.getAttributeByName(aQn));
+
+		T item = it.construct(schema, clazz);
+
+		Map<QName, T> items = it.getAll(schema, clazz);
+
+		items.put(aQn, item);
+
+		T gottenItem = it.getByName(schema, aQn, clazz);
+		aeqr(item, gottenItem);
 
 	}
 
-	/** <Items> in imported schemas are found **/
-	public <T> void test14(ItemType itemType, Class<T> clazz) {
+	/**
+	 * <Items> in imported schemas are found
+	 **/
+	public <T> void test14(ItemType it, Class<T> clazz) throws InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 
 		String importNamespace = "importNamespace";
 		String importSourceURI = "importSourceURI";
@@ -336,20 +375,25 @@ public class XmlSchemaTest extends AbstractTest {
 		XmlSchema importSchema = new XmlSchema(importNamespace, systemId, parent);
 		importSchema.setSourceURI(importSourceURI);
 
-		XmlSchemaAttribute attribute = new XmlSchemaAttribute(importSchema, true);
-		importSchema.getAttributes().put(aQn, attribute);
+		T item = it.construct(importSchema, clazz);
+
+		Map<QName, T> items = it.getAll(importSchema, clazz);
+
+		items.put(aQn, item);
 
 		XmlSchemaImport sImport = new XmlSchemaImport(schema);
 		sImport.setSchema(importSchema);
 
-		aeqr(attribute, schema.getAttributeByName(aQn));
+		T gottenItem = it.getByName(schema, aQn, clazz);
+		aeqr(item, gottenItem);
 
 	}
 
 	/**
 	 * <Items> in included schemas are found
 	 **/
-	public <T> void test15(ItemType itemType, Class<T> clazz) {
+	public <T> void test15(ItemType it, Class<T> clazz) throws InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 
 		String includeNamespace = "includeNamespace";
 		String includeSourceURI = "includeSourceURI";
@@ -359,13 +403,17 @@ public class XmlSchemaTest extends AbstractTest {
 		XmlSchema includeSchema = new XmlSchema(includeNamespace, systemId, parent);
 		includeSchema.setSourceURI(includeSourceURI);
 
-		XmlSchemaAttribute attribute = new XmlSchemaAttribute(includeSchema, true);
-		includeSchema.getAttributes().put(aQn, attribute);
+		T item = it.construct(includeSchema, clazz);
+
+		Map<QName, T> items = it.getAll(includeSchema, clazz);
+
+		items.put(aQn, item);
 
 		XmlSchemaInclude sInclude = new XmlSchemaInclude(schema);
 		sInclude.setSchema(includeSchema);
 
-		aeqr(attribute, schema.getAttributeByName(aQn));
+		T gottenItem = it.getByName(schema, aQn, clazz);
+		aeqr(item, gottenItem);
 
 	}
 
@@ -393,7 +441,7 @@ public class XmlSchemaTest extends AbstractTest {
 		};
 		sExternal.setSchema(externalSchema);
 
-		T gottenItem = it.getByName(schema, aQn);
+		T gottenItem = it.getByName(schema, aQn, clazz);
 
 		an(gottenItem);
 
@@ -402,9 +450,9 @@ public class XmlSchemaTest extends AbstractTest {
 	/**
 	 * Loops do not produce infinite recursion ; btw, schema are considered
 	 * identical if their source URI are identical
-	 * 
 	 **/
-	public <T> void test17(ItemType itemType, Class<T> clazz) {
+	public <T> void test17(ItemType it, Class<T> clazz) throws InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 
 		String includeNamespace = "includeNamespace";
 
@@ -413,20 +461,25 @@ public class XmlSchemaTest extends AbstractTest {
 		XmlSchema includeSchema = new XmlSchema(includeNamespace, systemId, parent);
 		includeSchema.setSourceURI(schema.getSourceURI());
 
-		XmlSchemaAttribute attribute = new XmlSchemaAttribute(includeSchema, true);
-		includeSchema.getAttributes().put(aQn, attribute);
+		T item = it.construct(includeSchema, clazz);
+
+		Map<QName, T> items = it.getAll(includeSchema, clazz);
+
+		items.put(aQn, item);
 
 		XmlSchemaInclude sInclude = new XmlSchemaInclude(schema);
 		sInclude.setSchema(includeSchema);
 
-		an(schema.getAttributeByName(aQn));
+		T gottenItem = it.getByName(schema, aQn, clazz);
+		an(gottenItem);
 
 	}
 
 	/**
 	 * To achieve 100% coverage here, use two externals
 	 **/
-	public <T> void test18(ItemType itemType, Class<T> clazz) {
+	public <T> void test18(ItemType it, Class<T> clazz) throws IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException, NoSuchMethodException, SecurityException {
 
 		String importNamespace = "importNamespace";
 		String importSourceURI = "importSourceURI";
@@ -448,7 +501,7 @@ public class XmlSchemaTest extends AbstractTest {
 		XmlSchemaInclude sInclude = new XmlSchemaInclude(schema);
 		sInclude.setSchema(includeSchema);
 
-		schema.getAttributeByName(aQn);
+		it.getByName(schema, aQn, clazz);
 
 	}
 
