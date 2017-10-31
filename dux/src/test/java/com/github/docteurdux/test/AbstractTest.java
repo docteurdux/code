@@ -106,9 +106,7 @@ public abstract class AbstractTest {
 			packageNames.add(packageName);
 			try {
 				Class<?> testClass = Class.forName(testClassName);
-				if (testClass.isAnnotationPresent(Focus.class)) {
-					focus.add(testClass);
-				}
+
 				if (testClass.isAnnotationPresent(Done.class)) {
 					dones.put(packageName, get(dones, packageName, 0) + 1);
 				} else {
