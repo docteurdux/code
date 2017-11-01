@@ -5,10 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Done;
 
-public class XmlSchemaNumericFacetTest  extends AbstractTest {
+@Done
+public class XmlSchemaNumericFacetTest extends AbstractTest {
 
-	
 	@Before
 	public void before() {
 	}
@@ -18,7 +19,5 @@ public class XmlSchemaNumericFacetTest  extends AbstractTest {
 		XmlSchemaNumericFacet facet = new XmlSchemaNumericFacet() {
 		};
 	}
-
-
 
 }

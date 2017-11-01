@@ -98,6 +98,9 @@ public abstract class AbstractTest {
 			if (clazz.isEnum()) {
 				continue;
 			}
+			if (isException(clazz)) {
+				continue;
+			}
 			String testClassName = "dux." + clazz.getName() + "Test";
 			String packageName = clazz.getPackage().getName();
 			packageNames.add(packageName);
@@ -131,6 +134,16 @@ public abstract class AbstractTest {
 		if (this.getClass().isAnnotationPresent(Done.class) && notDoneTotal > 0) {
 			fail();
 		}
+	}
+
+	private boolean isException(Class<?> clazz) {
+		while (clazz != null) {
+			if (clazz == Exception.class) {
+				return true;
+			}
+			clazz = clazz.getSuperclass();
+		}
+		return false;
 	}
 
 	private <T, U> U get(Map<T, U> map, T key, U defaultValue) {
