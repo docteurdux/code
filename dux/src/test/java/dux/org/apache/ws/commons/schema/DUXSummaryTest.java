@@ -111,6 +111,7 @@ import org.apache.ws.commons.schema.utils.XmlSchemaRefBase;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Done;
 
 public class DUXSummaryTest extends AbstractTest {
 
@@ -163,5 +164,30 @@ public class DUXSummaryTest extends AbstractTest {
 
 		summary(classes.toArray(new Class<?>[] {}));
 
+		System.out.println("Focus on : ");
+		for (Class<?> clazz : classes) {
+			if (ancestor(clazz, XmlSchemaObject.class)) {
+				try {
+					Class<?> testClass = Class.forName("dux." + clazz.getName() + "Test");
+					if (!testClass.isAnnotationPresent(Done.class)) {
+						System.out.println(" " + clazz.getName());
+					}
+				} catch (ClassNotFoundException e) {
+					System.out.println(" " + clazz.getName());
+				}
+
+			}
+		}
+
+	}
+
+	private boolean ancestor(Class<?> clazz, Class<XmlSchemaObject> parent) {
+		while (clazz != parent && clazz != null) {
+			clazz = clazz.getSuperclass();
+		}
+		if (clazz == parent) {
+			return true;
+		}
+		return false;
 	}
 }

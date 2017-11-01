@@ -1,10 +1,8 @@
 package com.github.docteurdux.test;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -92,7 +90,6 @@ public abstract class AbstractTest {
 		Map<String, Integer> dones = new HashMap<>();
 		Map<String, Integer> notDones = new HashMap<>();
 		Set<String> packageNames = new HashSet<>();
-		List<Class<?>> focus = new ArrayList<>();
 
 		for (Class<?> clazz : classes) {
 			if (clazz.isInterface()) {
@@ -130,13 +127,6 @@ public abstract class AbstractTest {
 		}
 
 		System.out.println(doneTotal + "/" + (doneTotal + notDoneTotal));
-
-		if (!focus.isEmpty()) {
-			System.out.println("Focus on:");
-			for (Class<?> f : focus) {
-				System.out.println("  " + f.getName());
-			}
-		}
 
 		if (this.getClass().isAnnotationPresent(Done.class) && notDoneTotal > 0) {
 			fail();

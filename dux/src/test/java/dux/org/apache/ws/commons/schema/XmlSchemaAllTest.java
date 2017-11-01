@@ -5,9 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Done;
 
-public class XmlSchemaAllTest  extends AbstractTest {
-	
+@Done
+public class XmlSchemaAllTest extends AbstractTest {
+
 	@Before
 	public void before() {
 	}
@@ -15,8 +17,7 @@ public class XmlSchemaAllTest  extends AbstractTest {
 	@Test
 	public void test1() {
 		XmlSchemaAll all = new XmlSchemaAll();
+		aeq(0, all.getItems().size());
 	}
-
-
 
 }

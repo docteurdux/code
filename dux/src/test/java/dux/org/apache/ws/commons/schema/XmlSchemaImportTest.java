@@ -7,7 +7,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Done;
 
+@Done
 public class XmlSchemaImportTest extends AbstractTest {
 
 	@Before
@@ -21,6 +23,10 @@ public class XmlSchemaImportTest extends AbstractTest {
 		XmlSchemaCollection parent = new XmlSchemaCollection();
 		XmlSchema schema = new XmlSchema(namespace, systemId, parent);
 		XmlSchemaImport imporT = new XmlSchemaImport(schema);
+
+		an(imporT.getNamespace());
+		imporT.setNamespace("importNamespace");
+		aeq("importNamespace", imporT.getNamespace());
 	}
 
 }

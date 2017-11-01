@@ -5,10 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Done;
 
-public class XmlSchemaSequenceTest  extends AbstractTest {
+@Done
+public class XmlSchemaSequenceTest extends AbstractTest {
 
-	
 	@Before
 	public void before() {
 	}
@@ -16,8 +17,7 @@ public class XmlSchemaSequenceTest  extends AbstractTest {
 	@Test
 	public void test1() {
 		XmlSchemaSequence sequence = new XmlSchemaSequence();
+		aeq(0, sequence.getItems().size());
 	}
-
-
 
 }

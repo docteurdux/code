@@ -2,13 +2,15 @@ package dux.org.apache.ws.commons.schema;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaAnnotationItem;
 import org.apache.ws.commons.schema.XmlSchemaAppInfo;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaDocumentation;
@@ -22,11 +24,20 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.github.docteurdux.test.AbstractTest;
 
 public class SchemaBuilderTest extends AbstractTest {
+
+//	private static String lastTestName;
+//	static {
+//		List<String> testNames = new ArrayList<>();
+//		for (Method method : SchemaBuilderTest.class.getMethods()) {
+//			if (method.isAnnotationPresent(Test.class)) {
+//				testNames.add(method.getName());
+//			}
+//		}
+//	}
 
 	@Rule
 	public TestName testName = new TestName();
@@ -493,6 +504,6 @@ public class SchemaBuilderTest extends AbstractTest {
 		aeq(1, documentation.getMarkup().getLength());
 		aeq("documentationChild", documentation.getMarkup().item(0).getNodeName());
 	}
-	
+
 	// stopped at SchemaBuilder line 593 : handleSimpleType
 }
