@@ -3,6 +3,7 @@ package com.github.docteurdux.test;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,7 +86,7 @@ public abstract class AbstractTest {
 		aeq(clazz.getName(), map.get(key).getClass().getName());
 	}
 
-	protected void summary(Class<?>[] classes) {
+	protected void summary(List<Class<?>> classes) {
 
 		Map<String, Integer> dones = new HashMap<>();
 		Map<String, Integer> notDones = new HashMap<>();

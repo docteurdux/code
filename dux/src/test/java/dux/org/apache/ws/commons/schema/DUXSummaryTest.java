@@ -162,7 +162,7 @@ public class DUXSummaryTest extends AbstractTest {
 
 		classes.addAll(Arrays.asList(new Class<?>[] { Constants.class }));
 
-		summary(classes.toArray(new Class<?>[] {}));
+		summary(classes);
 
 		System.out.println("Focus on : ");
 		for (Class<?> clazz : classes) {
