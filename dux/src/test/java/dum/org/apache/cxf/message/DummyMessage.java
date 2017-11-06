@@ -1,6 +1,7 @@
 package dum.org.apache.cxf.message;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,6 +12,10 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.transport.Destination;
 
 public class DummyMessage implements Message {
+
+	private Map<String, Object> strings = new HashMap<>();
+	private Map<Class<?>, Object> contents = new HashMap<>();
+	private Map<String, Object> contextualProperties = new HashMap<>();
 
 	@Override
 	public <T> T get(Class<T> key) {
@@ -56,14 +61,15 @@ public class DummyMessage implements Message {
 
 	@Override
 	public Object get(Object key) {
-		// TODO Auto-generated method stub
+		if (key instanceof String) {
+			return strings.get(key);
+		}
 		return null;
 	}
 
 	@Override
 	public Object put(String key, Object value) {
-		// TODO Auto-generated method stub
-		return null;
+		return strings.put(key, value);
 	}
 
 	@Override
@@ -156,16 +162,15 @@ public class DummyMessage implements Message {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getContent(Class<T> format) {
-		// TODO Auto-generated method stub
-		return null;
+		return (T) contents.get(format);
 	}
 
 	@Override
 	public <T> void setContent(Class<T> format, Object content) {
-		// TODO Auto-generated method stub
-
+		contents.put(format, content);
 	}
 
 	@Override
@@ -182,8 +187,11 @@ public class DummyMessage implements Message {
 
 	@Override
 	public Object getContextualProperty(String key) {
-		// TODO Auto-generated method stub
-		return null;
+		return contextualProperties.get(key);
+	}
+
+	public Map<String, Object> getContextualProperties() {
+		return contextualProperties;
 	}
 
 	@Override
@@ -194,8 +202,7 @@ public class DummyMessage implements Message {
 
 	@Override
 	public Set<String> getContextualPropertyKeys() {
-		// TODO Auto-generated method stub
-		return null;
+		return contextualProperties.keySet();
 	}
 
 }
