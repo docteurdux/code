@@ -102,6 +102,7 @@ public abstract class AbstractTest {
 			if (isException(clazz)) {
 				continue;
 			}
+
 			String testClassName = "dux." + clazz.getName() + "Test";
 			String packageName = clazz.getPackage().getName();
 			packageNames.add(packageName);
