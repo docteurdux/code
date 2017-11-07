@@ -16,6 +16,8 @@ public class DummyMessage implements Message {
 	private Map<String, Object> strings = new HashMap<>();
 	private Map<Class<?>, Object> contents = new HashMap<>();
 	private Map<String, Object> contextualProperties = new HashMap<>();
+	private Exchange exchange;
+	private InterceptorChain interceptorChain;
 
 	@Override
 	public <T> T get(Class<T> key) {
@@ -104,8 +106,7 @@ public class DummyMessage implements Message {
 
 	@Override
 	public Set<Entry<String, Object>> entrySet() {
-		// TODO Auto-generated method stub
-		return null;
+		return new HashMap<String, Object>().entrySet();
 	}
 
 	@Override
@@ -122,14 +123,12 @@ public class DummyMessage implements Message {
 
 	@Override
 	public InterceptorChain getInterceptorChain() {
-		// TODO Auto-generated method stub
-		return null;
+		return interceptorChain;
 	}
 
 	@Override
 	public void setInterceptorChain(InterceptorChain chain) {
-		// TODO Auto-generated method stub
-
+		this.interceptorChain = chain;
 	}
 
 	@Override
@@ -140,13 +139,12 @@ public class DummyMessage implements Message {
 
 	@Override
 	public Exchange getExchange() {
-		// TODO Auto-generated method stub
-		return null;
+		return exchange;
 	}
 
 	@Override
 	public void setExchange(Exchange exchange) {
-		// TODO Auto-generated method stub
+		this.exchange = exchange;
 
 	}
 
