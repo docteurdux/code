@@ -1,4 +1,4 @@
-package dux.neethi;
+package dus.neethi;
 
 import java.util.ArrayList;
 import java.util.Arrays;

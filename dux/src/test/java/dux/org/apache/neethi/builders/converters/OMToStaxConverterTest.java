@@ -7,10 +7,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Done;
 
 import dum.javax.xml.stream.DummyXMLStreamReader;
 import dux.org.apache.axiom.om.DummyOMElement;
 
+@Done
 public class OMToStaxConverterTest extends AbstractTest {
 
 	private DummyXMLStreamReader xmlStreamReader;

@@ -2,20 +2,16 @@ package dux.org.apache.neethi.builders.converters;
 
 import java.util.Arrays;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.impl.llom.OMElementImpl;
-import org.apache.neethi.builders.converters.StaxToOMConverter;
+import org.apache.neethi.builders.converters.AbstractStaxConverter;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
-import com.github.docteurdux.test.Done;
 
 import dum.javax.xml.stream.DummyXMLStreamReader;
 import dum.javax.xml.stream.DummyXMLStreamReader.Event;
 
-@Done
-public class StaxToOMConverterTest extends AbstractTest {
+public class AbstractStaxConverterTest extends AbstractTest {
 
 	private DummyXMLStreamReader streamReader;
 
@@ -36,10 +32,13 @@ public class StaxToOMConverterTest extends AbstractTest {
 	@Test
 	public void test() {
 
-		StaxToOMConverter converter = new StaxToOMConverter();
+		AbstractStaxConverter converter = new AbstractStaxConverter() {
+		};
 
-		OMElement result = converter.convert(streamReader);
+		converter.getQName(streamReader);
 
-		aeq(OMElementImpl.class, result.getClass());
+		converter.getAttributes(streamReader);
+
+		converter.getChildren(streamReader);
 	}
 }

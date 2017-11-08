@@ -1,7 +1,6 @@
 package dux.org.apache.neethi.builders.converters;
 
 import java.util.Arrays;
-import java.util.Map;
 
 import org.apache.neethi.builders.converters.StaxToDOMConverter;
 import org.junit.Before;
@@ -31,7 +30,6 @@ public class StaxToDOMConverterTest extends AbstractTest {
 	private String entityTarget;
 	private String entityData;
 
-	@SuppressWarnings("unchecked")
 	@Before
 	public void before() {
 
@@ -55,7 +53,7 @@ public class StaxToDOMConverterTest extends AbstractTest {
 
 		reader = new DummyXMLStreamReader();
 
-		reader.setEvents(Arrays.asList(new Map[] {
+		reader.setEvents(Arrays.asList(new Event[] {
 
 				Event.startElement(parentNS, parentLP),
 

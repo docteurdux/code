@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -30,6 +32,10 @@ import org.apache.axiom.om.OMXMLStreamReaderConfiguration;
 public class DummyOMElement implements OMElement {
 
 	private XMLStreamReader xmlStreamReader;
+	private String localName;
+	private OMNamespace namespace;
+	private List<OMAttribute> attributes = new ArrayList<>();
+	private List<OMElement> children = new ArrayList<>();
 
 	@Override
 	public void buildWithAttachments() {
@@ -239,14 +245,12 @@ public class DummyOMElement implements OMElement {
 
 	@Override
 	public String getLocalName() {
-		// TODO Auto-generated method stub
-		return null;
+		return localName;
 	}
 
 	@Override
 	public OMNamespace getNamespace() {
-		// TODO Auto-generated method stub
-		return null;
+		return namespace;
 	}
 
 	@Override
@@ -274,9 +278,8 @@ public class DummyOMElement implements OMElement {
 	}
 
 	@Override
-	public void setLocalName(String arg0) {
-		// TODO Auto-generated method stub
-
+	public void setLocalName(String localName) {
+		this.localName = localName;
 	}
 
 	@Override
@@ -336,8 +339,11 @@ public class DummyOMElement implements OMElement {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Iterator getAllAttributes() {
-		// TODO Auto-generated method stub
-		return null;
+		return attributes.iterator();
+	}
+
+	public List<OMAttribute> getAttributes() {
+		return attributes;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -362,8 +368,11 @@ public class DummyOMElement implements OMElement {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Iterator getChildElements() {
-		// TODO Auto-generated method stub
-		return null;
+		return children.iterator();
+	}
+
+	public List<OMElement> getChilds() {
+		return children;
 	}
 
 	@Override

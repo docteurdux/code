@@ -1,9 +1,7 @@
 package dum.javax.xml.stream;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -16,90 +14,106 @@ public class DummyXMLStreamReader implements XMLStreamReader {
 
 	public static class Event {
 
-		private Map<String, Object> map = new HashMap<>();
+		private int type;
+		private String namespaceURI;
+		private String localName;
+		private String text;
+		private String piTarget;
+		private String piData;
 
 		public Event(int type) {
-			map.put("type", type);
+			this.type = type;
+		}
+
+		public int getType() {
+			return type;
+		}
+
+		public String getNamespaceURI() {
+			return namespaceURI;
 		}
 
 		public Event namespaceURI(String namespaceURI) {
-			map.put("namespaceURI", namespaceURI);
+			this.namespaceURI = namespaceURI;
 			return this;
 		}
 
 		public Event localName(String localName) {
-			map.put("localName", localName);
+			this.localName = localName;
 			return this;
+		}
+
+		public String getLocalName() {
+			return localName;
 		}
 
 		private Event text(String text) {
-			map.put("text", text);
+			this.text = text;
 			return this;
+		}
+
+		public String getText() {
+			return text;
 		}
 
 		private Event piTarget(String piTarget) {
-			map.put("piTarget", piTarget);
+			this.piTarget = piTarget;
 			return this;
+		}
+
+		public String getPITarget() {
+			return piTarget;
 		}
 
 		private Event piData(String piData) {
-			map.put("piData", piData);
+			this.piData = piData;
 			return this;
 		}
 
-		public Map<String, Object> build() {
-			return map;
+		public String getPIData() {
+			return piData;
 		}
 
-		@SuppressWarnings("rawtypes")
-		public static Map startElement(String namespaceURI, String localName) {
-			return new Event(XMLStreamConstants.START_ELEMENT).namespaceURI(namespaceURI).localName(localName).build();
+		public static Event startElement(String namespaceURI, String localName) {
+			return new Event(XMLStreamConstants.START_ELEMENT).namespaceURI(namespaceURI).localName(localName);
 		}
 
-		@SuppressWarnings("rawtypes")
-		public static Map endElement() {
-			return new Event(XMLStreamConstants.END_ELEMENT).build();
+		public static Event endElement() {
+			return new Event(XMLStreamConstants.END_ELEMENT);
 		}
 
-		@SuppressWarnings("rawtypes")
-		public static Map namespace() {
-			return new Event(XMLStreamConstants.NAMESPACE).build();
+		public static Event namespace() {
+			return new Event(XMLStreamConstants.NAMESPACE);
 		}
 
-		@SuppressWarnings("rawtypes")
-		public static Map attribute() {
-			return new Event(XMLStreamConstants.ATTRIBUTE).build();
+		public static Event attribute() {
+			return new Event(XMLStreamConstants.ATTRIBUTE);
 		}
 
-		@SuppressWarnings("rawtypes")
-		public static Map comment(String comment) {
-			return new Event(XMLStreamConstants.COMMENT).text(comment).build();
+		public static Event comment(String comment) {
+			return new Event(XMLStreamConstants.COMMENT).text(comment);
 		}
 
-		@SuppressWarnings("rawtypes")
-		public static Map cdata(String data) {
-			return new Event(XMLStreamConstants.CDATA).text(data).build();
+		public static Event cdata(String data) {
+			return new Event(XMLStreamConstants.CDATA).text(data);
 		}
 
-		@SuppressWarnings("rawtypes")
-		public static Map characters(String characters) {
-			return new Event(XMLStreamConstants.CHARACTERS).text(characters).build();
+		public static Event characters(String characters) {
+			return new Event(XMLStreamConstants.CHARACTERS).text(characters);
 		}
 
-		@SuppressWarnings("rawtypes")
-		public static Map processingInstruction(String piTarget, String piData) {
-			return new Event(XMLStreamConstants.PROCESSING_INSTRUCTION).piTarget(piTarget).piData(piData).build();
+		public static Event processingInstruction(String piTarget, String piData) {
+			return new Event(XMLStreamConstants.PROCESSING_INSTRUCTION).piTarget(piTarget).piData(piData);
 		}
 
-		@SuppressWarnings("rawtypes")
-		public static Map entityReference(String piTarget, String piData) {
-			return new Event(XMLStreamConstants.ENTITY_REFERENCE).piTarget(piTarget).piData(piData).build();
+		public static Event entityReference(String piTarget, String piData) {
+			return new Event(XMLStreamConstants.ENTITY_REFERENCE).piTarget(piTarget).piData(piData);
 		}
 
 	}
 
 	private int pos;
-	private List<Map<String, Object>> events = new ArrayList<>();
+	private List<Event> events = new ArrayList<>();
 
 	@Override
 	public Object getProperty(String name) throws IllegalArgumentException {
@@ -110,7 +124,7 @@ public class DummyXMLStreamReader implements XMLStreamReader {
 	@Override
 	public int next() throws XMLStreamException {
 		++pos;
-		return (int) events.get(pos).get("type");
+		return (int) events.get(pos).getType();
 	}
 
 	@Override
@@ -255,7 +269,7 @@ public class DummyXMLStreamReader implements XMLStreamReader {
 		if (pos >= events.size()) {
 			return -1;
 		}
-		return (int) events.get(pos).get("type");
+		return (int) events.get(pos).getType();
 	}
 
 	@Override
@@ -263,7 +277,7 @@ public class DummyXMLStreamReader implements XMLStreamReader {
 		if (pos >= events.size()) {
 			return null;
 		}
-		return (String) events.get(pos).get("text");
+		return (String) events.get(pos).getText();
 	}
 
 	@Override
@@ -320,7 +334,7 @@ public class DummyXMLStreamReader implements XMLStreamReader {
 		if (pos >= events.size()) {
 			return null;
 		}
-		return (String) events.get(pos).get("localName");
+		return (String) events.get(pos).getLocalName();
 	}
 
 	@Override
@@ -334,7 +348,7 @@ public class DummyXMLStreamReader implements XMLStreamReader {
 		if (pos >= events.size()) {
 			return null;
 		}
-		return (String) events.get(pos).get("namespaceURI");
+		return (String) events.get(pos).getNamespaceURI();
 	}
 
 	@Override
@@ -372,7 +386,7 @@ public class DummyXMLStreamReader implements XMLStreamReader {
 		if (pos >= events.size()) {
 			return null;
 		}
-		return (String) events.get(pos).get("piTarget");
+		return (String) events.get(pos).getPITarget();
 	}
 
 	@Override
@@ -380,10 +394,10 @@ public class DummyXMLStreamReader implements XMLStreamReader {
 		if (pos >= events.size()) {
 			return null;
 		}
-		return (String) events.get(pos).get("piData");
+		return (String) events.get(pos).getPIData();
 	}
 
-	public void setEvents(List<Map<String, Object>> events) {
+	public void setEvents(List<Event> events) {
 		this.events = events;
 	}
 
