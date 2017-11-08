@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.junit.Assert;
 
@@ -154,5 +155,14 @@ public abstract class AbstractTest {
 			return defaultValue;
 		}
 		return value;
+	}
+	
+	protected void dumpTestEvents(TestEventCollector tec) {
+		for (TestEvent te : tec.getTestEvents()) {
+			System.out.println(te.getName());
+			for (Entry<String, Object> prop : te.getProps().entrySet()) {
+				System.out.println(" - " + prop.getKey() + " : " + str(prop.getValue()));
+			}
+		}
 	}
 }
