@@ -1,12 +1,19 @@
 package com.github.docteurdux.test;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.junit.Assert;
 
@@ -88,7 +95,10 @@ public abstract class AbstractTest {
 	}
 
 	protected void summary(List<Class<?>> classes) {
+		summary(classes, true);
+	}
 
+	protected void summary(List<Class<?>> classes, boolean dumpPackageStats) {
 		Map<String, Integer> dones = new HashMap<>();
 		Map<String, Integer> notDones = new HashMap<>();
 		Set<String> packageNames = new HashSet<>();
@@ -124,10 +134,13 @@ public abstract class AbstractTest {
 
 		int doneTotal = 0;
 		int notDoneTotal = 0;
+
 		for (String packageName : packageNames) {
 			Integer done = get(dones, packageName, 0);
 			Integer notDone = get(notDones, packageName, 0);
-			System.out.println(packageName + " : " + done + "/" + (done + notDone));
+			if (dumpPackageStats) {
+				System.out.println(packageName + " : " + done + "/" + (done + notDone));
+			}
 			doneTotal += done;
 			notDoneTotal += notDone;
 		}
@@ -137,6 +150,61 @@ public abstract class AbstractTest {
 		if (this.getClass().isAnnotationPresent(Done.class) && notDoneTotal > 0) {
 			fail();
 		}
+	}
+
+	protected void summarize(String jarname) throws IOException {
+
+		List<Class<?>> classes = new ArrayList<>();
+
+		Map<String, Long> sizes = new HashMap<>();
+
+		String cp = System.getProperty("java.class.path");
+		for (String p : cp.split(";")) {
+			if (p.endsWith(".jar") && p.indexOf('\\') > 0) {
+				File f = new File(p);
+				if (f.getName().matches(".*" + jarname + ".*")) {
+					if (f.exists()) {
+						ZipFile z = new ZipFile(p);
+						Enumeration<? extends ZipEntry> entries = z.entries();
+						while (entries.hasMoreElements()) {
+							ZipEntry entry = entries.nextElement();
+							String name = entry.getName();
+							long size = entry.getSize();
+							if (name.endsWith(".class") && !name.contains("$")) {
+								name = name.substring(0, name.length() - 6);
+								name = name.replaceAll("/", ".");
+								try {
+									Class<?> clazz = Class.forName(name);
+									classes.add(clazz);
+									sizes.put(name, size);
+								} catch (NoClassDefFoundError e) {
+								} catch (ClassNotFoundException e) {
+								}
+							}
+						}
+						z.close();
+					}
+				}
+			}
+		}
+
+		classes.sort(new Comparator<Class<?>>() {
+			@Override
+			public int compare(Class<?> c1, Class<?> c2) {
+				Long s1 = sizes.get(c1.getName());
+				Long s2 = sizes.get(c2.getName());
+				if (s1 == null) {
+					s1 = 0L;
+				}
+				if (s2 == null) {
+					s2 = 0L;
+				}
+				return s1 < s2 ? 1 : s1 > s2 ? -1 : 0;
+			}
+
+		});
+
+		summary(classes, false);
 	}
 
 	private boolean isException(Class<?> clazz) {
@@ -156,7 +224,7 @@ public abstract class AbstractTest {
 		}
 		return value;
 	}
-	
+
 	protected void dumpTestEvents(TestEventCollector tec) {
 		for (TestEvent te : tec.getTestEvents()) {
 			System.out.println(te.getName());
@@ -165,5 +233,5 @@ public abstract class AbstractTest {
 			}
 		}
 	}
-	
+
 }
