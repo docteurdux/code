@@ -2,7 +2,10 @@ package com.github.docteurdux.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -15,6 +18,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.hibernate.stat.internal.CategorizedStatistics;
 import org.junit.Assert;
 
 public abstract class AbstractTest {
@@ -70,8 +74,12 @@ public abstract class AbstractTest {
 	}
 
 	protected Object getField(Object o, String fieldName) {
+		return getField(o, fieldName, o.getClass());
+	}
+
+	protected Object getField(Object o, String fieldName, Class<?> clazz) {
 		try {
-			Field field = o.getClass().getDeclaredField(fieldName);
+			Field field = clazz.getDeclaredField(fieldName);
 			field.setAccessible(true);
 			return field.get(o);
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
@@ -169,7 +177,7 @@ public abstract class AbstractTest {
 						while (entries.hasMoreElements()) {
 							ZipEntry entry = entries.nextElement();
 							String name = entry.getName();
-							long size = entry.getSize();
+							long size = entry.getCompressedSize();
 							if (name.endsWith(".class") && !name.contains("$")) {
 								name = name.substring(0, name.length() - 6);
 								name = name.replaceAll("/", ".");
@@ -232,6 +240,22 @@ public abstract class AbstractTest {
 				System.out.println(" - " + prop.getKey() + " : " + str(prop.getValue()));
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <T> T instantiate(Class<?> clazz, Class<?>[] types, Object... params)
+			throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException {
+		Constructor<?> constructor = clazz.getDeclaredConstructor(types);
+		constructor.setAccessible(true);
+		return (T) constructor.newInstance(params);
+	}
+
+	protected Object invoke(Object o, String name) throws NoSuchMethodException, SecurityException,
+			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Method m = o.getClass().getDeclaredMethod(name);
+		m.setAccessible(true);
+		return m.invoke(o);
 	}
 
 }
