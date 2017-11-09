@@ -3,6 +3,7 @@ package dum.org.hibernate.boot.spi;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,9 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 	private List<PersistentClass> entityBindings = new ArrayList<>();
 	private Map<String, String> imports = new HashMap<>();
 	private List<org.hibernate.mapping.Collection> collectionBindings = new ArrayList<>();
+	private Set<MappedSuperclass> mappedSuperclassMappingsCopy = new HashSet<>();
+	private Map<String, NamedEntityGraphDefinition> namedEntityGraphs = new HashMap<>();
+	private List<FetchProfile> fetchProfiles = new ArrayList<>();
 
 	@Override
 	public SessionFactoryBuilder getSessionFactoryBuilder() {
@@ -163,8 +167,7 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 
 	@Override
 	public Collection<FetchProfile> getFetchProfiles() {
-		// TODO Auto-generated method stub
-		return null;
+		return fetchProfiles;
 	}
 
 	@Override
@@ -175,8 +178,7 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 
 	@Override
 	public Map<String, NamedEntityGraphDefinition> getNamedEntityGraphs() {
-		// TODO Auto-generated method stub
-		return null;
+		return namedEntityGraphs;
 	}
 
 	@Override
@@ -250,8 +252,7 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 
 	@Override
 	public Set<MappedSuperclass> getMappedSuperclassMappingsCopy() {
-		// TODO Auto-generated method stub
-		return null;
+		return mappedSuperclassMappingsCopy;
 	}
 
 }

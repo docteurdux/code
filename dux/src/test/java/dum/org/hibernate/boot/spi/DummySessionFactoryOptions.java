@@ -31,6 +31,7 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	private StandardServiceRegistry serviceRegistry;
 	private ArrayList<SessionFactoryObserver> sessionFactoryObservers = new ArrayList<SessionFactoryObserver>();
+	private MultiTableBulkIdStrategy multiTableBulkIdStrategy;
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -157,8 +158,11 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public MultiTableBulkIdStrategy getMultiTableBulkIdStrategy() {
-		// TODO Auto-generated method stub
-		return null;
+		return multiTableBulkIdStrategy;
+	}
+	
+	public void setMultiTableBulkIdStrategy(MultiTableBulkIdStrategy multiTableBulkIdStrategy) {
+		this.multiTableBulkIdStrategy = multiTableBulkIdStrategy;
 	}
 
 	@Override
@@ -221,6 +225,7 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 		return false;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Map getQuerySubstitutions() {
 		// TODO Auto-generated method stub
