@@ -49,6 +49,7 @@ import org.hibernate.type.TypeResolver;
 public class DummySessionFactoryImplementor implements SessionFactoryImplementor {
 
 	private ServiceRegistryImplementor serviceRegistry;
+	private SessionFactoryOptions sessionFactoryOptions;
 
 	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
 		// TODO Auto-generated method stub
@@ -71,8 +72,11 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 	}
 
 	public SessionFactoryOptions getSessionFactoryOptions() {
-		// TODO Auto-generated method stub
-		return null;
+		return sessionFactoryOptions;
+	}
+
+	public void setSessionFactoryOptions(SessionFactoryOptions sessionFactoryOptions) {
+		this.sessionFactoryOptions = sessionFactoryOptions;
 	}
 
 	public Session openSession() throws HibernateException {

@@ -258,4 +258,15 @@ public abstract class AbstractTest {
 		return m.invoke(o);
 	}
 
+	protected Object invoke(Object o, String name, Object... params) throws IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		Class<?>[] parameterTypes = new Class<?>[params.length];
+		for (int i = 0; i < params.length; ++i) {
+			parameterTypes[i] = params[i].getClass();
+		}
+		Method m = o.getClass().getDeclaredMethod(name, parameterTypes);
+		m.setAccessible(true);
+		return m.invoke(o, params);
+	}
+
 }
