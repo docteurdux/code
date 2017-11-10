@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.hibernate.stat.internal.CategorizedStatistics;
 import org.junit.Assert;
 
 public abstract class AbstractTest {
@@ -103,10 +102,14 @@ public abstract class AbstractTest {
 	}
 
 	protected void summary(List<Class<?>> classes) {
-		summary(classes, true);
+		summary(classes, true, null);
 	}
 
-	protected void summary(List<Class<?>> classes, boolean dumpPackageStats) {
+	protected void summary(List<Class<?>> classes, Map<String, Long> sizes) {
+		summary(classes, true, sizes);
+	}
+
+	protected void summary(List<Class<?>> classes, boolean dumpPackageStats, Map<String, Long> sizes) {
 		Map<String, Integer> dones = new HashMap<>();
 		Map<String, Integer> notDones = new HashMap<>();
 		Set<String> packageNames = new HashSet<>();
@@ -122,6 +125,11 @@ public abstract class AbstractTest {
 				continue;
 			}
 
+			Long sz = null;
+			if (sizes != null) {
+				sz = sizes.get(clazz.getName());
+			}
+			String szStr = sz != null ? (" (" + sz + ")") : "";
 			String testClassName = "dux." + clazz.getName() + "Test";
 			String packageName = clazz.getPackage().getName();
 			packageNames.add(packageName);
@@ -131,11 +139,12 @@ public abstract class AbstractTest {
 				if (testClass.isAnnotationPresent(Done.class)) {
 					dones.put(packageName, get(dones, packageName, 0) + 1);
 				} else {
-					System.out.println(testClassName + " : not done !");
+
+					System.out.println(testClassName + " : not done !" + szStr);
 					notDones.put(packageName, get(notDones, packageName, 0) + 1);
 				}
 			} catch (ClassNotFoundException e) {
-				System.out.println(testClassName + " not found");
+				System.out.println(testClassName + " not found" + szStr);
 				notDones.put(packageName, get(notDones, packageName, 0) + 1);
 			}
 		}
@@ -212,7 +221,7 @@ public abstract class AbstractTest {
 
 		});
 
-		summary(classes, false);
+		summary(classes, false, sizes);
 	}
 
 	private boolean isException(Class<?> clazz) {
@@ -267,6 +276,36 @@ public abstract class AbstractTest {
 		Method m = o.getClass().getDeclaredMethod(name, parameterTypes);
 		m.setAccessible(true);
 		return m.invoke(o, params);
+	}
+
+	protected Object invoke(Object o, String name, Class<?> clazz, Object... params) throws IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		Class<?>[] parameterTypes = new Class<?>[params.length];
+		for (int i = 0; i < params.length; ++i) {
+			parameterTypes[i] = params[i].getClass();
+		}
+		Method m = clazz.getDeclaredMethod(name, parameterTypes);
+		m.setAccessible(true);
+		return m.invoke(o, params);
+	}
+
+	protected Object invoke(Object o, String name, Class<?> clazz, Class<?>[] types, Object... params)
+			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
+			SecurityException {
+		Method m = clazz.getDeclaredMethod(name, types);
+		m.setAccessible(true);
+		return m.invoke(o, params);
+	}
+
+	protected void expect(Class<?> clazz, RunnableWhichThrow runnableWhichThrow) {
+		Exception cex = null;
+		try {
+			runnableWhichThrow.run();
+			fail();
+		} catch (Exception e) {
+			cex = e;
+		}
+		aeq(clazz, cex.getClass());
 	}
 
 }
