@@ -7,8 +7,7 @@ public class DummyIdentifierHelper implements IdentifierHelper {
 
 	@Override
 	public Identifier normalizeQuoting(Identifier identifier) {
-		// TODO Auto-generated method stub
-		return null;
+		return identifier;
 	}
 
 	@Override

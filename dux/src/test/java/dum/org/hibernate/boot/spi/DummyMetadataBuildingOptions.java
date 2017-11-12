@@ -30,6 +30,7 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 	private StandardServiceRegistry serviceRegistry;
 	private MappingDefaults mappingDefaults;
 	private PhysicalNamingStrategy physicalNamingStrategy;
+	private ImplicitNamingStrategy implicitNamingStrategy;
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -93,8 +94,11 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 
 	@Override
 	public ImplicitNamingStrategy getImplicitNamingStrategy() {
-		// TODO Auto-generated method stub
-		return null;
+		return implicitNamingStrategy;
+	}
+
+	public void setImplicitNamingStrategy(ImplicitNamingStrategy implicitNamingStrategy) {
+		this.implicitNamingStrategy = implicitNamingStrategy;
 	}
 
 	@Override

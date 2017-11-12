@@ -74,6 +74,7 @@ import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 public class DummySessionImplementor implements SessionImplementor {
 
 	private SessionFactoryImplementor factory;
+	private PersistenceContext persistenceContext;
 
 	public SharedSessionBuilder sessionWithOptions() {
 		// TODO Auto-generated method stub
@@ -715,8 +716,11 @@ public class DummySessionImplementor implements SessionImplementor {
 	}
 
 	public PersistenceContext getPersistenceContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return persistenceContext;
+	}
+
+	public void setPersistenceContext(PersistenceContext persistenceContext) {
+		this.persistenceContext = persistenceContext;
 	}
 
 	public JdbcCoordinator getJdbcCoordinator() {

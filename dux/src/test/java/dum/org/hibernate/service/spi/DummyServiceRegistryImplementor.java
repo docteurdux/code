@@ -22,6 +22,10 @@ public class DummyServiceRegistryImplementor implements ServiceRegistryImplement
 		return (R) services.get(serviceRole);
 	}
 
+	public void setService(Class<?> clazz, Object object) {
+		services.put(clazz, object);
+	}
+
 	public <R extends Service> ServiceBinding<R> locateServiceBinding(Class<R> serviceRole) {
 		// TODO Auto-generated method stub
 		return null;

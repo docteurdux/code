@@ -6,6 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -124,7 +125,6 @@ public abstract class AbstractTest {
 			if (isException(clazz)) {
 				continue;
 			}
-
 			Long sz = null;
 			if (sizes != null) {
 				sz = sizes.get(clazz.getName());
@@ -308,4 +308,12 @@ public abstract class AbstractTest {
 		aeq(clazz, cex.getClass());
 	}
 
+	protected Object testEvent(TestEventCollector testEventCollector, int idx, String name) {
+		return testEventCollector.testEvents.get(idx).getProps().get(name);
+	}
+
+	protected boolean isPackage(Class<?> clazz) {
+		return !Modifier.isPublic(clazz.getModifiers()) && !Modifier.isProtected(clazz.getModifiers())
+				&& !Modifier.isPrivate(clazz.getModifiers());
+	}
 }

@@ -75,6 +75,8 @@ import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 public class DummyEventSource implements EventSource {
 
 	private static final long serialVersionUID = 1L;
+	private SessionFactoryImplementor factory;
+	private PersistenceContext persistenceContext;
 
 	@Override
 	public SessionFactoryImplementor getSessionFactory() {
@@ -177,7 +179,8 @@ public class DummyEventSource implements EventSource {
 	}
 
 	@Override
-	public <T> QueryImplementor<T> createQuery(String jpaqlString, Class<T> resultClass, @SuppressWarnings("rawtypes") Selection selection,
+	public <T> QueryImplementor<T> createQuery(String jpaqlString, Class<T> resultClass,
+			@SuppressWarnings("rawtypes") Selection selection,
 			@SuppressWarnings("deprecation") QueryOptions queryOptions) {
 		// TODO Auto-generated method stub
 		return null;
@@ -706,7 +709,8 @@ public class DummyEventSource implements EventSource {
 	}
 
 	@Override
-	public ProcedureCall createStoredProcedureCall(String procedureName, @SuppressWarnings("rawtypes") Class... resultClasses) {
+	public ProcedureCall createStoredProcedureCall(String procedureName,
+			@SuppressWarnings("rawtypes") Class... resultClasses) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -947,8 +951,11 @@ public class DummyEventSource implements EventSource {
 
 	@Override
 	public SessionFactoryImplementor getFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return factory;
+	}
+
+	public void setFactory(SessionFactoryImplementor factory) {
+		this.factory = factory;
 	}
 
 	@Override
@@ -959,8 +966,11 @@ public class DummyEventSource implements EventSource {
 
 	@Override
 	public PersistenceContext getPersistenceContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return persistenceContext;
+	}
+
+	public void setPersistenceContext(PersistenceContext persistenceContext) {
+		this.persistenceContext = persistenceContext;
 	}
 
 	@Override
@@ -1337,13 +1347,15 @@ public class DummyEventSource implements EventSource {
 	}
 
 	@Override
-	public void merge(String entityName, Object object, @SuppressWarnings("rawtypes") Map copiedAlready) throws HibernateException {
+	public void merge(String entityName, Object object, @SuppressWarnings("rawtypes") Map copiedAlready)
+			throws HibernateException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void persist(String entityName, Object object, @SuppressWarnings("rawtypes") Map createdAlready) throws HibernateException {
+	public void persist(String entityName, Object object, @SuppressWarnings("rawtypes") Map createdAlready)
+			throws HibernateException {
 		// TODO Auto-generated method stub
 
 	}
@@ -1355,13 +1367,15 @@ public class DummyEventSource implements EventSource {
 	}
 
 	@Override
-	public void refresh(String entityName, Object object, @SuppressWarnings("rawtypes") Map refreshedAlready) throws HibernateException {
+	public void refresh(String entityName, Object object, @SuppressWarnings("rawtypes") Map refreshedAlready)
+			throws HibernateException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void delete(String entityName, Object child, boolean isCascadeDeleteEnabled, @SuppressWarnings("rawtypes") Set transientEntities) {
+	public void delete(String entityName, Object child, boolean isCascadeDeleteEnabled,
+			@SuppressWarnings("rawtypes") Set transientEntities) {
 		// TODO Auto-generated method stub
 
 	}
