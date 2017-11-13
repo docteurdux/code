@@ -35,6 +35,7 @@ import org.hibernate.type.VersionType;
 public class DummyEntityPersister implements EntityPersister {
 
 	private String entityName;
+	private Type identifierType;
 
 	@Override
 	public Comparator getVersionComparator() {
@@ -388,8 +389,11 @@ public class DummyEntityPersister implements EntityPersister {
 
 	@Override
 	public Type getIdentifierType() {
-		// TODO Auto-generated method stub
-		return null;
+		return identifierType;
+	}
+
+	public void setIdentifierType(Type identifierType) {
+		this.identifierType = identifierType;
 	}
 
 	@Override

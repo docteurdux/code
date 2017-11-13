@@ -1,6 +1,7 @@
 package dum.org.hibernate.boot.spi;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -32,6 +33,9 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	private StandardServiceRegistry serviceRegistry;
 	private ArrayList<SessionFactoryObserver> sessionFactoryObservers = new ArrayList<SessionFactoryObserver>();
 	private MultiTableBulkIdStrategy multiTableBulkIdStrategy;
+
+	@SuppressWarnings("rawtypes")
+	private Map querySubstitutions = new HashMap<>();
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -160,7 +164,7 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	public MultiTableBulkIdStrategy getMultiTableBulkIdStrategy() {
 		return multiTableBulkIdStrategy;
 	}
-	
+
 	public void setMultiTableBulkIdStrategy(MultiTableBulkIdStrategy multiTableBulkIdStrategy) {
 		this.multiTableBulkIdStrategy = multiTableBulkIdStrategy;
 	}
@@ -228,8 +232,7 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Map getQuerySubstitutions() {
-		// TODO Auto-generated method stub
-		return null;
+		return querySubstitutions;
 	}
 
 	@Override

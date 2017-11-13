@@ -7,7 +7,11 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.TypedValue;
 import org.hibernate.type.Type;
 
+import com.github.docteurdux.test.hibernate.ColumnGetter;
+
 public class DummyCriteriaQuery implements CriteriaQuery {
+
+	private ColumnGetter columnGetter;
 
 	@Override
 	public SessionFactoryImplementor getFactory() {
@@ -17,8 +21,11 @@ public class DummyCriteriaQuery implements CriteriaQuery {
 
 	@Override
 	public String getColumn(Criteria criteria, String propertyPath) throws HibernateException {
-		// TODO Auto-generated method stub
-		return null;
+		return columnGetter.get(criteria, propertyPath);
+	}
+
+	public void setColumnGetter(ColumnGetter columnGetter) {
+		this.columnGetter = columnGetter;
 	}
 
 	@Override
