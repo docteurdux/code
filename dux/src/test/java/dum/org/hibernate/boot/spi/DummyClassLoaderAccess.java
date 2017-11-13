@@ -22,4 +22,12 @@ public class DummyClassLoaderAccess implements ClassLoaderAccess {
 		return urls.get(resourceName);
 	}
 
+	public void setClass(String name, Class<?> clazz) {
+		classes.put(name, clazz);
+	}
+
+	public void setURL(String name, URL url) {
+		urls.put(name, url);
+	}
+
 }

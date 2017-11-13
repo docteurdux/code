@@ -31,6 +31,7 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 	private MappingDefaults mappingDefaults;
 	private PhysicalNamingStrategy physicalNamingStrategy;
 	private ImplicitNamingStrategy implicitNamingStrategy;
+	private ReflectionManager reflectionManager;
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -112,8 +113,11 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 
 	@Override
 	public ReflectionManager getReflectionManager() {
-		// TODO Auto-generated method stub
-		return null;
+		return reflectionManager;
+	}
+
+	public void setReflectionManager(ReflectionManager reflectionManager) {
+		this.reflectionManager = reflectionManager;
 	}
 
 	@Override

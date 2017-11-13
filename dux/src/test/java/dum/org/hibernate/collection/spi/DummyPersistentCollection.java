@@ -19,14 +19,14 @@ import com.github.docteurdux.test.TestEventCollector;
 public class DummyPersistentCollection extends TestEventCollector implements PersistentCollection {
 
 	private boolean wasInitialized;
+	private Object owner;
 
 	public Object getOwner() {
-		// TODO Auto-generated method stub
-		return null;
+		return owner;
 	}
 
 	public void setOwner(Object entity) {
-		// TODO Auto-generated method stub
+		owner = entity;
 
 	}
 
