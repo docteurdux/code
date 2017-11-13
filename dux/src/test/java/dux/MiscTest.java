@@ -1,5 +1,8 @@
 package dux;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -48,5 +51,18 @@ public class MiscTest extends AbstractTest {
 		aeq("com.sun.xml.internal.bind.v2.runtime.MarshallerImpl", marshaller.getClass().getName());
 		com.sun.xml.internal.bind.v2.runtime.MarshallerImpl.class.getName();
 
+	}
+	
+	@Test public void test5() {
+		af(null instanceof String);
+	}
+	
+	@Test public void test6() {
+		// https://geoservices.geoconcept.com/EU/GCW/geoconcept-web/
+		Pattern p = Pattern.compile(".*/([^/]+)/GCW/geoconcept-web/$");
+		Matcher m = p.matcher("https://geoservices.geoconcept.com/EU/GCW/geoconcept-web/");
+		m.find();
+		System.out.println(m.group(1));
+		
 	}
 }

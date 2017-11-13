@@ -12,13 +12,17 @@ import java.util.Map;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 
+import com.github.docteurdux.test.hibernate.ProxyGenerator;
+
 public class DummyClassLoaderService implements ClassLoaderService {
 
 	private static final long serialVersionUID = 1L;
 
 	private Map<String, Class<?>> forNames = new HashMap<>();
 
-	private Map<Class<?>, List<?>> services = new HashMap<>();;
+	private Map<Class<?>, List<?>> services = new HashMap<>();
+
+	private ProxyGenerator proxyGenerator;;
 
 	public void stop() {
 		// TODO Auto-generated method stub
@@ -72,8 +76,11 @@ public class DummyClassLoaderService implements ClassLoaderService {
 	}
 
 	public <T> T generateProxy(InvocationHandler handler, Class... interfaces) {
-		// TODO Auto-generated method stub
-		return null;
+		return (T) proxyGenerator.generateProxy(handler, interfaces);
+	}
+
+	public void setProxyGenerator(ProxyGenerator proxyGenerator) {
+		this.proxyGenerator = proxyGenerator;
 	}
 
 	public <T> T workWithClassLoader(Work<T> work) {

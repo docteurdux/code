@@ -13,6 +13,8 @@ public class DummyLazyInitializer extends TestEventCollector implements LazyInit
 
 	private boolean uninitialized;
 	private Object implementation;
+	@SuppressWarnings("rawtypes")
+	private Class persistentClass;
 
 	public void initialize() throws HibernateException {
 		testEvents.add(new TestEvent("initialize"));
@@ -33,9 +35,13 @@ public class DummyLazyInitializer extends TestEventCollector implements LazyInit
 		return null;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public Class getPersistentClass() {
-		// TODO Auto-generated method stub
-		return null;
+		return persistentClass;
+	}
+
+	public void setPersistentClass(@SuppressWarnings("rawtypes") Class persistentClass) {
+		this.persistentClass = persistentClass;
 	}
 
 	public boolean isUninitialized() {

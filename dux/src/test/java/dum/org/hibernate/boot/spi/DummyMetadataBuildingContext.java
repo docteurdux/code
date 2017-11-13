@@ -13,6 +13,7 @@ public class DummyMetadataBuildingContext implements MetadataBuildingContext {
 	private ObjectNameNormalizer objectNameNormalizer;
 	private MetadataBuildingOptions buildingOptions;
 	private ClassLoaderAccess classLoaderAccess;
+	private MappingDefaults mappingDefaults;
 
 	@Override
 	public MetadataBuildingOptions getBuildingOptions() {
@@ -25,8 +26,11 @@ public class DummyMetadataBuildingContext implements MetadataBuildingContext {
 
 	@Override
 	public MappingDefaults getMappingDefaults() {
-		// TODO Auto-generated method stub
-		return null;
+		return mappingDefaults;
+	}
+
+	public void setMappingDefaults(MappingDefaults mappingDefaults) {
+		this.mappingDefaults = mappingDefaults;
 	}
 
 	@Override

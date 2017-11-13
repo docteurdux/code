@@ -26,6 +26,10 @@ public class DummyServiceRegistry implements ServiceRegistry {
 		return (R) services.get(serviceRole);
 	}
 
+	public void setService(Class<?> clazz, Service service) {
+		services.put(clazz, service);
+	}
+
 	public Map<Class<?>, Object> getServices() {
 		return services;
 	}
