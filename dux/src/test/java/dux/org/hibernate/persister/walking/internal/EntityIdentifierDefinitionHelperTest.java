@@ -32,6 +32,7 @@ import org.hibernate.type.TypeResolver;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Done;
 
 import dum.org.hibernate.boot.registry.classloading.spi.DummyClassLoaderService;
 import dum.org.hibernate.boot.spi.DummyMetadataBuildingContext;
@@ -45,14 +46,16 @@ import dum.org.hibernate.engine.jdbc.env.spi.DummyJdbcEnvironment;
 import dum.org.hibernate.engine.jdbc.spi.DummyJdbcServices;
 import dum.org.hibernate.engine.spi.DummySessionFactoryImplementor;
 import dum.org.hibernate.mapping.DummyKeyValue;
+import dum.org.hibernate.mapping.DummyValue;
 import dum.org.hibernate.persister.entity.DummyAbstractEntityPersister;
 import dum.org.hibernate.persister.spi.DummyPersisterCreationContext;
 import dum.org.hibernate.service.spi.DummyServiceRegistryImplementor;
+import dum.org.hibernate.type.DummyType;
 import dum.org.hibernate.type.TypeFactory.DummyTypeScope;
 import dux.org.hibernate.query.criteria.internal.DummyStandardServiceRegistry;
 
 @SuppressWarnings("deprecation")
-// dont forget to remove duplicated EntityIdentifierDefinitionHelper.java
+@Done("Need a second pass")
 public class EntityIdentifierDefinitionHelperTest extends AbstractTest {
 
 	private boolean hasName = true;
@@ -60,6 +63,7 @@ public class EntityIdentifierDefinitionHelperTest extends AbstractTest {
 	private DummyAbstractEntityPersister abstractEntityPersister;
 	private ComponentType type;
 	private String identifierPropertyName;
+	private DummyType valueType;
 
 	public void prepare() {
 
@@ -103,7 +107,17 @@ public class EntityIdentifierDefinitionHelperTest extends AbstractTest {
 		metadata.setMetadataBuildingOptions(metadataBuildingOptions);
 		metadata.setTypeResolver(typeResolver);
 
+		valueType = new DummyType();
+
+		DummyValue value = new DummyValue();
+		value.setType(valueType);
+
+		Property property = new Property();
+
+		property.setValue(value);
+
 		Component handle = new Component(metadata, collection);
+		handle.addProperty(property);
 
 		DummyTypeScope typeScope = new DummyTypeScope();
 		ComponentMetamodel metamodel = new ComponentMetamodel(handle, metadataBuildingOptions);
@@ -186,7 +200,12 @@ public class EntityIdentifierDefinitionHelperTest extends AbstractTest {
 
 		NonEncapsulatedEntityIdentifierDefinition nonEncapsulatedEntityIdentifierDefinition = (NonEncapsulatedEntityIdentifierDefinition) EntityIdentifierDefinitionHelper
 				.buildNonEncapsulatedCompositeIdentifierDefinition(abstractEntityPersister);
-		af(nonEncapsulatedEntityIdentifierDefinition.getAttributes().iterator().hasNext());
+
+		AttributeDefinition attributeDefinition = nonEncapsulatedEntityIdentifierDefinition.getAttributes().iterator()
+				.next();
+		an(attributeDefinition.getName());
+		aeqr(valueType, attributeDefinition.getType());
+
 		if (hasName || !hasIdentifierMapper) {
 			an(nonEncapsulatedEntityIdentifierDefinition.getSeparateIdentifierMappingClass());
 		} else {
@@ -201,7 +220,7 @@ public class EntityIdentifierDefinitionHelperTest extends AbstractTest {
 
 		}
 		aeqr(type, invoke(source, "getType"));
-		af(source.getAttributes().iterator().hasNext());
+		aeqr(valueType, source.getAttributes().iterator().next().getType());
 
 		aeq("id", nonEncapsulatedEntityIdentifierDefinition.getName());
 		aeqr(type, nonEncapsulatedEntityIdentifierDefinition.getType());
@@ -216,6 +235,8 @@ public class EntityIdentifierDefinitionHelperTest extends AbstractTest {
 				.buildSimpleEncapsulatedIdentifierDefinition(abstractEntityPersister);
 
 		AttributeDefinition attributeDefinition = encapsulatedEntityIdentifierDefinition.getAttributeDefinition();
+		aeqr(type, attributeDefinition.getType());
+
 		aeqr(abstractEntityPersister, attributeDefinition.getSource());
 		if (hasName) {
 			aeq("<identifier-property:identifierPropertyName>", attributeDefinition.toString());
@@ -230,7 +251,8 @@ public class EntityIdentifierDefinitionHelperTest extends AbstractTest {
 
 		EncapsulatedEntityIdentifierDefinition encapsulatedEntityIdentifierDefinition = (EncapsulatedEntityIdentifierDefinition) EntityIdentifierDefinitionHelper
 				.buildEncapsulatedCompositeIdentifierDefinition(abstractEntityPersister);
-		encapsulatedEntityIdentifierDefinition.getAttributeDefinition();
+		AttributeDefinition attributeDefinition = encapsulatedEntityIdentifierDefinition.getAttributeDefinition();
+		aeqr(type, attributeDefinition.getType());
 
 		common(encapsulatedEntityIdentifierDefinition, true);
 	}
@@ -242,11 +264,11 @@ public class EntityIdentifierDefinitionHelperTest extends AbstractTest {
 
 	@Test
 	public void test4() throws Exception {
-		for (Boolean hasName : BOOLEANS) {
-			for (Boolean hasIdentifierMapper : BOOLEANS) {
+		for (boolean hasName : booleans) {
+			for (boolean hasIdentifierMapper : booleans) {
 
-				System.out.println("hasName: " + hasName);
-				System.out.println("hasIdentifierMapper: " + hasIdentifierMapper);
+				log("hasName: " + hasName);
+				log("hasIdentifierMapper: " + hasIdentifierMapper);
 
 				this.hasName = hasName;
 				this.hasIdentifierMapper = hasIdentifierMapper;

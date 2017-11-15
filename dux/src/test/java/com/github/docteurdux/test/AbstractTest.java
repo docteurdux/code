@@ -23,7 +23,8 @@ import org.junit.Assert;
 
 public abstract class AbstractTest {
 
-	protected static final Boolean[] BOOLEANS = { Boolean.FALSE, Boolean.TRUE };
+	protected static final Boolean[] BOOLEANS = { null, Boolean.FALSE, Boolean.TRUE };
+	protected static final boolean[] booleans = { false, true };
 
 	protected void at(Boolean b) {
 		Assert.assertTrue(b);
@@ -327,6 +328,25 @@ public abstract class AbstractTest {
 				}
 				Assert.assertNotEquals(strings[i], strings[j]);
 			}
+		}
+	}
+
+	protected void log(Object o) {
+		if (!this.getClass().isAnnotationPresent(Done.class)) {
+			System.out.println(o);
+		}
+	}
+
+	protected static interface Stringifier<T> {
+		String stringify(T t);
+	}
+
+	protected <T extends Enum<T>> void dumpMap(Class<T> clazz, Stringifier<T> stringifier) {
+		System.out.println("Map<" + clazz.getSimpleName() + ",String> map = new HashMap<>();");
+		for (T t : clazz.getEnumConstants()) {
+			String key = clazz.getSimpleName() + "." + t.name();
+			String value = "\"" + stringifier.stringify(t) + "\"";
+			System.out.println("map.put(" + key + "," + value + ");");
 		}
 	}
 }

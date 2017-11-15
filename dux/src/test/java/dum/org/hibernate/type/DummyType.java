@@ -18,6 +18,7 @@ import org.hibernate.type.Type;
 public class DummyType implements Type {
 
 	private Class returnedClass;
+	private String name;
 
 	@Override
 	public boolean isAssociationType() {
@@ -175,8 +176,11 @@ public class DummyType implements Type {
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	@Override
