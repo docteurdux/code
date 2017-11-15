@@ -23,6 +23,8 @@ import org.junit.Assert;
 
 public abstract class AbstractTest {
 
+	protected static final Boolean[] BOOLEANS = { Boolean.FALSE, Boolean.TRUE };
+
 	protected void at(Boolean b) {
 		Assert.assertTrue(b);
 	}
@@ -315,5 +317,16 @@ public abstract class AbstractTest {
 	protected boolean isPackage(Class<?> clazz) {
 		return !Modifier.isPublic(clazz.getModifiers()) && !Modifier.isProtected(clazz.getModifiers())
 				&& !Modifier.isPrivate(clazz.getModifiers());
+	}
+
+	protected void allDifferent(String[] strings) {
+		for (int i = 0; i < strings.length; ++i) {
+			for (int j = 0; j < strings.length; ++j) {
+				if (i == j) {
+					continue;
+				}
+				Assert.assertNotEquals(strings[i], strings[j]);
+			}
+		}
 	}
 }

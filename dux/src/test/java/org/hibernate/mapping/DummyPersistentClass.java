@@ -4,17 +4,15 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.hibernate.boot.spi.MetadataBuildingContext;
-import org.hibernate.mapping.KeyValue;
-import org.hibernate.mapping.PersistentClass;
-import org.hibernate.mapping.PersistentClassVisitor;
-import org.hibernate.mapping.Property;
-import org.hibernate.mapping.RootClass;
-import org.hibernate.mapping.Table;
-import org.hibernate.mapping.Value;
 
 public class DummyPersistentClass extends PersistentClass {
 
 	private static final long serialVersionUID = 1L;
+	private RootClass rootClass;
+	private KeyValue identifier;
+	private Iterator propertyClosureIterator;
+	private Table rootTable;
+	private Property identifierProperty;
 
 	public DummyPersistentClass(MetadataBuildingContext metadataBuildingContext) {
 		super(metadataBuildingContext);
@@ -52,8 +50,11 @@ public class DummyPersistentClass extends PersistentClass {
 
 	@Override
 	public Property getIdentifierProperty() {
-		// TODO Auto-generated method stub
-		return null;
+		return identifierProperty;
+	}
+
+	public void setIdentifierProperty(Property identifierProperty) {
+		this.identifierProperty = identifierProperty;
 	}
 
 	@Override
@@ -64,8 +65,11 @@ public class DummyPersistentClass extends PersistentClass {
 
 	@Override
 	public KeyValue getIdentifier() {
-		// TODO Auto-generated method stub
-		return null;
+		return identifier;
+	}
+
+	public void setIdentifier(KeyValue identifier) {
+		this.identifier = identifier;
 	}
 
 	@Override
@@ -136,8 +140,11 @@ public class DummyPersistentClass extends PersistentClass {
 
 	@Override
 	public Iterator getPropertyClosureIterator() {
-		// TODO Auto-generated method stub
-		return null;
+		return propertyClosureIterator;
+	}
+
+	public void setPropertyClosureIterator(Iterator propertyClosureIterator) {
+		this.propertyClosureIterator = propertyClosureIterator;
 	}
 
 	@Override
@@ -172,14 +179,20 @@ public class DummyPersistentClass extends PersistentClass {
 
 	@Override
 	public Table getRootTable() {
-		// TODO Auto-generated method stub
-		return null;
+		return rootTable;
+	}
+
+	public void setRootTable(Table rootTable) {
+		this.rootTable = rootTable;
 	}
 
 	@Override
 	public RootClass getRootClass() {
-		// TODO Auto-generated method stub
-		return null;
+		return rootClass;
+	}
+
+	public void setRootClass(RootClass rootClass) {
+		this.rootClass = rootClass;
 	}
 
 	@Override

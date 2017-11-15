@@ -50,6 +50,8 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 
 	private ServiceRegistryImplementor serviceRegistry;
 	private SessionFactoryOptions sessionFactoryOptions;
+	private Settings settings;
+	private IdentifierGenerator identifierGenerator;
 
 	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
 		// TODO Auto-generated method stub
@@ -294,8 +296,11 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 	}
 
 	public IdentifierGenerator getIdentifierGenerator(String rootEntityName) {
-		// TODO Auto-generated method stub
-		return null;
+		return identifierGenerator;
+	}
+
+	public void setIdentifierGenerator(IdentifierGenerator identifierGenerator) {
+		this.identifierGenerator = identifierGenerator;
 	}
 
 	public EntityNotFoundDelegate getEntityNotFoundDelegate() {
@@ -333,9 +338,13 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 		return null;
 	}
 
+	@SuppressWarnings("deprecation")
 	public Settings getSettings() {
-		// TODO Auto-generated method stub
-		return null;
+		return settings;
+	}
+
+	public void setSettings(@SuppressWarnings("deprecation") Settings settings) {
+		this.settings = settings;
 	}
 
 	public MetamodelImplementor getMetamodel() {

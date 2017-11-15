@@ -32,6 +32,7 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 	private PhysicalNamingStrategy physicalNamingStrategy;
 	private ImplicitNamingStrategy implicitNamingStrategy;
 	private ReflectionManager reflectionManager;
+	private ClassLoader tempClassLoader;
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -89,8 +90,11 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 
 	@Override
 	public ClassLoader getTempClassLoader() {
-		// TODO Auto-generated method stub
-		return null;
+		return tempClassLoader;
+	}
+
+	public void setTempClassLoader(ClassLoader tempClassLoader) {
+		this.tempClassLoader = tempClassLoader;
 	}
 
 	@Override

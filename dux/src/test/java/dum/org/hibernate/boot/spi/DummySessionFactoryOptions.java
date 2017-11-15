@@ -36,6 +36,7 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@SuppressWarnings("rawtypes")
 	private Map querySubstitutions = new HashMap<>();
+	private EntityTuplizerFactory entityTuplizerFactory;
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -144,8 +145,11 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public EntityTuplizerFactory getEntityTuplizerFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return entityTuplizerFactory;
+	}
+
+	public void setEntityTuplizerFactory(EntityTuplizerFactory entityTuplizerFactory) {
+		this.entityTuplizerFactory = entityTuplizerFactory;
 	}
 
 	@Override

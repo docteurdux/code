@@ -45,6 +45,7 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 	private Set<MappedSuperclass> mappedSuperclassMappingsCopy = new HashSet<>();
 	private Map<String, NamedEntityGraphDefinition> namedEntityGraphs = new HashMap<>();
 	private List<FetchProfile> fetchProfiles = new ArrayList<>();
+	private MetadataBuildingOptions metadataBuildingOptions;
 
 	@Override
 	public SessionFactoryBuilder getSessionFactoryBuilder() {
@@ -225,8 +226,13 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 
 	@Override
 	public MetadataBuildingOptions getMetadataBuildingOptions() {
-		// TODO Auto-generated method stub
-		return null;
+		return metadataBuildingOptions;
+	}
+	
+	
+
+	public void setMetadataBuildingOptions(MetadataBuildingOptions metadataBuildingOptions) {
+		this.metadataBuildingOptions = metadataBuildingOptions;
 	}
 
 	@Override

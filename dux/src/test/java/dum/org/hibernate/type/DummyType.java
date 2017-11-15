@@ -17,6 +17,8 @@ import org.hibernate.type.Type;
 
 public class DummyType implements Type {
 
+	private Class returnedClass;
+
 	@Override
 	public boolean isAssociationType() {
 		// TODO Auto-generated method stub
@@ -73,8 +75,11 @@ public class DummyType implements Type {
 
 	@Override
 	public Class getReturnedClass() {
-		// TODO Auto-generated method stub
-		return null;
+		return returnedClass;
+	}
+
+	public void setReturnedClass(Class returnedClass) {
+		this.returnedClass = returnedClass;
 	}
 
 	@Override
