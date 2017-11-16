@@ -263,11 +263,15 @@ public abstract class AbstractTest {
 		return (T) constructor.newInstance(params);
 	}
 
-	protected Object invoke(Object o, String name) throws NoSuchMethodException, SecurityException,
-			IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		Method m = o.getClass().getDeclaredMethod(name);
-		m.setAccessible(true);
-		return m.invoke(o);
+	protected Object invoke(Object o, String name) {
+		try {
+			Method m = o.getClass().getDeclaredMethod(name);
+			m.setAccessible(true);
+			return m.invoke(o);
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	protected Object invoke(Object o, String name, Object... params) throws IllegalAccessException,
@@ -306,11 +310,16 @@ public abstract class AbstractTest {
 			runnableWhichThrow.run();
 			fail();
 		} catch (Exception e) {
+			runnableWhichThrow.inspect(e);
 			cex = e;
 		}
 		aeq(clazz, cex.getClass());
 	}
 
+	protected String testEvent(TestEventCollector testEventCollector, int idx) {
+		return testEventCollector.testEvents.get(idx).getName();
+	}
+	
 	protected Object testEvent(TestEventCollector testEventCollector, int idx, String name) {
 		return testEventCollector.testEvents.get(idx).getProps().get(name);
 	}

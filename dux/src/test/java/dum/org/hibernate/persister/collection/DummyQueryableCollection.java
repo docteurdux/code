@@ -28,6 +28,10 @@ import org.hibernate.type.Type;
 
 public class DummyQueryableCollection implements QueryableCollection {
 
+	private CollectionPersister collectionPersister;
+	private CollectionElementDefinition elementDefinition;
+	private SessionFactoryImplementor factory;
+
 	@Override
 	public Type toType(String propertyName) throws QueryException {
 		// TODO Auto-generated method stub
@@ -104,14 +108,15 @@ public class DummyQueryableCollection implements QueryableCollection {
 	}
 
 	@Override
-	public String filterFragment(String alias, @SuppressWarnings("rawtypes") Map enabledFilters) throws MappingException {
+	public String filterFragment(String alias, @SuppressWarnings("rawtypes") Map enabledFilters)
+			throws MappingException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String filterFragment(String alias, @SuppressWarnings("rawtypes") Map enabledFilters, Set<String> treatAsDeclarations)
-			throws MappingException {
+	public String filterFragment(String alias, @SuppressWarnings("rawtypes") Map enabledFilters,
+			Set<String> treatAsDeclarations) throws MappingException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -398,8 +403,11 @@ public class DummyQueryableCollection implements QueryableCollection {
 
 	@Override
 	public SessionFactoryImplementor getFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return factory;
+	}
+
+	public void setFactory(SessionFactoryImplementor factory) {
+		this.factory = factory;
 	}
 
 	@Override
@@ -477,8 +485,11 @@ public class DummyQueryableCollection implements QueryableCollection {
 
 	@Override
 	public CollectionPersister getCollectionPersister() {
-		// TODO Auto-generated method stub
-		return null;
+		return collectionPersister;
+	}
+
+	public void setCollectionPersister(CollectionPersister collectionPersister) {
+		this.collectionPersister = collectionPersister;
 	}
 
 	@Override
@@ -489,8 +500,11 @@ public class DummyQueryableCollection implements QueryableCollection {
 
 	@Override
 	public CollectionElementDefinition getElementDefinition() {
-		// TODO Auto-generated method stub
-		return null;
+		return elementDefinition;
+	}
+
+	public void setElementDefinition(CollectionElementDefinition elementDefinition) {
+		this.elementDefinition = elementDefinition;
 	}
 
 	@Override

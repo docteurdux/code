@@ -1,6 +1,9 @@
-package dum.org.hibernate.persister.entity;
+package dux.org.hibernate.loader;
 
 import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +27,7 @@ import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.internal.FilterAliasGenerator;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.entity.Loadable;
 import org.hibernate.persister.entity.MultiLoadOptions;
 import org.hibernate.persister.walking.spi.AttributeDefinition;
 import org.hibernate.persister.walking.spi.EntityIdentifierDefinition;
@@ -32,38 +36,13 @@ import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.type.Type;
 import org.hibernate.type.VersionType;
 
-public class DummyEntityPersister implements EntityPersister {
+public class DummyLoadable implements Loadable {
 
-	private String entityName;
-	private Type identifierType;
-	private EntityIdentifierDefinition entityKeyDefinition;
-
-	@Override
-	public Comparator getVersionComparator() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public EntityPersister getEntityPersister() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public EntityIdentifierDefinition getEntityKeyDefinition() {
-		return entityKeyDefinition;
-	}
-
-	public void setEntityKeyDefinition(EntityIdentifierDefinition entityKeyDefinition) {
-		this.entityKeyDefinition = entityKeyDefinition;
-	}
-
-	@Override
-	public Iterable<AttributeDefinition> getAttributes() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	private String[] identifierColumnNames = new String[] {};
+	private String discriminatorColumnName;
+	private List<String[]> propertyColumnNames = new ArrayList<>();
+	private SessionFactoryImplementor factory;
+	private String[] propertyNames = new String[] {};
 
 	@Override
 	public void generateEntityDefinition() {
@@ -79,8 +58,11 @@ public class DummyEntityPersister implements EntityPersister {
 
 	@Override
 	public SessionFactoryImplementor getFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return factory;
+	}
+
+	public void setFactory(SessionFactoryImplementor factory) {
+		this.factory = factory;
 	}
 
 	@Override
@@ -97,11 +79,8 @@ public class DummyEntityPersister implements EntityPersister {
 
 	@Override
 	public String getEntityName() {
-		return entityName;
-	}
-
-	public void setEntityName(String entityName) {
-		this.entityName = entityName;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -333,8 +312,11 @@ public class DummyEntityPersister implements EntityPersister {
 
 	@Override
 	public String[] getPropertyNames() {
-		// TODO Auto-generated method stub
-		return null;
+		return propertyNames;
+	}
+
+	public void setPropertyNames(String[] propertyNames) {
+		this.propertyNames = propertyNames;
 	}
 
 	@Override
@@ -393,11 +375,8 @@ public class DummyEntityPersister implements EntityPersister {
 
 	@Override
 	public Type getIdentifierType() {
-		return identifierType;
-	}
-
-	public void setIdentifierType(Type identifierType) {
-		this.identifierType = identifierType;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -707,6 +686,131 @@ public class DummyEntityPersister implements EntityPersister {
 	public boolean canUseReferenceCacheEntries() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public Comparator getVersionComparator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public EntityPersister getEntityPersister() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public EntityIdentifierDefinition getEntityKeyDefinition() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Iterable<AttributeDefinition> getAttributes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean hasSubclasses() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Type getDiscriminatorType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object getDiscriminatorValue() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getSubclassForDiscriminatorValue(Object value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getIdentifierColumnNames() {
+		return identifierColumnNames;
+	}
+
+	public void setIdentifierColumnNames(String[] identifierColumnNames) {
+		this.identifierColumnNames = identifierColumnNames;
+	}
+
+	@Override
+	public String[] getIdentifierAliases(String suffix) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getPropertyAliases(String suffix, int i) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getPropertyColumnNames(int i) {
+		return propertyColumnNames.get(i);
+	}
+
+	public List<String[]> getPropertyColumnNames() {
+		return propertyColumnNames;
+	}
+
+	@Override
+	public String getDiscriminatorAlias(String suffix) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getDiscriminatorColumnName() {
+		return discriminatorColumnName;
+	}
+
+	public void setDiscriminatorColumnName(String discriminatorColumnName) {
+		this.discriminatorColumnName = discriminatorColumnName;
+	}
+
+	@Override
+	public boolean hasRowId() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Object[] hydrate(ResultSet rs, Serializable id, Object object, Loadable rootLoadable,
+			String[][] suffixedPropertyColumns, boolean allProperties, SharedSessionContractImplementor session)
+			throws SQLException, HibernateException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isAbstract() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void registerAffectingFetchProfile(String fetchProfileName) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getTableAliasForColumn(String columnName, String rootAlias) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
