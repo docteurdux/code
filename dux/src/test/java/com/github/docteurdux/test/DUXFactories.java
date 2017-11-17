@@ -9,6 +9,7 @@ import org.hibernate.hql.internal.ast.HqlSqlWalker;
 import org.hibernate.hql.internal.ast.QueryTranslatorImpl;
 
 import dum.org.hibernate.engine.spi.DummySessionFactoryImplementor;
+import duu.org.hibernate.query.criteria.internal.CriteriaBuilderImplUtils;
 
 public enum DUXFactories {
 
@@ -84,6 +85,13 @@ public enum DUXFactories {
 					(SessionFactoryImplementor) SESSION_FACTORY_IMPLEMENTOR.get(io), (HqlParser) HQL_PARSER.get(io),
 					(Map) TOKEN_REPLACEMENTS.get(io), (String) COLLECTION_ROLE.get(io));
 		}
+	},
+
+	CRITERIA_BUILDER_IMPL {
+		@Override
+		protected Object defval(Map<DUXFactories, Object> io) {
+			return CriteriaBuilderImplUtils.getAnInstance();
+		}
 	};
 
 	protected abstract Object defval(Map<DUXFactories, Object> io);
@@ -96,6 +104,11 @@ public enum DUXFactories {
 			io.put(this, r);
 			return r;
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> T get(Map<DUXFactories, Object> io, Class<T> clazz) {
+		return (T) get(io);
 	}
 
 }

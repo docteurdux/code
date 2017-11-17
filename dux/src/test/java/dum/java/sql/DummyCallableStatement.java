@@ -23,48 +23,20 @@ import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.github.docteurdux.test.RunnableWithArgs;
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
 
-import dum.java.sql.DummyCallableStatement.TypedObject;
-
-public class DummyCallableStatement implements CallableStatement {
-
-	public static class TypedObject {
-
-		private Object object;
-		private int sqlType;
-
-		public TypedObject(Object object, int sqlType) {
-			this.object = object;
-			this.sqlType = sqlType;
-		}
-
-		public Object getObject() {
-			return object;
-		}
-
-		public void setObject(Object object) {
-			this.object = object;
-		}
-
-		public int getSqlType() {
-			return sqlType;
-		}
-
-		public void setSqlType(int sqlType) {
-			this.sqlType = sqlType;
-		}
-
-	}
+public class DummyCallableStatement extends TestEventCollector implements CallableStatement {
 
 	private RunnableWithArgs<Boolean> executeRWA;
 	private RunnableWithArgs<Integer> updateCountRWA;
 	private RunnableWithArgs<Boolean> getMoreResultsRWA;
 	private RunnableWithArgs<ResultSet> getResultSetRWA;
-	private Map<String, TypedObject> namedObjects = new HashMap<>();
+	private RunnableWithArgs<Void> setObjectRWA;
+	private RunnableWithArgs<Object> getObjectRWA;
 
 	@Override
 	public ResultSet executeQuery() throws SQLException {
@@ -182,18 +154,6 @@ public class DummyCallableStatement implements CallableStatement {
 
 	@Override
 	public void clearParameters() throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setObject(int parameterIndex, Object x, int targetSqlType) throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setObject(int parameterIndex, Object x) throws SQLException {
 		// TODO Auto-generated method stub
 
 	}
@@ -332,12 +292,6 @@ public class DummyCallableStatement implements CallableStatement {
 
 	@Override
 	public void setSQLXML(int parameterIndex, SQLXML xmlObject) throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setObject(int parameterIndex, Object x, int targetSqlType, int scaleOrLength) throws SQLException {
 		// TODO Auto-generated method stub
 
 	}
@@ -781,19 +735,7 @@ public class DummyCallableStatement implements CallableStatement {
 	}
 
 	@Override
-	public Object getObject(int parameterIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public BigDecimal getBigDecimal(int parameterIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object getObject(int parameterIndex, Map<String, Class<?>> map) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -973,24 +915,6 @@ public class DummyCallableStatement implements CallableStatement {
 	}
 
 	@Override
-	public void setObject(String parameterName, Object x, int targetSqlType, int scale) throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setObject(String parameterName, Object x, int targetSqlType) throws SQLException {
-		namedObjects.put(parameterName, new TypedObject(x, targetSqlType));
-
-	}
-
-	@Override
-	public void setObject(String parameterName, Object x) throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void setCharacterStream(String parameterName, Reader reader, int length) throws SQLException {
 		// TODO Auto-generated method stub
 
@@ -1093,19 +1017,7 @@ public class DummyCallableStatement implements CallableStatement {
 	}
 
 	@Override
-	public Object getObject(String parameterName) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public BigDecimal getBigDecimal(String parameterName) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object getObject(String parameterName, Map<String, Class<?>> map) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -1350,19 +1262,148 @@ public class DummyCallableStatement implements CallableStatement {
 
 	}
 
+	// region setObject
+
 	@Override
-	public <T> T getObject(int parameterIndex, Class<T> type) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public void setObject(int parameter, Object object) throws SQLException {
+		setObject(parameter, object, null, null, 2);
 	}
 
 	@Override
-	public <T> T getObject(String parameterName, Class<T> type) throws SQLException {
-		// TODO Auto-generated method stub
+	public void setObject(int parameter, Object object, int targetSqlType) throws SQLException {
+		setObject(parameter, object, targetSqlType, null, 3);
+	}
+
+	@Override
+	public void setObject(int parameter, Object object, SQLType targetSqlType) throws SQLException {
+		setObject(parameter, object, targetSqlType, null, 3);
+	}
+
+	@Override
+	public void setObject(int parameter, Object object, int targetSqlType, int scale) throws SQLException {
+		setObject(parameter, object, targetSqlType, scale, 4);
+	}
+
+	@Override
+	public void setObject(int parameter, Object object, SQLType targetSqlType, int scale) throws SQLException {
+		setObject(parameter, object, targetSqlType, scale, 4);
+	}
+
+	@Override
+	public void setObject(String parameter, Object object) throws SQLException {
+		setObject(parameter, object, null, null, 2);
+	}
+
+	@Override
+	public void setObject(String parameter, Object object, int targetSqlType) throws SQLException {
+		setObject(parameter, object, targetSqlType, null, 3);
+	}
+
+	@Override
+	public void setObject(String parameter, Object object, SQLType targetSqlType) throws SQLException {
+		setObject(parameter, object, targetSqlType, null, 3);
+	}
+
+	@Override
+	public void setObject(String parameter, Object object, int targetSqlType, int scale) throws SQLException {
+		setObject(parameter, object, targetSqlType, scale, 4);
+	}
+
+	@Override
+	public void setObject(String parameter, Object object, SQLType targetSqlType, int scale) throws SQLException {
+		setObject(parameter, object, targetSqlType, scale, 4);
+	}
+
+	private void setObject(Object parameter, Object object, Object targetSqlType, Object scale, int n) {
+
+		Object args[] = new Object[n];
+		args[0] = parameter;
+		args[1] = object;
+
+		TestEvent testEvent = new TestEvent("setObject").prop("parameter", parameter).prop("object", object);
+		if (n > 2) {
+			args[2] = targetSqlType;
+			testEvent.prop("targetSqlType", targetSqlType);
+		}
+		if (n > 3) {
+			args[3] = scale;
+			testEvents.add(testEvent.prop("scale", scale));
+		}
+		testEvents.add(testEvent);
+		if (setObjectRWA != null) {
+			setObjectRWA.run(args);
+		}
+	}
+
+	public void setSetObjectRWA(RunnableWithArgs<Void> setObjectRWA) {
+		this.setObjectRWA = setObjectRWA;
+	}
+
+	// endregion setObject
+
+	// region getObject
+
+	public static enum GetObjectType {
+		NONE, TYPE, MAP
+	};
+
+	@Override
+	public Object getObject(int parameter) throws SQLException {
+		return getObject(parameter, null, GetObjectType.NONE);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T getObject(int parameter, Class<T> type) throws SQLException {
+		return (T) getObject(parameter, type, GetObjectType.TYPE);
+	}
+
+	@Override
+	public Object getObject(int parameter, Map<String, Class<?>> map) throws SQLException {
+		return getObject(parameter, map, GetObjectType.MAP);
+	}
+
+	@Override
+	public Object getObject(String parameter) throws SQLException {
+		return getObject(parameter, null, GetObjectType.NONE);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T getObject(String parameter, Class<T> type) throws SQLException {
+		return (T) getObject(parameter, type, GetObjectType.TYPE);
+	}
+
+	@Override
+	public Object getObject(String parameter, Map<String, Class<?>> map) throws SQLException {
+		return getObject(parameter, map, GetObjectType.MAP);
+	}
+
+	private Object getObject(Object parameter, Object typeOrMap, GetObjectType getObjecType) {
+
+		Object args[] = new Object[getObjecType == GetObjectType.NONE ? 2 : 3];
+		args[0] = parameter;
+
+		TestEvent testEvent = new TestEvent("getObject").prop("parameter", parameter);
+		if (getObjecType == GetObjectType.TYPE) {
+			args[1] = typeOrMap;
+			testEvent.prop("type", typeOrMap);
+		}
+		if (getObjecType == GetObjectType.MAP) {
+			args[1] = typeOrMap;
+			testEvent.prop("map", typeOrMap);
+		}
+		testEvents.add(testEvent);
+		
+		if (getObjectRWA != null) {
+			return getObjectRWA.run(args);
+		}
 		return null;
 	}
 
-	public TypedObject getTypedObject(String name) {
-		return namedObjects.get(name);
+	public void setGetObjectRWA(RunnableWithArgs<Object> getObjectRWA) {
+		this.getObjectRWA = getObjectRWA;
 	}
+
+	// endregion getObject
 }

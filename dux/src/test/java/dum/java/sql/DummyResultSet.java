@@ -22,7 +22,15 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
 
-public class DummyResultSet implements ResultSet {
+import com.github.docteurdux.test.RunnableWithArgs;
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+
+import dum.java.sql.DummyCallableStatement.GetObjectType;
+
+public class DummyResultSet extends TestEventCollector implements ResultSet {
+
+	private RunnableWithArgs<Object> getObjectRWA;
 
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
@@ -266,18 +274,6 @@ public class DummyResultSet implements ResultSet {
 
 	@Override
 	public ResultSetMetaData getMetaData() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object getObject(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object getObject(String columnLabel) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -715,12 +711,6 @@ public class DummyResultSet implements ResultSet {
 	}
 
 	@Override
-	public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Ref getRef(int columnIndex) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
@@ -740,12 +730,6 @@ public class DummyResultSet implements ResultSet {
 
 	@Override
 	public Array getArray(int columnIndex) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object getObject(String columnLabel, Map<String, Class<?>> map) throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -1158,16 +1142,66 @@ public class DummyResultSet implements ResultSet {
 
 	}
 
+	public static enum GetObjectType {
+		NONE, TYPE, MAP
+	};
+
 	@Override
-	public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+	public Object getObject(int column) throws SQLException {
+		return getObject(column, null, GetObjectType.NONE);
 	}
 
 	@Override
-	public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
-		// TODO Auto-generated method stub
+	@SuppressWarnings("unchecked")
+	public <T> T getObject(int column, Class<T> type) throws SQLException {
+		return (T) getObject(column, type, GetObjectType.TYPE);
+	}
+
+	@Override
+	public Object getObject(String column, Map<String, Class<?>> map) throws SQLException {
+		return getObject(column, null, GetObjectType.MAP);
+	}
+
+	@Override
+	public Object getObject(String column) throws SQLException {
+		return getObject(column, null, GetObjectType.NONE);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T getObject(String column, Class<T> type) throws SQLException {
+		return (T) getObject(column, type, GetObjectType.TYPE);
+	}
+
+	@Override
+	public Object getObject(int column, Map<String, Class<?>> map) throws SQLException {
+		return getObject(column, map, GetObjectType.MAP);
+	}
+
+	private Object getObject(Object column, Object typeOrMap, GetObjectType getObjecType) {
+
+		Object args[] = new Object[getObjecType == GetObjectType.NONE ? 2 : 3];
+		args[0] = column;
+
+		TestEvent testEvent = new TestEvent("getObject").prop("column", column);
+		if (getObjecType == GetObjectType.TYPE) {
+			args[1] = typeOrMap;
+			testEvent.prop("type", typeOrMap);
+		}
+		if (getObjecType == GetObjectType.MAP) {
+			args[1] = typeOrMap;
+			testEvent.prop("map", typeOrMap);
+		}
+		testEvents.add(testEvent);
+
+		if (getObjectRWA != null) {
+			return getObjectRWA.run(args);
+		}
 		return null;
+	}
+
+	public void setGetObjectRWA(RunnableWithArgs<Object> getObjectRWA) {
+		this.getObjectRWA = getObjectRWA;
 	}
 
 }

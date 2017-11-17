@@ -23,7 +23,13 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
 
-public class DummyPreparedStatement implements PreparedStatement {
+import com.github.docteurdux.test.RunnableWithArgs;
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+
+public class DummyPreparedStatement extends TestEventCollector implements PreparedStatement {
+
+	private RunnableWithArgs<Void> setObjectRWA;
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException {
@@ -410,18 +416,6 @@ public class DummyPreparedStatement implements PreparedStatement {
 	}
 
 	@Override
-	public void setObject(int parameterIndex, Object x, int targetSqlType) throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void setObject(int parameterIndex, Object x) throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public boolean execute() throws SQLException {
 		// TODO Auto-generated method stub
 		return false;
@@ -554,12 +548,6 @@ public class DummyPreparedStatement implements PreparedStatement {
 	}
 
 	@Override
-	public void setObject(int parameterIndex, Object x, int targetSqlType, int scaleOrLength) throws SQLException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void setAsciiStream(int parameterIndex, InputStream x, long length) throws SQLException {
 		// TODO Auto-generated method stub
 
@@ -619,4 +607,43 @@ public class DummyPreparedStatement implements PreparedStatement {
 
 	}
 
+	@Override
+	public void setObject(int parameter, Object object) throws SQLException {
+		setObject(parameter, object, null, null, 2);
+	}
+
+	@Override
+	public void setObject(int parameter, Object object, int targetSqlType) throws SQLException {
+		setObject(parameter, object, targetSqlType, null, 3);
+	}
+
+	@Override
+	public void setObject(int parameter, Object object, int targetSqlType, int scale) throws SQLException {
+		setObject(parameter, object, targetSqlType, scale, 4);
+	}
+
+	private void setObject(int parameter, Object object, Integer targetSqlType, Integer scale, int n) {
+
+		Object args[] = new Object[n];
+		args[0] = parameter;
+		args[1] = object;
+
+		TestEvent testEvent = new TestEvent("setObject").prop("parameter", parameter).prop("object", object);
+		if (n > 2) {
+			args[2] = targetSqlType;
+			testEvent.prop("targetSqlType", targetSqlType);
+		}
+		if (n > 3) {
+			args[3] = scale;
+			testEvents.add(testEvent.prop("scale", scale));
+		}
+		testEvents.add(testEvent);
+		if (setObjectRWA != null) {
+			setObjectRWA.run(args);
+		}
+	}
+
+	public void setSetObjectRWA(RunnableWithArgs<Void> setObjectRWA) {
+		this.setObjectRWA = setObjectRWA;
+	}
 }

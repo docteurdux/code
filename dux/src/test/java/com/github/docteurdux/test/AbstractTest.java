@@ -2,6 +2,7 @@ package com.github.docteurdux.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -316,10 +317,14 @@ public abstract class AbstractTest {
 		aeq(clazz, cex.getClass());
 	}
 
+	protected TestEvent getTestEvent(TestEventCollector testEventCollector, int idx) {
+		return testEventCollector.testEvents.get(idx);
+	}
+
 	protected String testEvent(TestEventCollector testEventCollector, int idx) {
 		return testEventCollector.testEvents.get(idx).getName();
 	}
-	
+
 	protected Object testEvent(TestEventCollector testEventCollector, int idx, String name) {
 		return testEventCollector.testEvents.get(idx).getProps().get(name);
 	}
@@ -356,6 +361,15 @@ public abstract class AbstractTest {
 			String key = clazz.getSimpleName() + "." + t.name();
 			String value = "\"" + stringifier.stringify(t) + "\"";
 			System.out.println("map.put(" + key + "," + value + ");");
+		}
+	}
+
+	protected <T extends Annotation> T getAnnotation(Class<?> clazz, String methodName, Class<?>[] signature,
+			Class<T> annotationClass) {
+		try {
+			return clazz.getMethod(methodName, signature).getAnnotation(annotationClass);
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }

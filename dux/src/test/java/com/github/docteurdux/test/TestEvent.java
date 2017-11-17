@@ -16,6 +16,10 @@ public class TestEvent {
 		return name;
 	}
 
+	public Object prop(String name) {
+		return props.get(name);
+	}
+
 	public TestEvent prop(String name, Object value) {
 		props.put(name, value);
 		return this;
