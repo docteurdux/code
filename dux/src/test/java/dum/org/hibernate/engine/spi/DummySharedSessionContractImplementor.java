@@ -41,10 +41,16 @@ import org.hibernate.resource.jdbc.spi.JdbcSessionContext;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummySharedSessionContractImplementor implements SharedSessionContractImplementor {
 
 	private static final long serialVersionUID = 1L;
 	private SessionFactoryImplementor factory;
+	private PersistenceContext persistenceContext;
+	private boolean open;
+	private boolean connected;
+	private RunnableWithArgs<Object> immediateLoadRWA;
 
 	public void close() throws HibernateException {
 		// TODO Auto-generated method stub
@@ -52,13 +58,19 @@ public class DummySharedSessionContractImplementor implements SharedSessionContr
 	}
 
 	public boolean isOpen() {
-		// TODO Auto-generated method stub
-		return false;
+		return open;
+	}
+
+	public void setOpen(boolean open) {
+		this.open = open;
 	}
 
 	public boolean isConnected() {
-		// TODO Auto-generated method stub
-		return false;
+		return connected;
+	}
+
+	public void setConnected(boolean connected) {
+		this.connected = connected;
 	}
 
 	public Transaction beginTransaction() {
@@ -241,8 +253,11 @@ public class DummySharedSessionContractImplementor implements SharedSessionContr
 	}
 
 	public PersistenceContext getPersistenceContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return persistenceContext;
+	}
+
+	public void setPersistenceContext(PersistenceContext persistenceContext) {
+		this.persistenceContext = persistenceContext;
 	}
 
 	public JdbcCoordinator getJdbcCoordinator() {
@@ -322,8 +337,14 @@ public class DummySharedSessionContractImplementor implements SharedSessionContr
 	}
 
 	public Object immediateLoad(String entityName, Serializable id) throws HibernateException {
-		// TODO Auto-generated method stub
+		if (immediateLoadRWA != null) {
+			return immediateLoadRWA.run(entityName, id);
+		}
 		return null;
+	}
+
+	public void setImmediateLoadRWA(RunnableWithArgs<Object> immediateLoadRWA) {
+		this.immediateLoadRWA = immediateLoadRWA;
 	}
 
 	public List list(String query, QueryParameters queryParameters) throws HibernateException {

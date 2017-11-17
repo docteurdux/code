@@ -52,6 +52,7 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 	private SessionFactoryOptions sessionFactoryOptions;
 	private Settings settings;
 	private IdentifierGenerator identifierGenerator;
+	private MetamodelImplementor metamodel;
 
 	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
 		// TODO Auto-generated method stub
@@ -348,8 +349,11 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 	}
 
 	public MetamodelImplementor getMetamodel() {
-		// TODO Auto-generated method stub
-		return null;
+		return metamodel;
+	}
+
+	public void setMetamodel(MetamodelImplementor metamodel) {
+		this.metamodel = metamodel;
 	}
 
 	public EntityGraph findEntityGraphByName(String name) {
