@@ -53,6 +53,7 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 	private Settings settings;
 	private IdentifierGenerator identifierGenerator;
 	private MetamodelImplementor metamodel;
+	private SQLFunctionRegistry sqlFunctionRegistry;
 
 	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
 		// TODO Auto-generated method stub
@@ -310,8 +311,11 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 	}
 
 	public SQLFunctionRegistry getSqlFunctionRegistry() {
-		// TODO Auto-generated method stub
-		return null;
+		return sqlFunctionRegistry;
+	}
+
+	public void setSqlFunctionRegistry(SQLFunctionRegistry sqlFunctionRegistry) {
+		this.sqlFunctionRegistry = sqlFunctionRegistry;
 	}
 
 	public void addObserver(SessionFactoryObserver observer) {

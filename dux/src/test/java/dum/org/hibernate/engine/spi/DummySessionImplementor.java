@@ -75,6 +75,8 @@ public class DummySessionImplementor implements SessionImplementor {
 
 	private SessionFactoryImplementor factory;
 	private PersistenceContext persistenceContext;
+	private boolean closed;
+	private FlushMode hibernateFlushMode;
 
 	public SharedSessionBuilder sessionWithOptions() {
 		// TODO Auto-generated method stub
@@ -96,14 +98,13 @@ public class DummySessionImplementor implements SessionImplementor {
 		return null;
 	}
 
-	public void setHibernateFlushMode(FlushMode flushMode) {
-		// TODO Auto-generated method stub
-
+	public FlushMode getHibernateFlushMode() {
+		return hibernateFlushMode;
 	}
 
-	public FlushMode getHibernateFlushMode() {
-		// TODO Auto-generated method stub
-		return null;
+	public void setHibernateFlushMode(FlushMode hibernateFlushMode) {
+		this.hibernateFlushMode = hibernateFlushMode;
+
 	}
 
 	public void setCacheMode(CacheMode cacheMode) {
@@ -739,8 +740,11 @@ public class DummySessionImplementor implements SessionImplementor {
 	}
 
 	public boolean isClosed() {
-		// TODO Auto-generated method stub
-		return false;
+		return closed;
+	}
+
+	public void setClosed(boolean closed) {
+		this.closed = closed;
 	}
 
 	public void checkOpen(boolean markForRollbackIfClosed) {

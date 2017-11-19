@@ -51,6 +51,7 @@ public class DummySharedSessionContractImplementor implements SharedSessionContr
 	private boolean open;
 	private boolean connected;
 	private RunnableWithArgs<Object> immediateLoadRWA;
+	private boolean closed;
 
 	public void close() throws HibernateException {
 		// TODO Auto-generated method stub
@@ -281,8 +282,11 @@ public class DummySharedSessionContractImplementor implements SharedSessionContr
 	}
 
 	public boolean isClosed() {
-		// TODO Auto-generated method stub
-		return false;
+		return closed;
+	}
+
+	public void setClosed(boolean closed) {
+		this.closed = closed;
 	}
 
 	public void checkOpen(boolean markForRollbackIfClosed) {

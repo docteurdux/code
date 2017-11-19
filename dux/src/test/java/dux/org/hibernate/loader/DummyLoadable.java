@@ -43,6 +43,7 @@ public class DummyLoadable implements Loadable {
 	private List<String[]> propertyColumnNames = new ArrayList<>();
 	private SessionFactoryImplementor factory;
 	private String[] propertyNames = new String[] {};
+	private String identifierPropertyName;
 
 	@Override
 	public void generateEntityDefinition() {
@@ -381,8 +382,11 @@ public class DummyLoadable implements Loadable {
 
 	@Override
 	public String getIdentifierPropertyName() {
-		// TODO Auto-generated method stub
-		return null;
+		return identifierPropertyName;
+	}
+
+	public void setIdentifierPropertyName(String identifierPropertyName) {
+		this.identifierPropertyName = identifierPropertyName;
 	}
 
 	@Override

@@ -3,6 +3,9 @@ package com.github.docteurdux.test;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.function.SQLFunction;
+import org.hibernate.dialect.function.SQLFunctionRegistry;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.internal.ast.HqlParser;
 import org.hibernate.hql.internal.ast.HqlSqlWalker;
@@ -13,10 +16,39 @@ import duu.org.hibernate.query.criteria.internal.CriteriaBuilderImplUtils;
 
 public enum DUXFactories {
 
+	DIALECT() {
+		@Override
+		protected Object defval(Map<DUXFactories, Object> io) {
+			return new Dialect() {
+			};
+		}
+
+	},
+
+	USER_FUNCTION_MAP() {
+		@Override
+		protected Object defval(Map<DUXFactories, Object> io) {
+			return new HashMap<String, SQLFunction>();
+		}
+
+	},
+
+	SQL_FUNCTION_REGISTRY() {
+		@Override
+		@SuppressWarnings("unchecked")
+		protected Object defval(Map<DUXFactories, Object> io) {
+			return new SQLFunctionRegistry((Dialect) DIALECT.get(io),
+					(Map<String, SQLFunction>) USER_FUNCTION_MAP.get(io));
+		}
+
+	},
+
 	SESSION_FACTORY_IMPLEMENTOR() {
 		@Override
 		protected Object defval(Map<DUXFactories, Object> io) {
-			return new DummySessionFactoryImplementor();
+			DummySessionFactoryImplementor sessionFactoryImplementor = new DummySessionFactoryImplementor();
+			sessionFactoryImplementor.setSqlFunctionRegistry((SQLFunctionRegistry) SQL_FUNCTION_REGISTRY.get(io));
+			return sessionFactoryImplementor;
 		}
 	},
 
@@ -105,7 +137,7 @@ public enum DUXFactories {
 			return r;
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T> T get(Map<DUXFactories, Object> io, Class<T> clazz) {
 		return (T) get(io);

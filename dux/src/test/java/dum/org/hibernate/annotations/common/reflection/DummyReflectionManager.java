@@ -17,6 +17,10 @@ public class DummyReflectionManager implements ReflectionManager {
 
 	JavaReflectionManager javaReflectionManager = new JavaReflectionManager();
 
+	public JavaReflectionManager getJavaReflectionManager() {
+		return javaReflectionManager;
+	}
+
 	@Override
 	public void injectClassLoaderDelegate(ClassLoaderDelegate delegate) {
 		// TODO Auto-generated method stub

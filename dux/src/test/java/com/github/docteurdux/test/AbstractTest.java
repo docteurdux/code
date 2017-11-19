@@ -317,6 +317,19 @@ public abstract class AbstractTest {
 		aeq(clazz, cex.getClass());
 	}
 
+	protected void expect(Class<?> clazz, String msg, RunnableWhichThrow runnableWhichThrow) {
+		Exception cex = null;
+		try {
+			runnableWhichThrow.run();
+			fail();
+		} catch (Exception e) {
+			aeq(msg, e.getMessage());
+			runnableWhichThrow.inspect(e);
+			cex = e;
+		}
+		aeq(clazz, cex.getClass());
+	}
+
 	protected TestEvent getTestEvent(TestEventCollector testEventCollector, int idx) {
 		return testEventCollector.testEvents.get(idx);
 	}
@@ -332,6 +345,11 @@ public abstract class AbstractTest {
 	protected boolean isPackage(Class<?> clazz) {
 		return !Modifier.isPublic(clazz.getModifiers()) && !Modifier.isProtected(clazz.getModifiers())
 				&& !Modifier.isPrivate(clazz.getModifiers());
+	}
+
+	protected boolean isPackage(Constructor<?> constructor) {
+		return !Modifier.isPublic(constructor.getModifiers()) && !Modifier.isProtected(constructor.getModifiers())
+				&& !Modifier.isPrivate(constructor.getModifiers());
 	}
 
 	protected void allDifferent(String[] strings) {

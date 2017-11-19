@@ -18,6 +18,7 @@ import org.hibernate.mapping.Table;
 public class DummyPropertyHolder implements PropertyHolder {
 
 	private String path;
+	private PersistentClass persistentClass;
 
 	@Override
 	public String getClassName() {
@@ -69,8 +70,11 @@ public class DummyPropertyHolder implements PropertyHolder {
 
 	@Override
 	public PersistentClass getPersistentClass() {
-		// TODO Auto-generated method stub
-		return null;
+		return persistentClass;
+	}
+
+	public void setPersistentClass(PersistentClass persistentClass) {
+		this.persistentClass = persistentClass;
 	}
 
 	@Override
