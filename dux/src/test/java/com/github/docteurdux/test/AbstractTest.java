@@ -20,7 +20,11 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.xml.bind.annotation.XmlType;
+
 import org.junit.Assert;
+
+import dum.org.hibernate.boot.spi.DummySessionFactoryBuilderImplementor;
 
 public abstract class AbstractTest {
 
@@ -120,6 +124,9 @@ public abstract class AbstractTest {
 		Set<String> packageNames = new HashSet<>();
 
 		for (Class<?> clazz : classes) {
+			if (isPackage(clazz)) {
+				continue;
+			}
 			if (clazz.isInterface()) {
 				continue;
 			}
@@ -127,6 +134,9 @@ public abstract class AbstractTest {
 				continue;
 			}
 			if (isException(clazz)) {
+				continue;
+			}
+			if (clazz.isAnnotationPresent(XmlType.class)) {
 				continue;
 			}
 			Long sz = null;
@@ -389,5 +399,14 @@ public abstract class AbstractTest {
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	protected TestEvent getLastTestEvent(TestEventCollector tec) {
+		List<TestEvent> testEvents = tec.getTestEvents();
+		int sz = testEvents.size();
+		if (sz == 0) {
+			return null;
+		}
+		return testEvents.get(sz - 1);
 	}
 }
