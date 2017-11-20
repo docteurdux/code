@@ -17,6 +17,8 @@ import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyMetamodelImplementor implements MetamodelImplementor {
 
 	private Map<String, EntityPersister> entityPersisters = new HashMap<>();

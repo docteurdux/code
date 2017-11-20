@@ -210,6 +210,8 @@ public abstract class AbstractTest {
 									sizes.put(name, size);
 								} catch (NoClassDefFoundError e) {
 								} catch (ClassNotFoundException e) {
+								} catch (Error e) {
+
 								}
 							}
 						}
@@ -409,4 +411,5 @@ public abstract class AbstractTest {
 		}
 		return testEvents.get(sz - 1);
 	}
+
 }

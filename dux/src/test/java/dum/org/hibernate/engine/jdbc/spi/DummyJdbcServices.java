@@ -32,6 +32,9 @@ public class DummyJdbcServices implements JdbcServices {
 	}
 
 	public Dialect getDialect() {
+		if (dialect == null && jdbcEnvironment != null) {
+			return jdbcEnvironment.getDialect();
+		}
 		return dialect;
 	}
 

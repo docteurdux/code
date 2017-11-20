@@ -21,11 +21,15 @@ public class DummyKeyValue implements KeyValue {
 	private static final long serialVersionUID = 1L;
 	private Iterator<Selectable> columnIterator;
 	private Type type;
+	private int columnSpan;
 
 	@Override
 	public int getColumnSpan() {
-		// TODO Auto-generated method stub
-		return 0;
+		return columnSpan;
+	}
+
+	public void setColumnSpan(int columnSpan) {
+		this.columnSpan = columnSpan;
 	}
 
 	@Override

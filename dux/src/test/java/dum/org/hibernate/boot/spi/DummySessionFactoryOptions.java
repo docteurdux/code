@@ -37,6 +37,7 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	@SuppressWarnings("rawtypes")
 	private Map querySubstitutions = new HashMap<>();
 	private EntityTuplizerFactory entityTuplizerFactory;
+	private BatchFetchStyle batchFetchStyle;
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -181,8 +182,11 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public BatchFetchStyle getBatchFetchStyle() {
-		// TODO Auto-generated method stub
-		return null;
+		return batchFetchStyle;
+	}
+
+	public void setBatchFetchStyle(BatchFetchStyle batchFetchStyle) {
+		this.batchFetchStyle = batchFetchStyle;
 	}
 
 	@Override

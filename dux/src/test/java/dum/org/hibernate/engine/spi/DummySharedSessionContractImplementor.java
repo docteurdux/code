@@ -52,6 +52,9 @@ public class DummySharedSessionContractImplementor implements SharedSessionContr
 	private boolean connected;
 	private RunnableWithArgs<Object> immediateLoadRWA;
 	private boolean closed;
+	private RunnableWithArgs<Serializable> getContextEntityIdentifierRWA;
+	private CacheMode cacheMode;
+	private JdbcCoordinator jdbcCoordinator;
 
 	public void close() throws HibernateException {
 		// TODO Auto-generated method stub
@@ -262,8 +265,11 @@ public class DummySharedSessionContractImplementor implements SharedSessionContr
 	}
 
 	public JdbcCoordinator getJdbcCoordinator() {
-		// TODO Auto-generated method stub
-		return null;
+		return jdbcCoordinator;
+	}
+
+	public void setJdbcCoordinator(JdbcCoordinator jdbcCoordinator) {
+		this.jdbcCoordinator = jdbcCoordinator;
 	}
 
 	public JdbcServices getJdbcServices() {
@@ -400,8 +406,14 @@ public class DummySharedSessionContractImplementor implements SharedSessionContr
 	}
 
 	public Serializable getContextEntityIdentifier(Object object) {
-		// TODO Auto-generated method stub
+		if (getContextEntityIdentifierRWA != null) {
+			return getContextEntityIdentifierRWA.run(object);
+		}
 		return null;
+	}
+
+	public void setGetContextEntityIdentifierRWA(RunnableWithArgs<Serializable> getContextEntityIdentifierRWA) {
+		this.getContextEntityIdentifierRWA = getContextEntityIdentifierRWA;
 	}
 
 	public String bestGuessEntityName(Object object) {
@@ -457,13 +469,11 @@ public class DummySharedSessionContractImplementor implements SharedSessionContr
 	}
 
 	public CacheMode getCacheMode() {
-		// TODO Auto-generated method stub
-		return null;
+		return cacheMode;
 	}
 
-	public void setCacheMode(CacheMode cm) {
-		// TODO Auto-generated method stub
-
+	public void setCacheMode(CacheMode cacheMode) {
+		this.cacheMode = cacheMode;
 	}
 
 	public void setFlushMode(FlushMode flushMode) {

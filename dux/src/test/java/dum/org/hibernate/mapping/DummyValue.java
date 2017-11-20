@@ -1,6 +1,8 @@
 package dum.org.hibernate.mapping;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
@@ -22,16 +24,22 @@ public class DummyValue implements Value {
 
 	private boolean[] columnUpdateability = new boolean[] {};
 
+	private List<Selectable> columns = new ArrayList<>();
+
+	private Table table;
+
+	public List<Selectable> getColumns() {
+		return columns;
+	}
+
 	@Override
 	public int getColumnSpan() {
-		// TODO Auto-generated method stub
-		return 0;
+		return columns.size();
 	}
 
 	@Override
 	public Iterator<Selectable> getColumnIterator() {
-		// TODO Auto-generated method stub
-		return null;
+		return columns.iterator();
 	}
 
 	@Override
@@ -51,8 +59,11 @@ public class DummyValue implements Value {
 
 	@Override
 	public Table getTable() {
-		// TODO Auto-generated method stub
-		return null;
+		return table;
+	}
+
+	public void setTable(Table table) {
+		this.table = table;
 	}
 
 	@Override

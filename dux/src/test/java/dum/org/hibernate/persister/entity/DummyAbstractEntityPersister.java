@@ -13,7 +13,13 @@ import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.spi.PersisterCreationContext;
 import org.hibernate.type.Type;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyAbstractEntityPersister extends AbstractEntityPersister {
+
+	private RunnableWithArgs<String[]> getSubclassTableKeyColumnsRWA;
+	private int[] subclassColumnTableNumberClosure;
+	private RunnableWithArgs<String> getTableNameRWA;
 
 	public DummyAbstractEntityPersister(PersistentClass persistentClass, EntityRegionAccessStrategy cacheAccessStrategy,
 			NaturalIdRegionAccessStrategy naturalIdRegionAccessStrategy, PersisterCreationContext creationContext)
@@ -95,8 +101,11 @@ public class DummyAbstractEntityPersister extends AbstractEntityPersister {
 
 	@Override
 	protected int[] getSubclassColumnTableNumberClosure() {
-		// TODO Auto-generated method stub
-		return null;
+		return subclassColumnTableNumberClosure;
+	}
+
+	public void setSubclassColumnTableNumberClosure(int[] subclassColumnTableNumberClosure) {
+		this.subclassColumnTableNumberClosure = subclassColumnTableNumberClosure;
 	}
 
 	@Override
@@ -113,8 +122,14 @@ public class DummyAbstractEntityPersister extends AbstractEntityPersister {
 
 	@Override
 	protected String[] getSubclassTableKeyColumns(int j) {
-		// TODO Auto-generated method stub
+		if (getSubclassTableKeyColumnsRWA != null) {
+			return getSubclassTableKeyColumnsRWA.run(j);
+		}
 		return null;
+	}
+
+	public void setGetSubclassTableKeyColumnsRWA(RunnableWithArgs<String[]> getSubclassTableKeyColumnsRWA) {
+		this.getSubclassTableKeyColumnsRWA = getSubclassTableKeyColumnsRWA;
 	}
 
 	@Override
@@ -143,8 +158,14 @@ public class DummyAbstractEntityPersister extends AbstractEntityPersister {
 
 	@Override
 	protected String getTableName(int j) {
-		// TODO Auto-generated method stub
+		if (getTableNameRWA != null) {
+			return getTableNameRWA.run(j);
+		}
 		return null;
+	}
+
+	public void setGetTableNameRWA(RunnableWithArgs<String> getTableNameRWA) {
+		this.getTableNameRWA = getTableNameRWA;
 	}
 
 	@Override

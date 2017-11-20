@@ -1,9 +1,12 @@
 package dum.org.hibernate.persister.entity;
 
 import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.EntityMode;
 import org.hibernate.HibernateException;
@@ -24,6 +27,8 @@ import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.internal.FilterAliasGenerator;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.entity.Joinable;
+import org.hibernate.persister.entity.Loadable;
 import org.hibernate.persister.entity.MultiLoadOptions;
 import org.hibernate.persister.walking.spi.AttributeDefinition;
 import org.hibernate.persister.walking.spi.EntityIdentifierDefinition;
@@ -32,11 +37,17 @@ import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.type.Type;
 import org.hibernate.type.VersionType;
 
-public class DummyEntityPersister implements EntityPersister {
+import com.github.docteurdux.test.RunnableWithArgs;
+
+public class DummyEntityPersister implements EntityPersister, Joinable, Loadable {
 
 	private String entityName;
 	private Type identifierType;
 	private EntityIdentifierDefinition entityKeyDefinition;
+	private boolean consumesEntityAlias;
+	private SessionFactoryImplementor factory;
+	private RunnableWithArgs<String[]> getIdentifierAliasesRWA;
+	private String[] propertyNames;
 
 	@Override
 	public Comparator getVersionComparator() {
@@ -79,8 +90,11 @@ public class DummyEntityPersister implements EntityPersister {
 
 	@Override
 	public SessionFactoryImplementor getFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return factory;
+	}
+
+	public void setFactory(SessionFactoryImplementor factory) {
+		this.factory = factory;
 	}
 
 	@Override
@@ -333,8 +347,11 @@ public class DummyEntityPersister implements EntityPersister {
 
 	@Override
 	public String[] getPropertyNames() {
-		// TODO Auto-generated method stub
-		return null;
+		return propertyNames;
+	}
+
+	public void setPropertyNames(String[] propertyNames) {
+		this.propertyNames = propertyNames;
 	}
 
 	@Override
@@ -707,6 +724,201 @@ public class DummyEntityPersister implements EntityPersister {
 	public boolean canUseReferenceCacheEntries() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getTableName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String selectFragment(Joinable rhs, String rhsAlias, String lhsAlias, String currentEntitySuffix,
+			String currentCollectionSuffix, boolean includeCollectionColumns) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String whereJoinFragment(String alias, boolean innerJoin, boolean includeSubclasses) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String whereJoinFragment(String alias, boolean innerJoin, boolean includeSubclasses,
+			Set<String> treatAsDeclarations) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String fromJoinFragment(String alias, boolean innerJoin, boolean includeSubclasses) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String fromJoinFragment(String alias, boolean innerJoin, boolean includeSubclasses,
+			Set<String> treatAsDeclarations) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getKeyColumnNames() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String filterFragment(String alias, Map enabledFilters) throws MappingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String filterFragment(String alias, Map enabledFilters, Set<String> treatAsDeclarations)
+			throws MappingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String oneToManyFilterFragment(String alias) throws MappingException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String oneToManyFilterFragment(String alias, Set<String> treatAsDeclarations) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isCollection() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean consumesEntityAlias() {
+		return consumesEntityAlias;
+	}
+
+	public void consumesEntityAlias(boolean consumesEntityAlias) {
+		this.consumesEntityAlias = consumesEntityAlias;
+	}
+
+	@Override
+	public boolean consumesCollectionAlias() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean hasSubclasses() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Type getDiscriminatorType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object getDiscriminatorValue() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getSubclassForDiscriminatorValue(Object value) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getIdentifierColumnNames() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getIdentifierAliases(String suffix) {
+		if (getIdentifierAliasesRWA != null) {
+			return getIdentifierAliasesRWA.run(suffix);
+		}
+		return null;
+	}
+
+	public void setGetIdentifierAliasesRWA(RunnableWithArgs<String[]> getIdentifierAliasesRWA) {
+		this.getIdentifierAliasesRWA = getIdentifierAliasesRWA;
+	}
+
+	@Override
+	public String[] getPropertyAliases(String suffix, int i) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getPropertyColumnNames(int i) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getDiscriminatorAlias(String suffix) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getDiscriminatorColumnName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean hasRowId() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Object[] hydrate(ResultSet rs, Serializable id, Object object, Loadable rootLoadable,
+			String[][] suffixedPropertyColumns, boolean allProperties, SharedSessionContractImplementor session)
+			throws SQLException, HibernateException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isAbstract() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void registerAffectingFetchProfile(String fetchProfileName) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public String getTableAliasForColumn(String columnName, String rootAlias) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -1,14 +1,20 @@
 package dum.org.hibernate.engine.spi;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.hibernate.engine.spi.PersistentAttributeInterceptor;
 
 public class DummyPersistentAttributeInterceptor implements PersistentAttributeInterceptor {
 
+	private Set<String> initializedLazyAttributeNames = new HashSet<>();
+
 	public Set<String> getInitializedLazyAttributeNames() {
-		// TODO Auto-generated method stub
-		return null;
+		return initializedLazyAttributeNames;
+	}
+
+	public void setInitializedLazyAttributeNames(Set<String> initializedLazyAttributeNames) {
+		this.initializedLazyAttributeNames = initializedLazyAttributeNames;
 	}
 
 	public void attributeInitialized(String name) {

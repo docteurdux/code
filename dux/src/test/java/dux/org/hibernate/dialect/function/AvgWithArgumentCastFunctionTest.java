@@ -17,7 +17,7 @@ public class AvgWithArgumentCastFunctionTest extends AbstractTest {
 	public void test() {
 		AvgWithArgumentCastFunction a = new AvgWithArgumentCastFunction("castType");
 		DummyType firstArgumentType = new DummyType();
-		firstArgumentType.sqlTypes(mapping)
+//		firstArgumentType.sqlTypes(mapping)
 		List arguments = new ArrayList<>();
 		DummySessionFactoryImplementor factory = new DummySessionFactoryImplementor();
 		a.render(firstArgumentType, arguments, factory);

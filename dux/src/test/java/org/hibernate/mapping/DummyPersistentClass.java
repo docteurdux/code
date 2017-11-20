@@ -140,9 +140,10 @@ public class DummyPersistentClass extends PersistentClass {
 
 	@Override
 	public Iterator getPropertyClosureIterator() {
-		return propertyClosureIterator;
+		return getPropertyIterator();
 	}
 
+	@Deprecated
 	public void setPropertyClosureIterator(Iterator propertyClosureIterator) {
 		this.propertyClosureIterator = propertyClosureIterator;
 	}

@@ -46,6 +46,8 @@ import org.hibernate.stat.spi.StatisticsImplementor;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummySessionFactoryImplementor implements SessionFactoryImplementor {
 
 	private ServiceRegistryImplementor serviceRegistry;
@@ -54,6 +56,8 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 	private IdentifierGenerator identifierGenerator;
 	private MetamodelImplementor metamodel;
 	private SQLFunctionRegistry sqlFunctionRegistry;
+	private RunnableWithArgs<IdentifierGenerator> identifierGeneratorRWA;
+	private TypeResolver typeResolver;
 
 	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
 		// TODO Auto-generated method stub
@@ -293,14 +297,25 @@ public class DummySessionFactoryImplementor implements SessionFactoryImplementor
 	}
 
 	public TypeResolver getTypeResolver() {
-		// TODO Auto-generated method stub
-		return null;
+		return typeResolver;
+	}
+
+	public void setTypeResolver(TypeResolver typeResolver) {
+		this.typeResolver = typeResolver;
 	}
 
 	public IdentifierGenerator getIdentifierGenerator(String rootEntityName) {
+		if (identifierGeneratorRWA != null) {
+			return identifierGeneratorRWA.run(rootEntityName);
+		}
 		return identifierGenerator;
 	}
 
+	public void setIdentifierGeneratorRWA(RunnableWithArgs<IdentifierGenerator> identifierGeneratorRWA) {
+		this.identifierGeneratorRWA = identifierGeneratorRWA;
+	}
+
+	@Deprecated
 	public void setIdentifierGenerator(IdentifierGenerator identifierGenerator) {
 		this.identifierGenerator = identifierGenerator;
 	}
