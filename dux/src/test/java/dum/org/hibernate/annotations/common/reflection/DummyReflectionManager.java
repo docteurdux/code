@@ -2,6 +2,7 @@ package dum.org.hibernate.annotations.common.reflection;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.hibernate.annotations.common.reflection.AnnotationReader;
@@ -16,6 +17,9 @@ import org.hibernate.annotations.common.reflection.java.JavaReflectionManager;
 public class DummyReflectionManager implements ReflectionManager {
 
 	JavaReflectionManager javaReflectionManager = new JavaReflectionManager();
+	
+	@SuppressWarnings("rawtypes")
+	private Map defaults = new HashMap<>();
 
 	public JavaReflectionManager getJavaReflectionManager() {
 		return javaReflectionManager;
@@ -81,9 +85,9 @@ public class DummyReflectionManager implements ReflectionManager {
 	}
 
 	@Override
+	@SuppressWarnings("rawtypes")
 	public Map getDefaults() {
-		// TODO Auto-generated method stub
-		return null;
+		return defaults;
 	}
 
 }

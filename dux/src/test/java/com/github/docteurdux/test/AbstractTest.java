@@ -24,8 +24,6 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.junit.Assert;
 
-import dum.org.hibernate.boot.spi.DummySessionFactoryBuilderImplementor;
-
 public abstract class AbstractTest {
 
 	protected static final Boolean[] BOOLEANS = { null, Boolean.FALSE, Boolean.TRUE };
@@ -394,10 +392,22 @@ public abstract class AbstractTest {
 		}
 	}
 
+	protected <T extends Annotation> T getAnnotation(Class<?> clazz, Class<T> annotationClass) {
+		try {
+			T ann = clazz.getAnnotation(annotationClass);
+			ann(ann);
+			return ann;
+		} catch (SecurityException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	protected <T extends Annotation> T getAnnotation(Class<?> clazz, String methodName, Class<?>[] signature,
 			Class<T> annotationClass) {
 		try {
-			return clazz.getMethod(methodName, signature).getAnnotation(annotationClass);
+			T ann = clazz.getMethod(methodName, signature).getAnnotation(annotationClass);
+			ann(ann);
+			return ann;
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException(e);
 		}
@@ -412,4 +422,58 @@ public abstract class AbstractTest {
 		return testEvents.get(sz - 1);
 	}
 
+	protected boolean f() {
+		return false;
+	}
+
+	protected boolean t() {
+		return true;
+	}
+
+	protected void dumpTestEvents(Object instance) {
+		try {
+			Class<?> clazz = instance.getClass();
+			for (Field field : clazz.getDeclaredFields()) {
+				field.setAccessible(true);
+				Object value = field.get(instance);
+				if (value instanceof TestEventCollector) {
+					List<TestEvent> testEvents = ((TestEventCollector) value).getTestEvents();
+					System.out.println(value.getClass().getName() + " : " + testEvents.size());
+					for (TestEvent testEvent : testEvents) {
+						StringBuffer buf = new StringBuffer();
+						buf.append(testEvent.getName());
+						for (Entry<String, Object> entry : testEvent.getProps().entrySet()) {
+							buf.append(" ");
+							buf.append(entry.getKey() + ":" + entry.getValue().getClass().getName());
+						}
+						System.out.println(buf.toString());
+					}
+
+				}
+			}
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			throw new Exception();
+		} catch (Exception ex) {
+			System.out.println(ex.getStackTrace()[1].getMethodName());
+		}
+		System.out.println("--------------------------------------------------------------------------------");
+	}
+
+	protected void ate(TestEventCollector tec, TEI[] inspectors) {
+		aeq(inspectors.length, tec.getTestEvents().size());
+		for (int i = 0; i < inspectors.length; ++i) {
+			TEI inspector = inspectors[i];
+			TestEvent testEvent = tec.getTestEvents().get(i);
+			aeq(inspector.getName(), testEvent.getName());
+			inspector.i(testEvent.getProps());
+		}
+	}
+
+	protected void tesz(TestEventCollector tec, int sz) {
+		aeq(sz, tec.getTestEvents().size());
+	}
 }

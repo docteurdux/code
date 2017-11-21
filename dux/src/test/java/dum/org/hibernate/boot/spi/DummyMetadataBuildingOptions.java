@@ -33,6 +33,7 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 	private ImplicitNamingStrategy implicitNamingStrategy;
 	private ReflectionManager reflectionManager;
 	private ClassLoader tempClassLoader;
+	private IdGeneratorStrategyInterpreter idGenerationTypeInterpreter;
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -144,8 +145,11 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 
 	@Override
 	public IdGeneratorStrategyInterpreter getIdGenerationTypeInterpreter() {
-		// TODO Auto-generated method stub
-		return null;
+		return idGenerationTypeInterpreter;
+	}
+
+	public void setIdGenerationTypeInterpreter(IdGeneratorStrategyInterpreter idGenerationTypeInterpreter) {
+		this.idGenerationTypeInterpreter = idGenerationTypeInterpreter;
 	}
 
 	@Override

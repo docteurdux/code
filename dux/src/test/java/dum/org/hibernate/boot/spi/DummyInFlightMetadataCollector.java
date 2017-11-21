@@ -50,6 +50,7 @@ import org.hibernate.query.spi.NamedQueryRepository;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
 
+import com.github.docteurdux.test.RunnableWithArgs;
 import com.github.docteurdux.test.TestEvent;
 import com.github.docteurdux.test.TestEventCollector;
 
@@ -58,6 +59,11 @@ public class DummyInFlightMetadataCollector extends TestEventCollector implement
 	private Map<String, TypeDefinition> typeDefinitions = new HashMap<>();
 	private Database database;
 	private TypeResolver typeResolver;
+	private RunnableWithArgs<Void> addDefaultIdentifierGeneratorRWA;
+	private RunnableWithArgs<Void> addDefaultQueryRWA;
+	private RunnableWithArgs<Void> addDefaultNamedNativeQueryRWA;
+	private RunnableWithArgs<Void> addSecondPassRWA;
+	private RunnableWithArgs<Void> addDefaultNamedProcedureCallDefinitionRWA;
 
 	@Override
 	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
@@ -396,8 +402,15 @@ public class DummyInFlightMetadataCollector extends TestEventCollector implement
 
 	@Override
 	public void addSecondPass(SecondPass secondPass) {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("addSecondPass").prop("secondPass", secondPass));
+		if (addSecondPassRWA != null) {
+			addSecondPassRWA.run(secondPass);
+		}
 
+	}
+
+	public void setAddSecondPassRWA(RunnableWithArgs<Void> addSecondPassRWA) {
+		this.addSecondPassRWA = addSecondPassRWA;
 	}
 
 	@Override
@@ -475,20 +488,38 @@ public class DummyInFlightMetadataCollector extends TestEventCollector implement
 
 	@Override
 	public void addDefaultIdentifierGenerator(IdentifierGeneratorDefinition generatorDefinition) {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("addDefaultIdentifierGenerator").prop("generatorDefinition", generatorDefinition));
+		if (addDefaultIdentifierGeneratorRWA != null) {
+			addDefaultIdentifierGeneratorRWA.run(generatorDefinition);
+		}
+	}
 
+	public void setAddDefaultIdentifierGeneratorRWA(RunnableWithArgs<Void> addDefaultIdentifierGeneratorRWA) {
+		this.addDefaultIdentifierGeneratorRWA = addDefaultIdentifierGeneratorRWA;
 	}
 
 	@Override
 	public void addDefaultQuery(NamedQueryDefinition queryDefinition) {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("addDefaultQuery").prop("queryDefinition", queryDefinition));
+		if (addDefaultQueryRWA != null) {
+			addDefaultQueryRWA.run(queryDefinition);
+		}
+	}
 
+	public void setAddDefaultQueryRWA(RunnableWithArgs<Void> addDefaultQueryRWA) {
+		this.addDefaultQueryRWA = addDefaultQueryRWA;
 	}
 
 	@Override
 	public void addDefaultNamedNativeQuery(NamedSQLQueryDefinition query) {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("addDefaultNamedNative").prop("query", query));
+		if (addDefaultNamedNativeQueryRWA != null) {
+			addDefaultNamedNativeQueryRWA.run(query);
+		}
+	}
 
+	public void setAddDefaultNamedNativeQueryRWA(RunnableWithArgs<Void> addDefaultNamedNativeQueryRWA) {
+		this.addDefaultNamedNativeQueryRWA = addDefaultNamedNativeQueryRWA;
 	}
 
 	@Override
@@ -499,8 +530,16 @@ public class DummyInFlightMetadataCollector extends TestEventCollector implement
 
 	@Override
 	public void addDefaultNamedProcedureCallDefinition(NamedProcedureCallDefinition procedureCallDefinition) {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("addDefaultNamedProcedureCallDefinition").prop("procedureCallDefinition",
+				procedureCallDefinition));
+		if (addDefaultNamedProcedureCallDefinitionRWA != null) {
+			addDefaultNamedProcedureCallDefinitionRWA.run(procedureCallDefinition);
+		}
+	}
 
+	public void setAddDefaultNamedProcedureCallDefinitionRWA(
+			RunnableWithArgs<Void> addDefaultNamedProcedureCallDefinitionRWA) {
+		this.addDefaultNamedProcedureCallDefinitionRWA = addDefaultNamedProcedureCallDefinitionRWA;
 	}
 
 	@Override
