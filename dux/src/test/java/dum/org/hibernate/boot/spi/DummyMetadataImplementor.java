@@ -34,6 +34,8 @@ import org.hibernate.query.spi.NamedQueryRepository;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyMetadataImplementor implements MetadataImplementor {
 
 	private Database database;
@@ -47,6 +49,7 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 	private List<FetchProfile> fetchProfiles = new ArrayList<>();
 	private MetadataBuildingOptions metadataBuildingOptions;
 	private IdentifierGeneratorFactory identifierGeneratorFactory;
+	private RunnableWithArgs<NamedQueryRepository> buildNamedQueryRepositoryRWA;
 
 	@Override
 	public SessionFactoryBuilder getSessionFactoryBuilder() {
@@ -205,8 +208,6 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
 		return identifierGeneratorFactory;
 	}
-	
-	
 
 	public void setIdentifierGeneratorFactory(IdentifierGeneratorFactory identifierGeneratorFactory) {
 		this.identifierGeneratorFactory = identifierGeneratorFactory;
@@ -234,8 +235,6 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 	public MetadataBuildingOptions getMetadataBuildingOptions() {
 		return metadataBuildingOptions;
 	}
-	
-	
 
 	public void setMetadataBuildingOptions(MetadataBuildingOptions metadataBuildingOptions) {
 		this.metadataBuildingOptions = metadataBuildingOptions;
@@ -252,8 +251,14 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 
 	@Override
 	public NamedQueryRepository buildNamedQueryRepository(SessionFactoryImpl sessionFactory) {
-		// TODO Auto-generated method stub
+		if (buildNamedQueryRepositoryRWA != null) {
+			return buildNamedQueryRepositoryRWA.run(sessionFactory);
+		}
 		return null;
+	}
+
+	public void setBuildNamedQueryRepositoryRWA(RunnableWithArgs<NamedQueryRepository> buildNamedQueryRepositoryRWA) {
+		this.buildNamedQueryRepositoryRWA = buildNamedQueryRepositoryRWA;
 	}
 
 	@Override

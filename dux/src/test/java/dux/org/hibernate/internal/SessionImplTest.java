@@ -1,5 +1,6 @@
 package dux.org.hibernate.internal;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,13 +12,20 @@ import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.relational.Database;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.config.spi.ConfigurationService;
+import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.spi.CacheImplementor;
+import org.hibernate.engine.spi.NamedQueryDefinition;
+import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.ClearEventListener;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.FlushEventListener;
+import org.hibernate.hql.spi.QueryTranslator;
+import org.hibernate.hql.spi.QueryTranslatorFactory;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.factory.IdentifierGeneratorFactory;
 import org.hibernate.integrator.spi.IntegratorService;
@@ -26,6 +34,9 @@ import org.hibernate.internal.SessionImpl;
 import org.hibernate.mapping.RootClass;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.spi.PersisterFactory;
+import org.hibernate.procedure.ProcedureCallMemento;
+import org.hibernate.query.criteria.internal.compile.CriteriaInterpretation;
+import org.hibernate.query.spi.NamedQueryRepository;
 import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
@@ -40,9 +51,14 @@ import org.junit.Test;
 import com.github.docteurdux.test.AbstractTest;
 import com.github.docteurdux.test.RunnableWithArgs;
 
+import dum.javax.persistence.criteria.DummyCriteriaDelete;
+import dum.javax.persistence.criteria.DummyCriteriaQuery;
+import dum.javax.persistence.criteria.DummyCriteriaUpdate;
+import dum.javax.persistence.criteria.DummySelection;
 import dum.org.hibernate.DummySessionEventListener;
 import dum.org.hibernate.boot.cfgxml.spi.DummyCfgXmlAccessService;
 import dum.org.hibernate.boot.model.naming.DummyPhysicalNamingStrategy;
+import dum.org.hibernate.boot.spi.DummyClassLoaderAccess;
 import dum.org.hibernate.boot.spi.DummyMappingDefaults;
 import dum.org.hibernate.boot.spi.DummyMetadataBuildingContext;
 import dum.org.hibernate.boot.spi.DummyMetadataBuildingOptions;
@@ -50,12 +66,16 @@ import dum.org.hibernate.boot.spi.DummyMetadataImplementor;
 import dum.org.hibernate.boot.spi.DummySessionFactoryOptions;
 import dum.org.hibernate.cache.spi.DummyRegionFactory;
 import dum.org.hibernate.engine.config.spi.DummyConfigurationService;
+import dum.org.hibernate.engine.jdbc.connections.spi.DummyMultiTenantConnectionProvider;
 import dum.org.hibernate.engine.jdbc.env.spi.DummyIdentifierHelper;
 import dum.org.hibernate.engine.jdbc.env.spi.DummyJdbcEnvironment;
 import dum.org.hibernate.engine.jdbc.spi.DummyJdbcServices;
 import dum.org.hibernate.engine.spi.DummyCacheImplementor;
 import dum.org.hibernate.event.service.spi.DummyEventListenerGroup;
 import dum.org.hibernate.event.service.spi.DummyEventListenerRegistry;
+import dum.org.hibernate.hql.spi.DummyParameterTranslations;
+import dum.org.hibernate.hql.spi.DummyQueryTranslator;
+import dum.org.hibernate.hql.spi.DummyQueryTranslatorFactory;
 import dum.org.hibernate.hql.spi.id.DummyMultiTableBulkIdStrategy;
 import dum.org.hibernate.id.DummyIdentifierGenerator;
 import dum.org.hibernate.id.factory.DummyIdentifierGeneratorFactory;
@@ -63,6 +83,8 @@ import dum.org.hibernate.internal.DummySessionCreationOptions;
 import dum.org.hibernate.mapping.DummyKeyValue;
 import dum.org.hibernate.persister.entity.DummyEntityPersister;
 import dum.org.hibernate.persister.spi.DummyPersisterFactory;
+import dum.org.hibernate.procedure.DummyProcedureCallMemento;
+import dum.org.hibernate.query.criteria.internal.compile.DummyCriteriaInterpretation;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinator;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinatorBuilder;
 import dum.org.hibernate.resource.transaction.spi.TransactionCoordinator.DummyTransactionDriver;
@@ -110,16 +132,25 @@ public class SessionImplTest extends AbstractTest {
 	private DummyEventListenerGroup<FlushEventListener> eventListenerGroupFlush;
 	private DummyTransactionDriver transactionDriver;
 	private DummyMetadataBuildingContext metadataBuildingContext;
-	private RootClass persistentClass1;
+	private RootClass rootClass1;
 	private DummyPersisterFactory persisterFactory;
 	private DummyEntityPersister entityPersister;
-	private RootClass persistentClass2;
+	private RootClass rootClass2;
 	private DummyIdentifierGenerator identifierGenerator1;
 	private DummyKeyValue identifier1;
 	private DummyIdentifierGenerator identifierGenerator2;
 	private DummyKeyValue identifier2;
 	private IdentifierGeneratorFactory identifierGeneratorFactory;
 	private Map<String, Identifier> identifiers;
+	private DummyEventListenerGroup<ClearEventListener> eventListenerGroupClear;
+	private DummyMultiTenantConnectionProvider multiTenantConnectionProvider;
+	private DummyClassLoaderAccess classLoaderAccess;
+	private DummyCriteriaInterpretation criteriaInterpretation;
+	private DummyCriteriaDelete<Object> criteriaDelete;
+	private DummyCriteriaQuery<Object> criteriaQuery;
+	private DummyCriteriaUpdate<Object> criteriaUpdate;
+	private DummyQueryTranslatorFactory queryTranslatorFactory;
+	private DummyQueryTranslator queryTranslator;
 
 	public SessionImplTest() {
 
@@ -179,6 +210,7 @@ public class SessionImplTest extends AbstractTest {
 		});
 
 		eventListenerGroupFlush = new DummyEventListenerGroup<FlushEventListener>();
+		eventListenerGroupClear = new DummyEventListenerGroup<ClearEventListener>();
 
 		eventListenerRegistry = new DummyEventListenerRegistry();
 		eventListenerRegistry.setGetEventListenerGroupRWA(new RunnableWithArgs<EventListenerGroup>() {
@@ -187,19 +219,38 @@ public class SessionImplTest extends AbstractTest {
 				EventType et = (EventType) args[0];
 				if (et.baseListenerInterface() == FlushEventListener.class) {
 					return eventListenerGroupFlush;
+				} else if (et.baseListenerInterface() == ClearEventListener.class) {
+					return eventListenerGroupClear;
 				}
 				return null;
 			}
 		});
 
 		entityPersister = new DummyEntityPersister();
+		entityPersister.setHasNaturalIdentifier(true);
+		entityPersister.setNaturalIdentifierProperties(new int[] { 0 });
+		entityPersister.setPropertyNames(new String[] { "propertyName" });
 
 		persisterFactory = new DummyPersisterFactory();
 		persisterFactory.setCreateEntityPersisterRWA(new RunnableWithArgs<EntityPersister>() {
-
 			@Override
 			public EntityPersister run(Object... args) {
 				return entityPersister;
+			}
+		});
+
+		multiTenantConnectionProvider = new DummyMultiTenantConnectionProvider();
+
+		DummyParameterTranslations parameterTranslations = new DummyParameterTranslations();
+
+		queryTranslator = new DummyQueryTranslator();
+		queryTranslator.setParameterTranslations(parameterTranslations);
+
+		queryTranslatorFactory = new DummyQueryTranslatorFactory();
+		queryTranslatorFactory.setCreateQueryTranslatorRWA(new RunnableWithArgs<QueryTranslator>() {
+			@Override
+			public QueryTranslator run(Object... args) {
+				return queryTranslator;
 			}
 		});
 
@@ -213,6 +264,8 @@ public class SessionImplTest extends AbstractTest {
 		sessionFactoryServiceRegistry.setService(TransactionCoordinatorBuilder.class, transactionCoordinatorBuilder);
 		sessionFactoryServiceRegistry.setService(EventListenerRegistry.class, eventListenerRegistry);
 		sessionFactoryServiceRegistry.setService(PersisterFactory.class, persisterFactory);
+		sessionFactoryServiceRegistry.setService(MultiTenantConnectionProvider.class, multiTenantConnectionProvider);
+		sessionFactoryServiceRegistry.setService(QueryTranslatorFactory.class, queryTranslatorFactory);
 
 		sessionFactoryServiceRegistryFactory = new DummySessionFactoryServiceRegistryFactory();
 		sessionFactoryServiceRegistryFactory
@@ -243,7 +296,17 @@ public class SessionImplTest extends AbstractTest {
 
 		typeResolver = new TypeResolver();
 
+		classLoaderAccess = new DummyClassLoaderAccess();
+		classLoaderAccess.setClassForNameRWA(new RunnableWithArgs<Class<?>>() {
+			@Override
+			public Class<?> run(Object... args) {
+				String name = (String) args[0];
+				return A.class;
+			}
+		});
+
 		metadataBuildingContext = new DummyMetadataBuildingContext();
+		metadataBuildingContext.setClassLoaderAccess(classLoaderAccess);
 
 		identifierGenerator1 = new DummyIdentifierGenerator();
 
@@ -255,9 +318,10 @@ public class SessionImplTest extends AbstractTest {
 			}
 		});
 
-		persistentClass1 = new RootClass(metadataBuildingContext);
-		persistentClass1.setIdentifier(identifier1);
-		persistentClass1.setEntityName("entityName");
+		rootClass1 = new RootClass(metadataBuildingContext);
+		rootClass1.setIdentifier(identifier1);
+		rootClass1.setEntityName("entityName");
+		rootClass1.setClassName("entityClassName");
 
 		identifierGenerator2 = new DummyIdentifierGenerator();
 
@@ -269,18 +333,35 @@ public class SessionImplTest extends AbstractTest {
 			}
 		});
 
-		persistentClass2 = new RootClass(metadataBuildingContext);
-		persistentClass2.setIdentifier(identifier2);
-		persistentClass2.setEntityName("dux.org.hibernate.internal.SessionImplTest$A");
+		rootClass2 = new RootClass(metadataBuildingContext);
+		rootClass2.setIdentifier(identifier2);
+		rootClass2.setEntityName("dux.org.hibernate.internal.SessionImplTest$A");
+		rootClass2.setClassName(A.class.getName());
 
 		identifierGeneratorFactory = new DummyIdentifierGeneratorFactory();
+
+		DummyProcedureCallMemento procedureCallMemento = new DummyProcedureCallMemento();
+
+		Iterable<NamedQueryDefinition> namedQueryDefinitions = new ArrayList<>();
+		Iterable<NamedSQLQueryDefinition> namedSqlQueryDefinitions = new ArrayList<>();
+		Iterable<ResultSetMappingDefinition> namedSqlResultSetMappings = new ArrayList<>();
+		Map<String, ProcedureCallMemento> namedProcedureCalls = new HashMap<>();
+		namedProcedureCalls.put("namedStoredProcedureQuery", procedureCallMemento);
+		NamedQueryRepository namedQueryRepository = new NamedQueryRepository(namedQueryDefinitions,
+				namedSqlQueryDefinitions, namedSqlResultSetMappings, namedProcedureCalls);
 
 		metadataImplementor = new DummyMetadataImplementor();
 		metadataImplementor.setTypeResolver(typeResolver);
 		metadataImplementor.setDatabase(database);
-		metadataImplementor.getEntityBindings().add(persistentClass1);
-		metadataImplementor.getEntityBindings().add(persistentClass2);
+		metadataImplementor.getEntityBindings().add(rootClass1);
+		metadataImplementor.getEntityBindings().add(rootClass2);
 		metadataImplementor.setIdentifierGeneratorFactory(identifierGeneratorFactory);
+		metadataImplementor.setBuildNamedQueryRepositoryRWA(new RunnableWithArgs<NamedQueryRepository>() {
+			@Override
+			public NamedQueryRepository run(Object... args) {
+				return namedQueryRepository;
+			}
+		});
 
 		physicalConnectionHandlingMode = PhysicalConnectionHandlingMode.DELAYED_ACQUISITION_AND_HOLD;
 		multiTenancyStrategy = MultiTenancyStrategy.DATABASE;
@@ -301,6 +382,30 @@ public class SessionImplTest extends AbstractTest {
 		sessionCreationOptions.setInitialSessionFlushMode(initialSessionFlushMode);
 		sessionCreationOptions.setTenantIdentifier("tenantIdentifier");
 
+		criteriaInterpretation = new DummyCriteriaInterpretation();
+		criteriaDelete = new DummyCriteriaDelete<>();
+		criteriaDelete.setInterpretRWA(new RunnableWithArgs<CriteriaInterpretation>() {
+			@Override
+			public CriteriaInterpretation run(Object... args) {
+				return criteriaInterpretation;
+			}
+		});
+
+		criteriaQuery = new DummyCriteriaQuery<>();
+		criteriaQuery.setInterpretRWA(new RunnableWithArgs<CriteriaInterpretation>() {
+			@Override
+			public CriteriaInterpretation run(Object... args) {
+				return criteriaInterpretation;
+			}
+		});
+
+		criteriaUpdate = new DummyCriteriaUpdate<>();
+		criteriaUpdate.setInterpretRWA(new RunnableWithArgs<CriteriaInterpretation>() {
+			@Override
+			public CriteriaInterpretation run(Object... args) {
+				return criteriaInterpretation;
+			}
+		});
 	}
 
 	@Test
@@ -329,8 +434,32 @@ public class SessionImplTest extends AbstractTest {
 		sessionImpl.byMultipleIds(A.class);
 		sessionImpl.byMultipleIds("entityName");
 		sessionImpl.byNaturalId(A.class);
+		sessionImpl.byNaturalId("entityName");
+		sessionImpl.bySimpleNaturalId(A.class);
+		sessionImpl.bySimpleNaturalId("entityName");
+		sessionImpl.cancelQuery();
+		sessionImpl.clear();
+		sessionImpl.connection();
+		sessionImpl.contains(new A());
+		sessionImpl.contains("dux.org.hibernate.internal.SessionImplTest$A", new A());
+		sessionImpl.createCriteria(A.class);
+		sessionImpl.createCriteria(A.class, "alias");
+		sessionImpl.createCriteria("entityName");
+		sessionImpl.createCriteria("entityName", "alias");
+		sessionImpl.createEntityGraph(A.class);
+		sessionImpl.createEntityGraph("entityName");
+		// sessionImpl.createFilter(collection, "queryString");
+		sessionImpl.createNamedStoredProcedureQuery("namedStoredProcedureQuery");
+
+		sessionImpl.createQuery(criteriaDelete);
+		sessionImpl.createQuery(criteriaQuery);
+		sessionImpl.createQuery(criteriaUpdate);
+		DummySelection<Object> selection = new DummySelection<>();
+		DummyQueryOptions queryOptions = new DummyQueryOptions();
+		sessionImpl.createQuery("jpaqlString", A.class, selection, queryOptions);
 
 		sessionImpl.close();
+
 	}
 
 	private void setTransactionActive(boolean active) {

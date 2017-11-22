@@ -48,6 +48,9 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 	private SessionFactoryImplementor factory;
 	private RunnableWithArgs<String[]> getIdentifierAliasesRWA;
 	private String[] propertyNames;
+	private boolean hasNaturalIdentifier;
+	private int[] naturalIdentifierProperties = new int[] {};
+	private EntityMetamodel entityMetamodel;
 
 	@Override
 	public Comparator getVersionComparator() {
@@ -120,8 +123,11 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 
 	@Override
 	public EntityMetamodel getEntityMetamodel() {
-		// TODO Auto-generated method stub
-		return null;
+		return entityMetamodel;
+	}
+
+	public void setEntityMetamodel(EntityMetamodel entityMetamodel) {
+		this.entityMetamodel = entityMetamodel;
 	}
 
 	@Override
@@ -241,14 +247,20 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 
 	@Override
 	public boolean hasNaturalIdentifier() {
-		// TODO Auto-generated method stub
-		return false;
+		return hasNaturalIdentifier;
+	}
+
+	public void setHasNaturalIdentifier(boolean hasNaturalIdentifier) {
+		this.hasNaturalIdentifier = hasNaturalIdentifier;
 	}
 
 	@Override
 	public int[] getNaturalIdentifierProperties() {
-		// TODO Auto-generated method stub
-		return null;
+		return naturalIdentifierProperties;
+	}
+
+	public void setNaturalIdentifierProperties(int[] naturalIdentifierProperties) {
+		this.naturalIdentifierProperties = naturalIdentifierProperties;
 	}
 
 	@Override

@@ -38,6 +38,8 @@ public class DummyCollectionPersister implements CollectionPersister, Joinable, 
 	private RunnableWithArgs<String> filterFragmentRWA;
 	private RunnableWithArgs<String> selectFragmentRWA;
 	private CollectionElementDefinition elementDefinition;
+	private Type keyType;
+	private SessionFactoryImplementor factory;
 
 	@Override
 	public CollectionPersister getCollectionPersister() {
@@ -92,8 +94,11 @@ public class DummyCollectionPersister implements CollectionPersister, Joinable, 
 
 	@Override
 	public Type getKeyType() {
-		// TODO Auto-generated method stub
-		return null;
+		return keyType;
+	}
+
+	public void setKeyType(Type keyType) {
+		this.keyType = keyType;
 	}
 
 	@Override
@@ -320,8 +325,11 @@ public class DummyCollectionPersister implements CollectionPersister, Joinable, 
 
 	@Override
 	public SessionFactoryImplementor getFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return factory;
+	}
+
+	public void setFactory(SessionFactoryImplementor factory) {
+		this.factory = factory;
 	}
 
 	@Override

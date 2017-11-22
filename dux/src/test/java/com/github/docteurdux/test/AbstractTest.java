@@ -476,4 +476,21 @@ public abstract class AbstractTest {
 	protected void tesz(TestEventCollector tec, int sz) {
 		aeq(sz, tec.getTestEvents().size());
 	}
+	
+	private void dumpTree(Class<?> clazz, Set<String> set) {
+		if (clazz == null) {
+			return;
+		}
+		String name = clazz.getName();
+		Class<?> superClazz = clazz.getSuperclass();
+		if (superClazz != null) {
+			set.add("\"" + name + "\" -> \"" + superClazz.getName() + "\";");
+			dumpTree(superClazz, set);
+		}
+		for (Class<?> i : clazz.getInterfaces()) {
+			set.add("\"" + name + "\" -> \"" + i.getName() + "\";");
+			dumpTree(i, set);
+		}
+
+	}
 }
