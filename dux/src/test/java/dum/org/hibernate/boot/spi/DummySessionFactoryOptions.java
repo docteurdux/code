@@ -38,10 +38,11 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	private Map querySubstitutions = new HashMap<>();
 	private EntityTuplizerFactory entityTuplizerFactory;
 	private BatchFetchStyle batchFetchStyle;
+	private MultiTenancyStrategy multiTenancyStrategy;
+	private PhysicalConnectionHandlingMode physicalConnectionHandlingMode;
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
-		// TODO Auto-generated method stub
 		return serviceRegistry;
 	}
 
@@ -221,8 +222,11 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public MultiTenancyStrategy getMultiTenancyStrategy() {
-		// TODO Auto-generated method stub
-		return null;
+		return multiTenancyStrategy;
+	}
+
+	public void setMultiTenancyStrategy(MultiTenancyStrategy multiTenancyStrategy) {
+		this.multiTenancyStrategy = multiTenancyStrategy;
 	}
 
 	@Override
@@ -353,8 +357,11 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public PhysicalConnectionHandlingMode getPhysicalConnectionHandlingMode() {
-		// TODO Auto-generated method stub
-		return null;
+		return physicalConnectionHandlingMode;
+	}
+
+	public void setPhysicalConnectionHandlingMode(PhysicalConnectionHandlingMode physicalConnectionHandlingMode) {
+		this.physicalConnectionHandlingMode = physicalConnectionHandlingMode;
 	}
 
 	@Override

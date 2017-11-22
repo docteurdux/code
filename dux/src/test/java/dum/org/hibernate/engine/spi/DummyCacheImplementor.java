@@ -16,6 +16,8 @@ import org.hibernate.mapping.PersistentClass;
 
 public class DummyCacheImplementor implements CacheImplementor {
 
+	private RegionFactory regionFactory;
+
 	@Override
 	public SessionFactory getSessionFactory() {
 		// TODO Auto-generated method stub
@@ -198,8 +200,11 @@ public class DummyCacheImplementor implements CacheImplementor {
 
 	@Override
 	public RegionFactory getRegionFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return regionFactory;
+	}
+
+	public void setRegionFactory(RegionFactory regionFactory) {
+		this.regionFactory = regionFactory;
 	}
 
 	@Override

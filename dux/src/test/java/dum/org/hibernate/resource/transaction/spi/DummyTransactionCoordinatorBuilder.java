@@ -5,14 +5,24 @@ import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorOwner;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyTransactionCoordinatorBuilder implements TransactionCoordinatorBuilder {
 
 	private static final long serialVersionUID = 1L;
+	private RunnableWithArgs<TransactionCoordinator> buildTransactionCoordinatorRWA;
 
 	@Override
 	public TransactionCoordinator buildTransactionCoordinator(TransactionCoordinatorOwner owner, Options options) {
-		// TODO Auto-generated method stub
+		if (buildTransactionCoordinatorRWA != null) {
+			return buildTransactionCoordinatorRWA.run(owner, options);
+		}
 		return null;
+	}
+
+	public void setBuildTransactionCoordinatorRWA(
+			RunnableWithArgs<TransactionCoordinator> buildTransactionCoordinatorRWA) {
+		this.buildTransactionCoordinatorRWA = buildTransactionCoordinatorRWA;
 	}
 
 	@Override
