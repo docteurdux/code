@@ -16,12 +16,15 @@ import org.hibernate.mapping.ValueVisitor;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyKeyValue implements KeyValue {
 
 	private static final long serialVersionUID = 1L;
 	private Iterator<Selectable> columnIterator;
 	private Type type;
 	private int columnSpan;
+	private RunnableWithArgs<IdentifierGenerator> createIdentifierGeneratorRWA;
 
 	@Override
 	public int getColumnSpan() {
@@ -131,8 +134,15 @@ public class DummyKeyValue implements KeyValue {
 	@Override
 	public IdentifierGenerator createIdentifierGenerator(IdentifierGeneratorFactory identifierGeneratorFactory,
 			Dialect dialect, String defaultCatalog, String defaultSchema, RootClass rootClass) throws MappingException {
-		// TODO Auto-generated method stub
+		if (createIdentifierGeneratorRWA != null) {
+			return createIdentifierGeneratorRWA.run(identifierGeneratorFactory, dialect, defaultCatalog, defaultSchema,
+					rootClass);
+		}
 		return null;
+	}
+
+	public void setCreateIdentifierGeneratorRWA(RunnableWithArgs<IdentifierGenerator> createIdentifierGeneratorRWA) {
+		this.createIdentifierGeneratorRWA = createIdentifierGeneratorRWA;
 	}
 
 	@Override

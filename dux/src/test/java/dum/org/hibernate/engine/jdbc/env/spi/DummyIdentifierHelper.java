@@ -3,7 +3,11 @@ package dum.org.hibernate.engine.jdbc.env.spi;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.engine.jdbc.env.spi.IdentifierHelper;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyIdentifierHelper implements IdentifierHelper {
+
+	private RunnableWithArgs<Identifier> toIdentifierRWA;
 
 	@Override
 	public Identifier normalizeQuoting(Identifier identifier) {
@@ -12,8 +16,14 @@ public class DummyIdentifierHelper implements IdentifierHelper {
 
 	@Override
 	public Identifier toIdentifier(String text) {
-		System.out.println(text);
+		if (toIdentifierRWA != null) {
+			return toIdentifierRWA.run(text);
+		}
 		return null;
+	}
+
+	public void setToIdentifierRWA(RunnableWithArgs<Identifier> toIdentifierRWA) {
+		this.toIdentifierRWA = toIdentifierRWA;
 	}
 
 	@Override

@@ -11,15 +11,28 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.spi.PersisterCreationContext;
 import org.hibernate.persister.spi.PersisterFactory;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyPersisterFactory implements PersisterFactory {
+
+	private static final long serialVersionUID = 1L;
+
+	private RunnableWithArgs<EntityPersister> createEntityPersisterRWA;
 
 	@Override
 	public EntityPersister createEntityPersister(PersistentClass entityBinding,
 			EntityRegionAccessStrategy entityCacheAccessStrategy,
 			NaturalIdRegionAccessStrategy naturalIdCacheAccessStrategy, PersisterCreationContext creationContext)
 			throws HibernateException {
-		// TODO Auto-generated method stub
+		if (createEntityPersisterRWA != null) {
+			return createEntityPersisterRWA.run(entityBinding, entityCacheAccessStrategy, naturalIdCacheAccessStrategy,
+					creationContext);
+		}
 		return null;
+	}
+
+	public void setCreateEntityPersisterRWA(RunnableWithArgs<EntityPersister> createEntityPersisterRWA) {
+		this.createEntityPersisterRWA = createEntityPersisterRWA;
 	}
 
 	@Override

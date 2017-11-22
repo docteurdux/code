@@ -46,6 +46,7 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 	private Map<String, NamedEntityGraphDefinition> namedEntityGraphs = new HashMap<>();
 	private List<FetchProfile> fetchProfiles = new ArrayList<>();
 	private MetadataBuildingOptions metadataBuildingOptions;
+	private IdentifierGeneratorFactory identifierGeneratorFactory;
 
 	@Override
 	public SessionFactoryBuilder getSessionFactoryBuilder() {
@@ -202,8 +203,13 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 
 	@Override
 	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return identifierGeneratorFactory;
+	}
+	
+	
+
+	public void setIdentifierGeneratorFactory(IdentifierGeneratorFactory identifierGeneratorFactory) {
+		this.identifierGeneratorFactory = identifierGeneratorFactory;
 	}
 
 	@Override
