@@ -31,6 +31,8 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.internal.AbstractEntityEntry;
+import org.hibernate.engine.internal.EntityEntryContext;
+import org.hibernate.engine.internal.StatefulPersistenceContext;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
@@ -223,8 +225,8 @@ public class SessionImplTest extends AbstractTest {
 	@Before
 	public void before() {
 
-		requireSources(HibernateCoreSummaryTest.MVNNAME, SessionImpl.class,
-				DefaultPersistEventListener.class, AbstractSaveEventListener.class);
+		requireSources(HibernateCoreSummaryTest.MVNNAME, SessionImpl.class, DefaultPersistEventListener.class,
+				AbstractSaveEventListener.class, StatefulPersistenceContext.class, EntityEntryContext.class);
 
 		dialect = new Dialect() {
 		};
@@ -571,7 +573,7 @@ public class SessionImplTest extends AbstractTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test
+//	@Test
 	public void test() {
 		if (t()) {
 			return;
@@ -693,22 +695,27 @@ public class SessionImplTest extends AbstractTest {
 
 		sessionImpl.flushBeforeTransactionCompletion();
 
-		Status abba1 = Status.MANAGED;
-		Object[] abba2 = new Object[] {};
-		Object abba3 = new Object();
-		Serializable abba4 = new Serializable() {
+		Status abstractEntityEntryStatus = Status.MANAGED;
+		Object[] abstractEntityLoadedState = new Object[] {};
+		Object abstractEntityRowId = new Object();
+		Serializable abstractEntityEntryId = new Serializable() {
 			private static final long serialVersionUID = 1L;
 		};
-		Object abba5 = new Object();
-		LockMode abba6 = LockMode.NONE;
-		boolean abba7 = false;
-		DummyEntityPersister abba8 = entityPersister;
-		EntityMode abba9 = EntityMode.POJO;
-		String abba10 = "abba10";
-		boolean abba11 = false;
-		PersistenceContext abba12 = sessionImpl.getPersistenceContext();
-		AbstractEntityEntry entityEntry = new DummyAbstractEntityEntry(abba1, abba2, abba3, abba4, abba5, abba6, abba7,
-				abba8, abba9, abba10, abba11, abba12);
+		Object abstractEntityEntryVersion = new Object();
+		LockMode abstractEntityEntryLockMode = LockMode.NONE;
+		boolean abstractEntityEntryExistsInDatabase = false;
+		EntityMode abstractEntityEntryEntryMode = EntityMode.POJO;
+		String abstractEntityIdTenantId = "abba10";
+		boolean abstractEntityEntryDisableVersionIncrement = false;
+		PersistenceContext persistenceContext = sessionImpl.getPersistenceContext();
+		AbstractEntityEntry entityEntry = new DummyAbstractEntityEntry(abstractEntityEntryStatus,
+				abstractEntityLoadedState, abstractEntityRowId, abstractEntityEntryId, abstractEntityEntryVersion,
+				abstractEntityEntryLockMode, abstractEntityEntryExistsInDatabase, entityPersister,
+				abstractEntityEntryEntryMode, abstractEntityIdTenantId, abstractEntityEntryDisableVersionIncrement,
+				persistenceContext);
+
+		DummyManagedEntity managedEntity = new DummyManagedEntity();
+		managedEntity.$$_hibernate_setEntityEntry(entityEntry);
 
 		sessionImpl.forceFlush(entityEntry);
 
@@ -728,8 +735,6 @@ public class SessionImplTest extends AbstractTest {
 
 		sessionImpl.getCriteriaBuilder();
 
-		DummyManagedEntity managedEntity = new DummyManagedEntity();
-		managedEntity.$$_hibernate_setEntityEntry(entityEntry);
 		sessionImpl.getCurrentLockMode(managedEntity);
 
 		sessionImpl.getDelegate();
@@ -937,7 +942,7 @@ public class SessionImplTest extends AbstractTest {
 		// @SuppressWarnings("rawtypes")
 		// Map copiedAlready = new HashMap<>();
 		sessionImpl.persist(object);
-		sessionImpl.persist("entityName", object);
+		// sessionImpl.persist("entityName", object);
 		// sessionImpl.persist("entityName", object, copiedAlready);
 
 		sessionImpl.close();
