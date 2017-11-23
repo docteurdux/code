@@ -52,6 +52,8 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 	private int[] naturalIdentifierProperties = new int[] {};
 	private EntityMetamodel entityMetamodel;
 	private Serializable[] querySpaces = new Serializable[] {};
+	private boolean mutable;
+	private String rootEntityName;
 
 	@Override
 	public Comparator getVersionComparator() {
@@ -109,8 +111,11 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 
 	@Override
 	public String getRootEntityName() {
-		// TODO Auto-generated method stub
-		return null;
+		return rootEntityName;
+	}
+
+	public void setRootEntityName(String rootEntityName) {
+		this.rootEntityName = rootEntityName;
 	}
 
 	@Override
@@ -184,8 +189,11 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 
 	@Override
 	public boolean isMutable() {
-		// TODO Auto-generated method stub
-		return false;
+		return mutable;
+	}
+
+	public void setMutable(boolean mutable) {
+		this.mutable = mutable;
 	}
 
 	@Override

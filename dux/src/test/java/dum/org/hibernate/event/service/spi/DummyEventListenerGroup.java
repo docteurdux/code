@@ -9,6 +9,11 @@ import org.hibernate.event.spi.EventType;
 public class DummyEventListenerGroup<T> implements EventListenerGroup<T> {
 
 	private static final long serialVersionUID = 1L;
+	private ArrayList<T> listeners;
+
+	public DummyEventListenerGroup() {
+		listeners = new ArrayList<T>();
+	}
 
 	@Override
 	public EventType<T> getEventType() {
@@ -30,7 +35,7 @@ public class DummyEventListenerGroup<T> implements EventListenerGroup<T> {
 
 	@Override
 	public Iterable<T> listeners() {
-		return new ArrayList<T>();
+		return listeners;
 	}
 
 	@Override
@@ -41,8 +46,7 @@ public class DummyEventListenerGroup<T> implements EventListenerGroup<T> {
 
 	@Override
 	public void appendListener(T listener) {
-		// TODO Auto-generated method stub
-
+		listeners.add(listener);
 	}
 
 	@Override

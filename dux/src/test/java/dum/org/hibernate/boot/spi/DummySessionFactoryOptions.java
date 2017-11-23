@@ -40,6 +40,7 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	private BatchFetchStyle batchFetchStyle;
 	private MultiTenancyStrategy multiTenancyStrategy;
 	private PhysicalConnectionHandlingMode physicalConnectionHandlingMode;
+	private EntityNotFoundDelegate entityNotFoundDelegate;
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -390,8 +391,11 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public EntityNotFoundDelegate getEntityNotFoundDelegate() {
-		// TODO Auto-generated method stub
-		return null;
+		return entityNotFoundDelegate;
+	}
+
+	public void setEntityNotFoundDelegate(EntityNotFoundDelegate entityNotFoundDelegate) {
+		this.entityNotFoundDelegate = entityNotFoundDelegate;
 	}
 
 	@Override

@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.LockModeType;
+import javax.persistence.NamedEntityGraph;
 
 import org.hibernate.Criteria;
+import org.hibernate.EntityMode;
 import org.hibernate.FlushMode;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
@@ -24,10 +26,11 @@ import org.hibernate.boot.cfgxml.spi.CfgXmlAccessService;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.relational.Database;
 import org.hibernate.cache.spi.RegionFactory;
-import org.hibernate.collection.spi.PersistentCollection;
+import org.hibernate.cfg.annotations.NamedEntityGraphDefinition;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.config.spi.ConfigurationService;
+import org.hibernate.engine.internal.AbstractEntityEntry;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
@@ -37,12 +40,15 @@ import org.hibernate.engine.query.spi.NativeSQLQueryPlan;
 import org.hibernate.engine.query.spi.sql.NativeSQLQueryReturn;
 import org.hibernate.engine.query.spi.sql.NativeSQLQuerySpecification;
 import org.hibernate.engine.spi.CacheImplementor;
-import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.FilterDefinition;
 import org.hibernate.engine.spi.NamedQueryDefinition;
 import org.hibernate.engine.spi.NamedSQLQueryDefinition;
+import org.hibernate.engine.spi.PersistenceContext;
 import org.hibernate.engine.spi.QueryParameters;
+import org.hibernate.engine.spi.Status;
+import org.hibernate.event.internal.AbstractSaveEventListener;
+import org.hibernate.event.internal.DefaultPersistEventListener;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.ClearEventListener;
@@ -50,6 +56,9 @@ import org.hibernate.event.spi.DeleteEventListener;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.EvictEventListener;
 import org.hibernate.event.spi.FlushEventListener;
+import org.hibernate.event.spi.LoadEventListener;
+import org.hibernate.event.spi.PersistEvent;
+import org.hibernate.event.spi.PersistEventListener;
 import org.hibernate.hql.spi.QueryTranslator;
 import org.hibernate.hql.spi.QueryTranslatorFactory;
 import org.hibernate.id.IdentifierGenerator;
@@ -98,13 +107,16 @@ import dum.org.hibernate.boot.spi.DummyMetadataBuildingOptions;
 import dum.org.hibernate.boot.spi.DummyMetadataImplementor;
 import dum.org.hibernate.boot.spi.DummySessionFactoryOptions;
 import dum.org.hibernate.cache.spi.DummyRegionFactory;
+import dum.org.hibernate.collection.spi.DummyPersistentCollection;
 import dum.org.hibernate.engine.config.spi.DummyConfigurationService;
+import dum.org.hibernate.engine.internal.DummyAbstractEntityEntry;
 import dum.org.hibernate.engine.jdbc.connections.spi.DummyMultiTenantConnectionProvider;
 import dum.org.hibernate.engine.jdbc.env.spi.DummyIdentifierHelper;
 import dum.org.hibernate.engine.jdbc.env.spi.DummyJdbcEnvironment;
 import dum.org.hibernate.engine.jdbc.spi.DummyJdbcServices;
 import dum.org.hibernate.engine.query.spi.DummyNativeQueryInterpreter;
 import dum.org.hibernate.engine.spi.DummyCacheImplementor;
+import dum.org.hibernate.engine.spi.DummyManagedEntity;
 import dum.org.hibernate.event.service.spi.DummyEventListenerGroup;
 import dum.org.hibernate.event.service.spi.DummyEventListenerRegistry;
 import dum.org.hibernate.hql.spi.DummyParameterTranslations;
@@ -119,6 +131,7 @@ import dum.org.hibernate.mapping.DummyKeyValue;
 import dum.org.hibernate.persister.entity.DummyEntityPersister;
 import dum.org.hibernate.persister.spi.DummyPersisterFactory;
 import dum.org.hibernate.procedure.DummyProcedureCallMemento;
+import dum.org.hibernate.proxy.DummyEntityNotFoundDelegate;
 import dum.org.hibernate.query.criteria.internal.compile.DummyCriteriaInterpretation;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinator;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinatorBuilder;
@@ -126,11 +139,14 @@ import dum.org.hibernate.resource.transaction.spi.TransactionCoordinator.DummyTr
 import dum.org.hibernate.service.spi.DummySessionFactoryServiceRegistry;
 import dum.org.hibernate.service.spi.DummySessionFactoryServiceRegistryFactory;
 import dum.org.hibernate.stat.spi.DummyStatisticsImplementor;
+import dum.org.hibernate.type.DummyType;
+import dus.hibernate.core.HibernateCoreSummaryTest;
 import dux.org.hibernate.query.criteria.internal.DummyIntegratorService;
 import dux.org.hibernate.query.criteria.internal.DummyStandardServiceRegistry;
 
 public class SessionImplTest extends AbstractTest {
 
+	@NamedEntityGraph
 	public static class A {
 
 	}
@@ -195,6 +211,9 @@ public class SessionImplTest extends AbstractTest {
 	private DummyNativeQueryInterpreter nativeQueryInterpreter;
 	private NativeSQLQueryPlan nativeSQLQueryPlan;
 	private DummyConnection connection;
+	private DummyEventListenerGroup<LoadEventListener> eventListenerGroupLoad;
+	private DummyEventListenerGroup<PersistEventListener> eventListenerGroupPersist;
+	private DummyPersistEventListener persistEventListener;
 
 	public SessionImplTest() {
 
@@ -203,6 +222,10 @@ public class SessionImplTest extends AbstractTest {
 	@SuppressWarnings("rawtypes")
 	@Before
 	public void before() {
+
+		requireSources(HibernateCoreSummaryTest.MVNNAME, SessionImpl.class,
+				DefaultPersistEventListener.class, AbstractSaveEventListener.class);
+
 		dialect = new Dialect() {
 		};
 
@@ -259,10 +282,30 @@ public class SessionImplTest extends AbstractTest {
 			}
 		});
 
+		DefaultPersistEventListener defaultPersistEventListener = new DefaultPersistEventListener();
+
+		persistEventListener = new DummyPersistEventListener();
+		persistEventListener.setOnPersistRWA(new RunnableWithArgs<Void>() {
+			@Override
+			public Void run(Object... args) {
+				PersistEvent event = (PersistEvent) args[0];
+				if (args.length == 1) {
+					defaultPersistEventListener.onPersist(event);
+				} else {
+					Map createdAlready = (Map) args[1];
+					defaultPersistEventListener.onPersist(event, createdAlready);
+				}
+				return null;
+			}
+		});
+
 		eventListenerGroupFlush = new DummyEventListenerGroup<FlushEventListener>();
 		eventListenerGroupClear = new DummyEventListenerGroup<ClearEventListener>();
 		eventListenerGroupDelete = new DummyEventListenerGroup<DeleteEventListener>();
 		eventListenerGroupEvict = new DummyEventListenerGroup<EvictEventListener>();
+		eventListenerGroupLoad = new DummyEventListenerGroup<LoadEventListener>();
+		eventListenerGroupPersist = new DummyEventListenerGroup<PersistEventListener>();
+		eventListenerGroupPersist.appendListener(persistEventListener);
 
 		eventListenerRegistry = new DummyEventListenerRegistry();
 		eventListenerRegistry.setGetEventListenerGroupRWA(new RunnableWithArgs<EventListenerGroup>() {
@@ -277,10 +320,16 @@ public class SessionImplTest extends AbstractTest {
 					return eventListenerGroupDelete;
 				} else if (et.baseListenerInterface() == EvictEventListener.class) {
 					return eventListenerGroupEvict;
+				} else if (et.baseListenerInterface() == LoadEventListener.class) {
+					return eventListenerGroupLoad;
+				} else if (et.baseListenerInterface() == PersistEventListener.class) {
+					return eventListenerGroupPersist;
 				}
 				return null;
 			}
 		});
+
+		DummyType identifierType = new DummyType();
 
 		entityPersister = new DummyEntityPersister();
 		entityPersister.setHasNaturalIdentifier(true);
@@ -288,6 +337,9 @@ public class SessionImplTest extends AbstractTest {
 		entityPersister.setPropertyNames(new String[] { "propertyName" });
 		entityPersister.setQuerySpaces(new String[] {});
 		entityPersister.setEntityName("entityName");
+		entityPersister.setMutable(true);
+		entityPersister.setRootEntityName("rootEntityName");
+		entityPersister.setIdentifierType(identifierType);
 
 		persisterFactory = new DummyPersisterFactory();
 		persisterFactory.setCreateEntityPersisterRWA(new RunnableWithArgs<EntityPersister>() {
@@ -447,6 +499,10 @@ public class SessionImplTest extends AbstractTest {
 
 		FilterDefinition fd = new FilterDefinition("filterName", "defaultCondition", new HashMap<>());
 
+		NamedEntityGraph namedEntityGraph = getAnnotation(A.class, NamedEntityGraph.class);
+		NamedEntityGraphDefinition namedEntityGraphDefinition = new NamedEntityGraphDefinition(namedEntityGraph,
+				"jpaEntityName", "entityName");
+
 		metadataImplementor = new DummyMetadataImplementor();
 		metadataImplementor.setTypeResolver(typeResolver);
 		metadataImplementor.setDatabase(database);
@@ -461,17 +517,21 @@ public class SessionImplTest extends AbstractTest {
 		});
 		metadataImplementor.getFetchProfiles().add(fp);
 		metadataImplementor.getFilterDefinitions().put("filterName", fd);
+		metadataImplementor.getNamedEntityGraphs().put("entityGraphName", namedEntityGraphDefinition);
 
 		physicalConnectionHandlingMode = PhysicalConnectionHandlingMode.DELAYED_ACQUISITION_AND_HOLD;
 		multiTenancyStrategy = MultiTenancyStrategy.DATABASE;
 
 		multiTableBulkIdStrategy = new DummyMultiTableBulkIdStrategy();
 
+		DummyEntityNotFoundDelegate entityNotFoundDelegate = new DummyEntityNotFoundDelegate();
+
 		sessionFactoryOptions = new DummySessionFactoryOptions();
 		sessionFactoryOptions.setPhysicalConnectionHandlingMode(physicalConnectionHandlingMode);
 		sessionFactoryOptions.setMultiTenancyStrategy(multiTenancyStrategy);
 		sessionFactoryOptions.setMultiTableBulkIdStrategy(multiTableBulkIdStrategy);
 		sessionFactoryOptions.setServiceRegistry(standardServiceRegistry);
+		sessionFactoryOptions.setEntityNotFoundDelegate(entityNotFoundDelegate);
 
 		sessionFactoryImpl = new SessionFactoryImpl(metadataImplementor, sessionFactoryOptions);
 
@@ -513,6 +573,9 @@ public class SessionImplTest extends AbstractTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void test() {
+		if (t()) {
+			return;
+		}
 		SessionImpl sessionImpl = new SessionImpl(sessionFactoryImpl, sessionCreationOptions);
 		DummySessionEventListener sessionEventListener = new DummySessionEventListener();
 		sessionImpl.addEventListeners(sessionEventListener);
@@ -610,25 +673,46 @@ public class SessionImplTest extends AbstractTest {
 
 		sessionImpl.executeUpdate("query", queryParameters);
 
-		sessionImpl.find(A.class, new Object());
-		LockModeType lockModeType = LockModeType.NONE;
-		sessionImpl.find(A.class, new Object(), lockModeType);
-		@SuppressWarnings("rawtypes")
-		Map properties = new HashMap<>();
-		sessionImpl.find(A.class, new Object(), properties);
-		sessionImpl.find(A.class, new Object(), lockModeType, properties);
-
-		sessionImpl.flush();
-
-		sessionImpl.flushBeforeTransactionCompletion();
-
-		EntityEntry entityEntry = null;
-		sessionImpl.forceFlush(entityEntry);
-
-		Class<?> entityClass = A.class;
 		Serializable id = new Serializable() {
 			private static final long serialVersionUID = 1L;
 		};
+		sessionImpl.find(A.class, id);
+		LockModeType lockModeType = LockModeType.NONE;
+		sessionImpl.find(A.class, id, lockModeType);
+		@SuppressWarnings("rawtypes")
+		Map properties = new HashMap<>();
+		sessionImpl.find(A.class, id, properties);
+		sessionImpl.find(A.class, id, lockModeType, properties);
+
+		setTransactionActive(true);
+		try {
+			sessionImpl.flush();
+		} finally {
+			setTransactionActive(true);
+		}
+
+		sessionImpl.flushBeforeTransactionCompletion();
+
+		Status abba1 = Status.MANAGED;
+		Object[] abba2 = new Object[] {};
+		Object abba3 = new Object();
+		Serializable abba4 = new Serializable() {
+			private static final long serialVersionUID = 1L;
+		};
+		Object abba5 = new Object();
+		LockMode abba6 = LockMode.NONE;
+		boolean abba7 = false;
+		DummyEntityPersister abba8 = entityPersister;
+		EntityMode abba9 = EntityMode.POJO;
+		String abba10 = "abba10";
+		boolean abba11 = false;
+		PersistenceContext abba12 = sessionImpl.getPersistenceContext();
+		AbstractEntityEntry entityEntry = new DummyAbstractEntityEntry(abba1, abba2, abba3, abba4, abba5, abba6, abba7,
+				abba8, abba9, abba10, abba11, abba12);
+
+		sessionImpl.forceFlush(entityEntry);
+
+		Class<?> entityClass = A.class;
 		sessionImpl.get(entityClass, id);
 		sessionImpl.get("entityName", id);
 		LockMode lockMode = LockMode.NONE;
@@ -644,7 +728,9 @@ public class SessionImplTest extends AbstractTest {
 
 		sessionImpl.getCriteriaBuilder();
 
-		sessionImpl.getCurrentLockMode(object);
+		DummyManagedEntity managedEntity = new DummyManagedEntity();
+		managedEntity.$$_hibernate_setEntityEntry(entityEntry);
+		sessionImpl.getCurrentLockMode(managedEntity);
 
 		sessionImpl.getDelegate();
 
@@ -652,27 +738,26 @@ public class SessionImplTest extends AbstractTest {
 
 		sessionImpl.getEnabledFilter("filterName");
 
-		sessionImpl.getEntityGraph("graphName");
+		sessionImpl.getEntityGraph("jpaEntityName");
 
 		sessionImpl.getEntityGraphs(entityClass);
 
 		sessionImpl.getEntityManagerFactory();
 
-		sessionImpl.getEntityName(object);
+		sessionImpl.getEntityName(managedEntity);
 
 		sessionImpl.getEntityPersister("entityName", object);
 
-		EntityKey key = null;
+		EntityKey key = new EntityKey(id, entityPersister);
 		sessionImpl.getEntityUsingInterceptor(key);
 
-		sessionImpl.getIdentifier(object);
+		sessionImpl.getIdentifier(managedEntity);
 
 		sessionImpl.getLoadQueryInfluencers();
 
 		sessionImpl.getLobHelper();
 
-		Object entity = new Object();
-		sessionImpl.getLockMode(entity);
+		sessionImpl.getLockMode(managedEntity);
 
 		sessionImpl.getLockRequest(lockModeType, properties);
 
@@ -682,8 +767,7 @@ public class SessionImplTest extends AbstractTest {
 
 		sessionImpl.getProperties();
 
-		Object primaryKey = new Object();
-		sessionImpl.getReference(entityClass, primaryKey);
+		sessionImpl.getReference(entityClass, id);
 
 		sessionImpl.getSession();
 
@@ -697,26 +781,26 @@ public class SessionImplTest extends AbstractTest {
 
 		sessionImpl.immediateLoad("entityName", id);
 
-		PersistentCollection collection = null;
+		DummyPersistentCollection collection = new DummyPersistentCollection();
 		boolean writing = false;
-		sessionImpl.initializeCollection(collection, writing);
+		// sessionImpl.initializeCollection(collection, writing);
 
-		sessionImpl.instantiate(entityPersister, id);
-		sessionImpl.instantiate("entityName", id);
+		// sessionImpl.instantiate(entityPersister, id);
+		// sessionImpl.instantiate("entityName", id);
 
 		boolean eager = false;
 		boolean nullable = false;
-		sessionImpl.internalLoad("entityName", id, eager, nullable);
+		// sessionImpl.internalLoad("entityName", id, eager, nullable);
 
 		sessionImpl.isAutoCloseSessionEnabled();
 
 		sessionImpl.isDefaultReadOnly();
 
-		sessionImpl.isDirty();
+		// sessionImpl.isDirty();
 
 		sessionImpl.isEventSource();
 
-		sessionImpl.isFetchProfileEnabled("name");
+		// sessionImpl.isFetchProfileEnabled("name");
 
 		sessionImpl.isFlushBeforeCompletionEnabled();
 
@@ -727,22 +811,22 @@ public class SessionImplTest extends AbstractTest {
 		sessionImpl.isQueryParametersValidationEnabled();
 
 		Object entityOrProxy = new Object();
-		sessionImpl.isReadOnly(entityOrProxy);
+		// sessionImpl.isReadOnly(entityOrProxy);
 
-		sessionImpl.iterate("query", queryParameters);
+		// sessionImpl.iterate("query", queryParameters);
 
-		sessionImpl.iterateFilter(collection, "filter", queryParameters);
+		// sessionImpl.iterateFilter(collection, "filter", queryParameters);
 
-		sessionImpl.joinTransaction();
+		// sessionImpl.joinTransaction();
 
 		Criteria criteria = null;
-		sessionImpl.list(criteria);
-		sessionImpl.list("query", queryParameters);
+		// sessionImpl.list(criteria);
+		// sessionImpl.list("query", queryParameters);
 
 		CustomQuery customQuery = null;
-		sessionImpl.listCustomQuery(customQuery, queryParameters);
+		// sessionImpl.listCustomQuery(customQuery, queryParameters);
 
-		sessionImpl.listFilter(collection, "filter", queryParameters);
+		// sessionImpl.listFilter(collection, "filter", queryParameters);
 
 		sessionImpl.load(entityClass, id);
 		sessionImpl.load(object, id);
@@ -752,63 +836,59 @@ public class SessionImplTest extends AbstractTest {
 		sessionImpl.load("entityName", id, lockMode);
 		sessionImpl.load("entityName", id, lockOptions);
 
-		sessionImpl.lock(object, lockMode);
-		sessionImpl.lock(entityOrProxy, lockModeType);
-		sessionImpl.lock(entityOrProxy, lockModeType, properties);
-		sessionImpl.lock("entityName", object, lockMode);
+		// sessionImpl.lock(object, lockMode);
+		// sessionImpl.lock(entityOrProxy, lockModeType);
+		// sessionImpl.lock(entityOrProxy, lockModeType, properties);
+		// sessionImpl.lock("entityName", object, lockMode);
 
 		@SuppressWarnings("rawtypes")
 		Map copiedAlready = new HashMap<>();
-		sessionImpl.merge(object);
-		sessionImpl.merge("entityName", object);
-		sessionImpl.merge("entityName", object, copiedAlready);
+		// sessionImpl.merge(object);
+		// sessionImpl.merge("entityName", object);
+		// sessionImpl.merge("entityName", object, copiedAlready);
 
-		sessionImpl.persist(object);
-		sessionImpl.persist("entityName", object);
-		sessionImpl.persist("entityName", object, copiedAlready);
-
-		sessionImpl.persistOnFlush(object);
-		sessionImpl.persistOnFlush("entityName", object);
-		sessionImpl.persistOnFlush("entityName", object, copiedAlready);
+		// sessionImpl.persistOnFlush(object);
+		// sessionImpl.persistOnFlush("entityName", object);
+		// sessionImpl.persistOnFlush("entityName", object, copiedAlready);
 
 		Connection conn = null;
-		sessionImpl.reconnect(conn);
+		// sessionImpl.reconnect(conn);
 
-		sessionImpl.refresh(object);
-		sessionImpl.refresh(object, lockMode);
-		sessionImpl.refresh(entityOrProxy, lockModeType);
-		sessionImpl.refresh(object, lockOptions);
-		sessionImpl.refresh(entityOrProxy, properties);
-		sessionImpl.refresh("entityName", object);
-		sessionImpl.refresh(entityOrProxy, lockModeType, properties);
-		sessionImpl.refresh("entityName", object, lockOptions);
+		// sessionImpl.refresh(object);
+		// sessionImpl.refresh(object, lockMode);
+		// sessionImpl.refresh(entityOrProxy, lockModeType);
+		// sessionImpl.refresh(object, lockOptions);
+		// sessionImpl.refresh(entityOrProxy, properties);
+		// sessionImpl.refresh("entityName", object);
+		// sessionImpl.refresh(entityOrProxy, lockModeType, properties);
+		// sessionImpl.refresh("entityName", object, lockOptions);
 
 		@SuppressWarnings("rawtypes")
 		Map refreshedAlready = null;
-		sessionImpl.refresh("entityName", object, refreshedAlready);
+		// sessionImpl.refresh("entityName", object, refreshedAlready);
 
 		sessionImpl.remove(entityOrProxy);
 
 		Object child = new Object();
-		sessionImpl.removeOrphanBeforeUpdates("entityName", child);
+		// sessionImpl.removeOrphanBeforeUpdates("entityName", child);
 
 		ReplicationMode replicationMode = ReplicationMode.LATEST_VERSION;
-		sessionImpl.replicate(object, replicationMode);
-		sessionImpl.replicate("entityName", object, replicationMode);
+		// sessionImpl.replicate(object, replicationMode);
+		// sessionImpl.replicate("entityName", object, replicationMode);
 
-		sessionImpl.save(object);
-		sessionImpl.save("entityName", object);
+		// sessionImpl.save(object);
+		// sessionImpl.save("entityName", object);
 
-		sessionImpl.saveOrUpdate(object);
-		sessionImpl.saveOrUpdate("entityName", object);
+		// sessionImpl.saveOrUpdate(object);
+		// sessionImpl.saveOrUpdate("entityName", object);
 
 		ScrollMode scrollMode = ScrollMode.FORWARD_ONLY;
-		sessionImpl.scroll(criteria, scrollMode);
-		sessionImpl.scroll(nativeQuerySpecification, queryParameters);
+		// sessionImpl.scroll(criteria, scrollMode);
+		// sessionImpl.scroll(nativeQuerySpecification, queryParameters);
 
-		sessionImpl.scrollCustomQuery(customQuery, queryParameters);
+		// sessionImpl.scrollCustomQuery(customQuery, queryParameters);
 
-		sessionImpl.sessionWithOptions();
+		// sessionImpl.sessionWithOptions();
 
 		boolean enabled = true;
 		sessionImpl.setAutoClear(enabled);
@@ -822,17 +902,17 @@ public class SessionImplTest extends AbstractTest {
 		sessionImpl.setProperty("propertyName", value);
 
 		boolean readOnly = true;
-		sessionImpl.setReadOnly(entityOrProxy, readOnly);
+		// sessionImpl.setReadOnly(entityOrProxy, readOnly);
 
 		sessionImpl.shouldAutoClose();
 
 		sessionImpl.toString();
 
 		Class<?> clazz = A.class;
-		sessionImpl.unwrap(clazz);
+		// sessionImpl.unwrap(clazz);
 
-		sessionImpl.update(object);
-		sessionImpl.update("entityName", object);
+		// sessionImpl.update(object);
+		// sessionImpl.update("entityName", object);
 
 		sessionImpl.close();
 
@@ -846,5 +926,20 @@ public class SessionImplTest extends AbstractTest {
 			transactionCoordinator.setJoined(false);
 			transactionDriver.setStatus(TransactionStatus.NOT_ACTIVE);
 		}
+	}
+
+	@Test
+	public void persist() {
+
+		SessionImpl sessionImpl = new SessionImpl(sessionFactoryImpl, sessionCreationOptions);
+
+		Object object = new Object();
+		// @SuppressWarnings("rawtypes")
+		// Map copiedAlready = new HashMap<>();
+		sessionImpl.persist(object);
+		sessionImpl.persist("entityName", object);
+		// sessionImpl.persist("entityName", object, copiedAlready);
+
+		sessionImpl.close();
 	}
 }

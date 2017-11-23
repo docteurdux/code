@@ -1,7 +1,9 @@
 package com.github.docteurdux.test;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -22,12 +24,15 @@ import java.util.zip.ZipFile;
 
 import javax.xml.bind.annotation.XmlType;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 
 public abstract class AbstractTest {
 
 	protected static final Boolean[] BOOLEANS = { null, Boolean.FALSE, Boolean.TRUE };
 	protected static final boolean[] booleans = { false, true };
+	private static boolean tried;
+	private static RuntimeException requireSourcesException;
 
 	protected void at(Boolean b) {
 		Assert.assertTrue(b);
@@ -476,8 +481,8 @@ public abstract class AbstractTest {
 	protected void tesz(TestEventCollector tec, int sz) {
 		aeq(sz, tec.getTestEvents().size());
 	}
-	
-	private void dumpTree(Class<?> clazz, Set<String> set) {
+
+	protected void dumpTree(Class<?> clazz, Set<String> set) {
 		if (clazz == null) {
 			return;
 		}
@@ -492,5 +497,71 @@ public abstract class AbstractTest {
 			dumpTree(i, set);
 		}
 
+	}
+
+	protected void requireSources(String mvnName, Class<?>... classes) {
+
+		if (tried) {
+			if (requireSourcesException != null) {
+				throw requireSourcesException;
+			}
+			return;
+		}
+
+		boolean refreshNeeded = false;
+
+		tried = true;
+
+		String userDir = System.getProperty("user.dir");
+
+		Set<String> targets = new HashSet<>();
+		for (Class<?> clazz : classes) {
+			String name = clazz.getName();
+			name = name.replaceAll("\\.", "/");
+			name = name + ".java";
+			targets.add(name);
+		}
+
+		try {
+			for (String cp : System.getProperty("java.class.path").split(";")) {
+				if (cp.contains(mvnName)) {
+					cp = cp.replace(".jar", "-sources.jar");
+					File f = new File(cp);
+					if (f.exists()) {
+						ZipFile z = new ZipFile(cp);
+						Enumeration<? extends ZipEntry> entries = z.entries();
+						while (entries.hasMoreElements()) {
+							ZipEntry entry = entries.nextElement();
+							String name = entry.getName();
+							if (targets.contains(name)) {
+								InputStream is = z.getInputStream(entry);
+								String targetFileName = userDir + "/src/main/java/" + name;
+								File targetFile = new File(targetFileName);
+								if (targetFile.exists()) {
+									System.out.println(targetFileName + " exists");
+								} else {
+									System.out.println(targetFileName + " does not exist ; creating it");
+									targetFile.getParentFile().mkdirs();
+									targetFile.createNewFile();
+									FileOutputStream fos = new FileOutputStream(targetFile);
+									IOUtils.copy(is, fos);
+									refreshNeeded = true;
+								}
+							}
+						}
+						z.close();
+					}
+				}
+			}
+		} catch (Exception ex) {
+			requireSourcesException = new RuntimeException(ex);
+			throw requireSourcesException;
+		}
+
+		if (refreshNeeded) {
+			requireSourcesException = new RuntimeException(
+					"Project content modified ; refresh workspace and try again");
+			throw requireSourcesException;
+		}
 	}
 }
