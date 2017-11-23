@@ -5,9 +5,12 @@ import java.sql.SQLException;
 
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyMultiTenantConnectionProvider implements MultiTenantConnectionProvider {
 
 	private static final long serialVersionUID = 1L;
+	private RunnableWithArgs<Connection> getConnectionRWA;
 
 	@Override
 	public boolean isUnwrappableAs(Class unwrapType) {
@@ -35,8 +38,14 @@ public class DummyMultiTenantConnectionProvider implements MultiTenantConnection
 
 	@Override
 	public Connection getConnection(String tenantIdentifier) throws SQLException {
-		// TODO Auto-generated method stub
+		if (getConnectionRWA != null) {
+			return getConnectionRWA.run(tenantIdentifier);
+		}
 		return null;
+	}
+
+	public void setGetConnectionRWA(RunnableWithArgs<Connection> getConnectionRWA) {
+		this.getConnectionRWA = getConnectionRWA;
 	}
 
 	@Override

@@ -41,6 +41,10 @@ public class DummyJdbcServices implements JdbcServices {
 	public SqlStatementLogger getSqlStatementLogger() {
 		return sqlStatementLogger;
 	}
+	
+	public void setSqlStatementLogger(SqlStatementLogger sqlStatementLogger) {
+		this.sqlStatementLogger = sqlStatementLogger;
+	}
 
 	public SqlExceptionHelper getSqlExceptionHelper() {
 		return sqlExceptionHelper;
@@ -66,9 +70,7 @@ public class DummyJdbcServices implements JdbcServices {
 		this.lobCreator = lobCreator;
 	}
 
-	public void setSqlStatementLogger(SqlStatementLogger sqlStatementLogger) {
-		this.sqlStatementLogger = sqlStatementLogger;
-	}
+	
 
 	public void setDialect(Dialect dialect) {
 		this.dialect = dialect;

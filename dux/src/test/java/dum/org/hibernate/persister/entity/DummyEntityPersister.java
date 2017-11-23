@@ -51,6 +51,7 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 	private boolean hasNaturalIdentifier;
 	private int[] naturalIdentifierProperties = new int[] {};
 	private EntityMetamodel entityMetamodel;
+	private Serializable[] querySpaces = new Serializable[] {};
 
 	@Override
 	public Comparator getVersionComparator() {
@@ -144,8 +145,11 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 
 	@Override
 	public Serializable[] getQuerySpaces() {
-		// TODO Auto-generated method stub
-		return null;
+		return querySpaces;
+	}
+
+	public void setQuerySpaces(Serializable[] querySpaces) {
+		this.querySpaces = querySpaces;
 	}
 
 	@Override

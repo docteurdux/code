@@ -160,8 +160,7 @@ public class DummyMetadataImplementor implements MetadataImplementor {
 
 	@Override
 	public FilterDefinition getFilterDefinition(String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return filterDefinitions.get(name);
 	}
 
 	@Override

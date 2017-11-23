@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import com.github.docteurdux.test.RunnableWithArgs;
 import com.github.docteurdux.test.TestEvent;
 import com.github.docteurdux.test.TestEventCollector;
 
@@ -27,6 +28,7 @@ public class DummyConnection extends TestEventCollector implements Connection {
 	private boolean autoCommit;
 	private SQLException commitException;
 	private SQLException getAutoCommitException;
+	private RunnableWithArgs<PreparedStatement> prepareStatementRWA;
 
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
@@ -48,8 +50,14 @@ public class DummyConnection extends TestEventCollector implements Connection {
 
 	@Override
 	public PreparedStatement prepareStatement(String sql) throws SQLException {
-		// TODO Auto-generated method stub
+		if (prepareStatementRWA != null) {
+			return prepareStatementRWA.run(sql);
+		}
 		return null;
+	}
+
+	public void setPrepareStatementRWA(RunnableWithArgs<PreparedStatement> prepareStatementRWA) {
+		this.prepareStatementRWA = prepareStatementRWA;
 	}
 
 	@Override
