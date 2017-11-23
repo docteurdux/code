@@ -1,24 +1,40 @@
 package dux.org.hibernate.internal;
 
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import javax.persistence.LockModeType;
+
+import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
+import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.MultiTenancyStrategy;
+import org.hibernate.ReplicationMode;
+import org.hibernate.ScrollMode;
 import org.hibernate.boot.cfgxml.spi.CfgXmlAccessService;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.relational.Database;
 import org.hibernate.cache.spi.RegionFactory;
+import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
+import org.hibernate.engine.query.spi.sql.NativeSQLQuerySpecification;
 import org.hibernate.engine.spi.CacheImplementor;
+import org.hibernate.engine.spi.EntityEntry;
+import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.NamedQueryDefinition;
 import org.hibernate.engine.spi.NamedSQLQueryDefinition;
+import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.ClearEventListener;
@@ -31,6 +47,9 @@ import org.hibernate.id.factory.IdentifierGeneratorFactory;
 import org.hibernate.integrator.spi.IntegratorService;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.internal.SessionImpl;
+import org.hibernate.jdbc.ReturningWork;
+import org.hibernate.jdbc.Work;
+import org.hibernate.loader.custom.CustomQuery;
 import org.hibernate.mapping.RootClass;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.spi.PersisterFactory;
@@ -151,6 +170,8 @@ public class SessionImplTest extends AbstractTest {
 	private DummyCriteriaUpdate<Object> criteriaUpdate;
 	private DummyQueryTranslatorFactory queryTranslatorFactory;
 	private DummyQueryTranslator queryTranslator;
+	private DummySelection<Object> selection;
+	private DummyQueryOptions queryOptions;
 
 	public SessionImplTest() {
 
@@ -300,6 +321,7 @@ public class SessionImplTest extends AbstractTest {
 		classLoaderAccess.setClassForNameRWA(new RunnableWithArgs<Class<?>>() {
 			@Override
 			public Class<?> run(Object... args) {
+				@SuppressWarnings("unused")
 				String name = (String) args[0];
 				return A.class;
 			}
@@ -406,8 +428,12 @@ public class SessionImplTest extends AbstractTest {
 				return criteriaInterpretation;
 			}
 		});
+
+		selection = new DummySelection<>();
+		queryOptions = new DummyQueryOptions();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void test() {
 		SessionImpl sessionImpl = new SessionImpl(sessionFactoryImpl, sessionCreationOptions);
@@ -454,9 +480,279 @@ public class SessionImplTest extends AbstractTest {
 		sessionImpl.createQuery(criteriaDelete);
 		sessionImpl.createQuery(criteriaQuery);
 		sessionImpl.createQuery(criteriaUpdate);
-		DummySelection<Object> selection = new DummySelection<>();
-		DummyQueryOptions queryOptions = new DummyQueryOptions();
 		sessionImpl.createQuery("jpaqlString", A.class, selection, queryOptions);
+
+		sessionImpl.createStoredProcedureCall("procedureName");
+		sessionImpl.createStoredProcedureCall("procedureName", A.class);
+		sessionImpl.createStoredProcedureCall("procedureName", "resultSetMapping1");
+
+		sessionImpl.createStoredProcedureQuery("procedureName");
+		sessionImpl.createStoredProcedureQuery("procedureName", A.class);
+		sessionImpl.createStoredProcedureQuery("procedureName", "resultSetMapping1");
+
+		sessionImpl.delete(new Object());
+		sessionImpl.delete("entityName", new Object());
+		boolean isCascadeDeleteEnabled = false;
+		@SuppressWarnings("rawtypes")
+		Set transientEntities = new HashSet<>();
+		sessionImpl.delete("entityName", new Object(), isCascadeDeleteEnabled, transientEntities);
+
+		sessionImpl.detach(new Object());
+
+		sessionImpl.disableFetchProfile("name");
+
+		sessionImpl.disableFilter("filterName");
+
+		sessionImpl.disconnect();
+
+		sessionImpl.doReturningWork(new ReturningWork<String>() {
+			@Override
+			public String execute(Connection connection) throws SQLException {
+				return null;
+			}
+		});
+
+		sessionImpl.doWork(new Work() {
+			@Override
+			public void execute(Connection connection) throws SQLException {
+			}
+		});
+
+		sessionImpl.enableFetchProfile("name");
+
+		sessionImpl.enableFilter("filterName");
+
+		sessionImpl.evict(new Object());
+
+		NativeSQLQuerySpecification nativeQuerySpecification = null;
+		QueryParameters queryParameters = null;
+		sessionImpl.executeNativeUpdate(nativeQuerySpecification, queryParameters);
+
+		sessionImpl.executeUpdate("query", queryParameters);
+
+		sessionImpl.find(A.class, new Object());
+		LockModeType lockModeType = LockModeType.NONE;
+		sessionImpl.find(A.class, new Object(), lockModeType);
+		@SuppressWarnings("rawtypes")
+		Map properties = new HashMap<>();
+		sessionImpl.find(A.class, new Object(), properties);
+		sessionImpl.find(A.class, new Object(), lockModeType, properties);
+
+		sessionImpl.flush();
+
+		sessionImpl.flushBeforeTransactionCompletion();
+
+		EntityEntry entityEntry = null;
+		sessionImpl.forceFlush(entityEntry);
+
+		Class<?> entityClass = A.class;
+		Serializable id = new Serializable() {
+			private static final long serialVersionUID = 1L;
+		};
+		sessionImpl.get(entityClass, id);
+		sessionImpl.get("entityName", id);
+		LockMode lockMode = LockMode.NONE;
+		sessionImpl.get(entityClass, id, lockMode);
+		sessionImpl.get("entityName", id, lockMode);
+		sessionImpl.get("entityName", id, lockOptions);
+		sessionImpl.get(entityClass, id, lockOptions);
+
+		sessionImpl.getActionQueue();
+
+		Object object = new Object();
+		sessionImpl.getContextEntityIdentifier(object);
+
+		sessionImpl.getCriteriaBuilder();
+
+		sessionImpl.getCurrentLockMode(object);
+
+		sessionImpl.getDelegate();
+
+		sessionImpl.getDontFlushFromFind();
+
+		sessionImpl.getEnabledFilter("filterName");
+
+		sessionImpl.getEntityGraph("graphName");
+
+		sessionImpl.getEntityGraphs(entityClass);
+
+		sessionImpl.getEntityManagerFactory();
+
+		sessionImpl.getEntityName(object);
+
+		sessionImpl.getEntityPersister("entityName", object);
+
+		EntityKey key = null;
+		sessionImpl.getEntityUsingInterceptor(key);
+
+		sessionImpl.getIdentifier(object);
+
+		sessionImpl.getLoadQueryInfluencers();
+
+		sessionImpl.getLobHelper();
+
+		Object entity = new Object();
+		sessionImpl.getLockMode(entity);
+
+		sessionImpl.getLockRequest(lockModeType, properties);
+
+		sessionImpl.getMetamodel();
+
+		sessionImpl.getPersistenceContext();
+
+		sessionImpl.getProperties();
+
+		Object primaryKey = new Object();
+		sessionImpl.getReference(entityClass, primaryKey);
+
+		sessionImpl.getSession();
+
+		sessionImpl.getSessionFactory();
+
+		sessionImpl.getStatistics();
+
+		sessionImpl.getTypeHelper();
+
+		sessionImpl.guessEntityName(object);
+
+		sessionImpl.immediateLoad("entityName", id);
+
+		PersistentCollection collection = null;
+		boolean writing = false;
+		sessionImpl.initializeCollection(collection, writing);
+
+		sessionImpl.instantiate(entityPersister, id);
+		sessionImpl.instantiate("entityName", id);
+
+		boolean eager = false;
+		boolean nullable = false;
+		sessionImpl.internalLoad("entityName", id, eager, nullable);
+
+		sessionImpl.isAutoCloseSessionEnabled();
+
+		sessionImpl.isDefaultReadOnly();
+
+		sessionImpl.isDirty();
+
+		sessionImpl.isEventSource();
+
+		sessionImpl.isFetchProfileEnabled("name");
+
+		sessionImpl.isFlushBeforeCompletionEnabled();
+
+		sessionImpl.isJoinedToTransaction();
+
+		sessionImpl.isOpen();
+
+		sessionImpl.isQueryParametersValidationEnabled();
+
+		Object entityOrProxy = new Object();
+		sessionImpl.isReadOnly(entityOrProxy);
+
+		sessionImpl.iterate("query", queryParameters);
+
+		sessionImpl.iterateFilter(collection, "filter", queryParameters);
+
+		sessionImpl.joinTransaction();
+
+		Criteria criteria = null;
+		sessionImpl.list(criteria);
+		sessionImpl.list("query", queryParameters);
+
+		CustomQuery customQuery = null;
+		sessionImpl.listCustomQuery(customQuery, queryParameters);
+
+		sessionImpl.listFilter(collection, "filter", queryParameters);
+
+		sessionImpl.load(entityClass, id);
+		sessionImpl.load(object, id);
+		sessionImpl.load("entityName", id);
+		sessionImpl.load(entityClass, id, lockMode);
+		sessionImpl.load(entityClass, id, lockOptions);
+		sessionImpl.load("entityName", id, lockMode);
+		sessionImpl.load("entityName", id, lockOptions);
+
+		sessionImpl.lock(object, lockMode);
+		sessionImpl.lock(entityOrProxy, lockModeType);
+		sessionImpl.lock(entityOrProxy, lockModeType, properties);
+		sessionImpl.lock("entityName", object, lockMode);
+
+		@SuppressWarnings("rawtypes")
+		Map copiedAlready = new HashMap<>();
+		sessionImpl.merge(object);
+		sessionImpl.merge("entityName", object);
+		sessionImpl.merge("entityName", object, copiedAlready);
+
+		sessionImpl.persist(object);
+		sessionImpl.persist("entityName", object);
+		sessionImpl.persist("entityName", object, copiedAlready);
+
+		sessionImpl.persistOnFlush(object);
+		sessionImpl.persistOnFlush("entityName", object);
+		sessionImpl.persistOnFlush("entityName", object, copiedAlready);
+
+		Connection conn = null;
+		sessionImpl.reconnect(conn);
+
+		sessionImpl.refresh(object);
+		sessionImpl.refresh(object, lockMode);
+		sessionImpl.refresh(entityOrProxy, lockModeType);
+		sessionImpl.refresh(object, lockOptions);
+		sessionImpl.refresh(entityOrProxy, properties);
+		sessionImpl.refresh("entityName", object);
+		sessionImpl.refresh(entityOrProxy, lockModeType, properties);
+		sessionImpl.refresh("entityName", object, lockOptions);
+
+		@SuppressWarnings("rawtypes")
+		Map refreshedAlready = null;
+		sessionImpl.refresh("entityName", object, refreshedAlready);
+
+		sessionImpl.remove(entityOrProxy);
+
+		Object child = new Object();
+		sessionImpl.removeOrphanBeforeUpdates("entityName", child);
+
+		ReplicationMode replicationMode = ReplicationMode.LATEST_VERSION;
+		sessionImpl.replicate(object, replicationMode);
+		sessionImpl.replicate("entityName", object, replicationMode);
+
+		sessionImpl.save(object);
+		sessionImpl.save("entityName", object);
+
+		sessionImpl.saveOrUpdate(object);
+		sessionImpl.saveOrUpdate("entityName", object);
+
+		ScrollMode scrollMode = ScrollMode.FORWARD_ONLY;
+		sessionImpl.scroll(criteria, scrollMode);
+		sessionImpl.scroll(nativeQuerySpecification, queryParameters);
+
+		sessionImpl.scrollCustomQuery(customQuery, queryParameters);
+
+		sessionImpl.sessionWithOptions();
+
+		boolean enabled = true;
+		sessionImpl.setAutoClear(enabled);
+
+		boolean defaultReadOnly = false;
+		sessionImpl.setDefaultReadOnly(defaultReadOnly);
+
+		sessionImpl.setFlushMode(initialSessionFlushMode);
+
+		Object value = new Object();
+		sessionImpl.setProperty("propertyName", value);
+
+		boolean readOnly = true;
+		sessionImpl.setReadOnly(entityOrProxy, readOnly);
+
+		sessionImpl.shouldAutoClose();
+
+		sessionImpl.toString();
+
+		Class<?> clazz = A.class;
+		sessionImpl.unwrap(clazz);
+
+		sessionImpl.update(object);
+		sessionImpl.update("entityName", object);
 
 		sessionImpl.close();
 
