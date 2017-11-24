@@ -15,6 +15,7 @@ public class DummyLazyInitializer extends TestEventCollector implements LazyInit
 	private Object implementation;
 	@SuppressWarnings("rawtypes")
 	private Class persistentClass;
+	private SharedSessionContractImplementor session;
 
 	public void initialize() throws HibernateException {
 		testEvents.add(new TestEvent("initialize"));
@@ -48,6 +49,10 @@ public class DummyLazyInitializer extends TestEventCollector implements LazyInit
 		return uninitialized;
 	}
 
+	public void setUninitialized(boolean uninitialized) {
+		this.uninitialized = uninitialized;
+	}
+
 	public Object getImplementation() {
 		return implementation;
 	}
@@ -77,13 +82,11 @@ public class DummyLazyInitializer extends TestEventCollector implements LazyInit
 	}
 
 	public SharedSessionContractImplementor getSession() {
-		// TODO Auto-generated method stub
-		return null;
+		return session;
 	}
 
 	public void setSession(SharedSessionContractImplementor session) throws HibernateException {
-		// TODO Auto-generated method stub
-
+		this.session = session;
 	}
 
 	public void unsetSession() {
@@ -99,10 +102,6 @@ public class DummyLazyInitializer extends TestEventCollector implements LazyInit
 	public boolean isUnwrap() {
 		// TODO Auto-generated method stub
 		return false;
-	}
-
-	public void setUninitialized(boolean uninitialized) {
-		this.uninitialized = uninitialized;
 	}
 
 }

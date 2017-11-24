@@ -22,6 +22,7 @@ import com.github.docteurdux.test.RunnableWithArgs;
 public class DummyMetamodelImplementor implements MetamodelImplementor {
 
 	private Map<String, EntityPersister> entityPersisters = new HashMap<>();
+	private RunnableWithArgs<EntityPersister> entityPersisterRWA;
 
 	@Override
 	public <X> EntityType<X> entity(String entityName) {
@@ -109,7 +110,14 @@ public class DummyMetamodelImplementor implements MetamodelImplementor {
 
 	@Override
 	public EntityPersister entityPersister(String entityName) {
+		if (entityPersisterRWA != null) {
+			return entityPersisterRWA.run(entityName);
+		}
 		return entityPersisters.get(entityName);
+	}
+
+	public void setEntityPersisterRWA(RunnableWithArgs<EntityPersister> entityPersisterRWA) {
+		this.entityPersisterRWA = entityPersisterRWA;
 	}
 
 	@Override

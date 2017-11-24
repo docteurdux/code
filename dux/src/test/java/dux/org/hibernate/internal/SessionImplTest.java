@@ -13,6 +13,7 @@ import java.util.Set;
 
 import javax.persistence.LockModeType;
 import javax.persistence.NamedEntityGraph;
+import javax.persistence.PersistenceException;
 
 import org.hibernate.Criteria;
 import org.hibernate.EntityMode;
@@ -42,8 +43,10 @@ import org.hibernate.engine.query.spi.NativeSQLQueryPlan;
 import org.hibernate.engine.query.spi.sql.NativeSQLQueryReturn;
 import org.hibernate.engine.query.spi.sql.NativeSQLQuerySpecification;
 import org.hibernate.engine.spi.CacheImplementor;
+import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.FilterDefinition;
+import org.hibernate.engine.spi.ManagedEntity;
 import org.hibernate.engine.spi.NamedQueryDefinition;
 import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.engine.spi.PersistenceContext;
@@ -73,6 +76,7 @@ import org.hibernate.jdbc.Work;
 import org.hibernate.loader.custom.CustomQuery;
 import org.hibernate.mapping.FetchProfile;
 import org.hibernate.mapping.MetadataSource;
+import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.RootClass;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.spi.PersisterFactory;
@@ -91,6 +95,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.RunnableWhichThrow;
 import com.github.docteurdux.test.RunnableWithArgs;
 
 import dum.java.sql.DummyConnection;
@@ -134,6 +139,8 @@ import dum.org.hibernate.persister.entity.DummyEntityPersister;
 import dum.org.hibernate.persister.spi.DummyPersisterFactory;
 import dum.org.hibernate.procedure.DummyProcedureCallMemento;
 import dum.org.hibernate.proxy.DummyEntityNotFoundDelegate;
+import dum.org.hibernate.proxy.DummyHibernateProxy;
+import dum.org.hibernate.proxy.DummyLazyInitializer;
 import dum.org.hibernate.query.criteria.internal.compile.DummyCriteriaInterpretation;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinator;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinatorBuilder;
@@ -573,7 +580,7 @@ public class SessionImplTest extends AbstractTest {
 	}
 
 	@SuppressWarnings("unchecked")
-//	@Test
+	// @Test
 	public void test() {
 		if (t()) {
 			return;
@@ -934,17 +941,48 @@ public class SessionImplTest extends AbstractTest {
 	}
 
 	@Test
-	public void persist() {
+	public void persist1() {
 
 		SessionImpl sessionImpl = new SessionImpl(sessionFactoryImpl, sessionCreationOptions);
 
-		Object object = new Object();
-		// @SuppressWarnings("rawtypes")
-		// Map copiedAlready = new HashMap<>();
-		sessionImpl.persist(object);
-		// sessionImpl.persist("entityName", object);
-		// sessionImpl.persist("entityName", object, copiedAlready);
+		try {
+			DummyLazyInitializer lazyInitializer = new DummyLazyInitializer();
+			lazyInitializer.setUninitialized(true);
+			lazyInitializer.setSession(sessionImpl);
 
-		sessionImpl.close();
+			DummyHibernateProxy hibernateProxy = new DummyHibernateProxy();
+			hibernateProxy.setLazyInitializer(lazyInitializer);
+			sessionImpl.persist(hibernateProxy);
+		} finally {
+			if (sessionImpl != null) {
+				sessionImpl.close();
+			}
+		}
 	}
+
+	@Test()
+	public void persist2() {
+
+		SessionImpl sessionImpl = new SessionImpl(sessionFactoryImpl, sessionCreationOptions);
+
+		try {
+			DummyLazyInitializer lazyInitializer = new DummyLazyInitializer();
+			lazyInitializer.setUninitialized(true);
+			lazyInitializer.setSession(null);
+
+			DummyHibernateProxy hibernateProxy = new DummyHibernateProxy();
+			hibernateProxy.setLazyInitializer(lazyInitializer);
+			expect(PersistenceException.class, new RunnableWhichThrow() {
+				@Override
+				public void run() throws Exception {
+					sessionImpl.persist(hibernateProxy);
+				}
+			});
+		} finally {
+			if (sessionImpl != null) {
+				sessionImpl.close();
+			}
+		}
+	}
+
 }

@@ -64,6 +64,7 @@ public class DummyInFlightMetadataCollector extends TestEventCollector implement
 	private RunnableWithArgs<Void> addDefaultNamedNativeQueryRWA;
 	private RunnableWithArgs<Void> addSecondPassRWA;
 	private RunnableWithArgs<Void> addDefaultNamedProcedureCallDefinitionRWA;
+	private RunnableWithArgs<Void> addTypeDefinitionRWA;
 
 	@Override
 	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
@@ -336,8 +337,14 @@ public class DummyInFlightMetadataCollector extends TestEventCollector implement
 
 	@Override
 	public void addTypeDefinition(TypeDefinition typeDefinition) {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("addTypeDefinition").prop("typeDefinition", typeDefinition));
+		if (addTypeDefinitionRWA != null) {
+			addTypeDefinitionRWA.run(typeDefinition);
+		}
+	}
 
+	public void setAddTypeDefinitionRWA(RunnableWithArgs<Void> addTypeDefinitionRWA) {
+		this.addTypeDefinitionRWA = addTypeDefinitionRWA;
 	}
 
 	@Override

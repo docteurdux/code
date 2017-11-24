@@ -24,6 +24,8 @@ import org.hibernate.engine.spi.Status;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyPersistenceContext implements PersistenceContext {
 
 	private List<Object> entities = new ArrayList<>();
@@ -32,6 +34,7 @@ public class DummyPersistenceContext implements PersistenceContext {
 	private CollectionEntry collectionEntry;
 	private Object loadedCollectionOwner;
 	private Serializable loadedCollectionOwnerId;
+	private RunnableWithArgs<EntityEntry> getEntryRWA;
 
 	@Override
 	public boolean isStateless() {
@@ -149,12 +152,19 @@ public class DummyPersistenceContext implements PersistenceContext {
 
 	@Override
 	public EntityEntry getEntry(Object entity) {
+		if (getEntryRWA != null) {
+			return getEntryRWA.run(entity);
+		}
 		for (int i = 0; i < entities.size(); ++i) {
 			if (entities.get(i) == entity) {
 				return entries.get(i);
 			}
 		}
 		return null;
+	}
+
+	public void setGetEntryRWA(RunnableWithArgs<EntityEntry> getEntryRWA) {
+		this.getEntryRWA = getEntryRWA;
 	}
 
 	public void setEntry(Object entity, EntityEntry entry) {

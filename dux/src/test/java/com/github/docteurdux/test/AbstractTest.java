@@ -478,6 +478,11 @@ public abstract class AbstractTest {
 		}
 	}
 
+	protected void ate(TestEvent testEvent, TEI inspector) {
+		aeq(inspector.getName(), testEvent.getName());
+		inspector.i(testEvent.getProps());
+	}
+
 	protected void tesz(TestEventCollector tec, int sz) {
 		aeq(sz, tec.getTestEvents().size());
 	}
@@ -563,5 +568,10 @@ public abstract class AbstractTest {
 					"Project content modified ; refresh workspace and try again");
 			throw requireSourcesException;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <T> T get(Map<String, Object> map, String key, Class<T> clazz) {
+		return (T) map.get(key);
 	}
 }

@@ -12,6 +12,7 @@ import java.util.Map;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 
+import com.github.docteurdux.test.RunnableWithArgs;
 import com.github.docteurdux.test.hibernate.ProxyGenerator;
 
 public class DummyClassLoaderService implements ClassLoaderService {
@@ -22,7 +23,9 @@ public class DummyClassLoaderService implements ClassLoaderService {
 
 	private Map<Class<?>, List<?>> services = new HashMap<>();
 
-	private ProxyGenerator proxyGenerator;;
+	private ProxyGenerator proxyGenerator;
+
+	private RunnableWithArgs<Class<?>> classForNameRWA;;
 
 	public void stop() {
 		// TODO Auto-generated method stub
@@ -31,6 +34,10 @@ public class DummyClassLoaderService implements ClassLoaderService {
 
 	@SuppressWarnings("unchecked")
 	public <T> Class<T> classForName(String className) {
+
+		if (classForNameRWA != null) {
+			return (Class<T>) classForNameRWA.run(className);
+		}
 
 		if (forNames.containsKey(className)) {
 			return (Class<T>) forNames.get(className);
@@ -41,6 +48,10 @@ public class DummyClassLoaderService implements ClassLoaderService {
 		} catch (ClassNotFoundException e) {
 			throw new ClassLoadingException(e.getMessage(), e);
 		}
+	}
+
+	public void setClassForNameRWA(RunnableWithArgs<Class<?>> classForNameRWA) {
+		this.classForNameRWA = classForNameRWA;
 	}
 
 	public URL locateResource(String name) {
