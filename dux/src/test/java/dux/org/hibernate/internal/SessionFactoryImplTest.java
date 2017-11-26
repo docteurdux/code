@@ -17,18 +17,23 @@ import org.hibernate.boot.registry.selector.spi.StrategySelector;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cfg.BaselineSessionEventsListenerBuilder;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.jdbc.env.spi.ExtractedDatabaseMetaData;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.spi.CacheImplementor;
+import org.hibernate.engine.spi.NamedQueryDefinition;
+import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.PersistEventListener;
 import org.hibernate.integrator.spi.IntegratorService;
 import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.procedure.ProcedureCallMemento;
+import org.hibernate.query.spi.NamedQueryRepository;
 import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
@@ -131,7 +136,10 @@ public class SessionFactoryImplTest extends AbstractTest {
 		transactionCoordinator.setLocalSynchronizations(localSynchronizations);
 		transactionCoordinator.setTransactionDriverControl(transactionDriverControl);
 
+		PhysicalConnectionHandlingMode physicalConnectionHandlingMode = PhysicalConnectionHandlingMode.IMMEDIATE_ACQUISITION_AND_HOLD;
+
 		DummyTransactionCoordinatorBuilder transactionCoordinatorBuilder = new DummyTransactionCoordinatorBuilder();
+		transactionCoordinatorBuilder.setDefaultConnectionHandlingMode(physicalConnectionHandlingMode);
 		transactionCoordinatorBuilder.setBuildTransactionCoordinatorRWA(new RunnableWithArgs<TransactionCoordinator>() {
 			@Override
 			public TransactionCoordinator run(Object... args) {
@@ -200,10 +208,23 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		TypeResolver typeResolver = new TypeResolver();
 
+		Map<String, NamedQueryDefinition> namedQueryDefinitionMap = new HashMap<>();
+		Map<String, NamedSQLQueryDefinition> namedSqlQueryDefinitionMap = new HashMap<>();
+		Map<String, ResultSetMappingDefinition> namedSqlResultSetMappingMap = new HashMap<>();
+		Map<String, ProcedureCallMemento> namedProcedureCallMap = new HashMap<>();
+		NamedQueryRepository namedQueryRepository = new NamedQueryRepository(namedQueryDefinitionMap,
+				namedSqlQueryDefinitionMap, namedSqlResultSetMappingMap, namedProcedureCallMap);
+
 		DummyMetadataImplementor metadataImplementor = new DummyMetadataImplementor();
 		metadataImplementor.setDatabase(database);
 		metadataImplementor.setTypeResolver(typeResolver);
 		metadataImplementor.setMetadataBuildingOptions(metadataBuildingOptions);
+		metadataImplementor.setBuildNamedQueryRepositoryRWA(new RunnableWithArgs<NamedQueryRepository>() {
+			@Override
+			public NamedQueryRepository run(Object... args) {
+				return namedQueryRepository;
+			}
+		});
 
 		DummyMultiTableBulkIdStrategy multiTableBulkIdStrategy = new DummyMultiTableBulkIdStrategy();
 
@@ -216,13 +237,13 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		MultiTenancyStrategy multiTenancyStrategy = MultiTenancyStrategy.NONE;
 
-		PhysicalConnectionHandlingMode physicalConnectionHandlingMode = PhysicalConnectionHandlingMode.IMMEDIATE_ACQUISITION_AND_HOLD;
-
 		SessionFactoryObserver sessionFactoryObserver = new DummySessionFactoryObserver();
 		SessionFactoryObserver[] sessionFactoryObservers = new SessionFactoryObserver[] { sessionFactoryObserver };
 
 		SessionFactoryBuilderImpl sfbi = new SessionFactoryBuilderImpl(metadataImplementor);
+		sfbi.applyMultiTableBulkIdStrategy(multiTableBulkIdStrategy);
 
+		/*-
 		DummySessionFactoryOptionsState sessionFactoryOptionsState = new DummySessionFactoryOptionsState();
 		sessionFactoryOptionsState.setServiceRegistry(standardServiceRegistry);
 		sessionFactoryOptionsState.setSessionFactoryObservers(sessionFactoryObservers);
@@ -231,8 +252,12 @@ public class SessionFactoryImplTest extends AbstractTest {
 		sessionFactoryOptionsState.setPhysicalConnectionHandlingMode(physicalConnectionHandlingMode);
 		sessionFactoryOptionsState.setMultiTenancyStrategy(multiTenancyStrategy);
 		sessionFactoryOptionsState.setConnectionReleaseMode(connectionReleaseMode);
+		*/
 
-		SessionFactoryOptionsImpl sessionFactoryOptionsImpl = new SessionFactoryOptionsImpl(sessionFactoryOptionsState);
+		// SessionFactoryOptionsImpl sessionFactoryOptionsImpl = new
+		// SessionFactoryOptionsImpl(sessionFactoryOptionsState);
+
+		SessionFactoryOptionsImpl sessionFactoryOptionsImpl = new SessionFactoryOptionsImpl(sfbi);
 
 		SessionFactoryImpl sfi = new SessionFactoryImpl(metadataImplementor, sessionFactoryOptionsImpl);
 
@@ -249,69 +274,5 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		sfi.close();
 
-		/*-
-		addNamedEntityGraph(String, EntityGraph<T>)
-		addNamedQuery(String, Query)
-		addObserver(SessionFactoryObserver)
-		close()
-		containsFetchProfileDefinition(String)
-		createEntityManager()
-		createEntityManager(Map)
-		createEntityManager(SynchronizationType)
-		createEntityManager(SynchronizationType, Map)
-		findEntityGraphByName(String)
-		findEntityGraphsByType(Class<T>)
-		getAllClassMetadata()
-		getAllCollectionMetadata()
-		getAllSecondLevelCacheRegions()
-		getCache()
-		getClassMetadata(Class)
-		getClassMetadata(String)
-		getCollectionMetadata(String)
-		getCriteriaBuilder()
-		getCurrentSession()
-		getCurrentTenantIdentifierResolver()
-		getCustomEntityDirtinessStrategy()
-		getDefinedFilterNames()
-		getDeserializationResolver()
-		getEntityNotFoundDelegate()
-		getFetchProfile(String)
-		getFilterDefinition(String)
-		getIdentifierGenerator(String)
-		getIdentifierGeneratorFactory()
-		getIdentifierPropertyName(String)
-		getIdentifierType(String)
-		getInterceptor()
-		getJdbcServices()
-		getMetamodel()
-		getName()
-		getNamedQueryRepository()
-		getPersistenceUnitUtil()
-		getProperties()
-		getQueryPlanCache()
-		getReference()
-		getReferencedPropertyType(String, String)
-		getReturnAliases(String)
-		getReturnTypes(String)
-		getServiceRegistry()
-		getSessionFactoryOptions()
-		getSettings()
-		getSqlFunctionRegistry()
-		getStatistics()
-		getTypeHelper()
-		getTypeResolver()
-		getUuid()
-		isClosed()
-		isOpen()
-		openSession()
-		openStatelessSession()
-		openStatelessSession(Connection)
-		openTemporarySession()
-		resolveParameterBindType(Class)
-		resolveParameterBindType(Object)
-		unwrap(Class<T>)
-		withOptions()
-		withStatelessOptions()
-		*/
 	}
 }

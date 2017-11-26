@@ -11,6 +11,7 @@ public class DummyTransactionCoordinatorBuilder implements TransactionCoordinato
 
 	private static final long serialVersionUID = 1L;
 	private RunnableWithArgs<TransactionCoordinator> buildTransactionCoordinatorRWA;
+	private PhysicalConnectionHandlingMode defaultConnectionHandlingMode;
 
 	@Override
 	public TransactionCoordinator buildTransactionCoordinator(TransactionCoordinatorOwner owner, Options options) {
@@ -33,8 +34,11 @@ public class DummyTransactionCoordinatorBuilder implements TransactionCoordinato
 
 	@Override
 	public PhysicalConnectionHandlingMode getDefaultConnectionHandlingMode() {
-		// TODO Auto-generated method stub
-		return null;
+		return defaultConnectionHandlingMode;
+	}
+
+	public void setDefaultConnectionHandlingMode(PhysicalConnectionHandlingMode defaultConnectionHandlingMode) {
+		this.defaultConnectionHandlingMode = defaultConnectionHandlingMode;
 	}
 
 }
