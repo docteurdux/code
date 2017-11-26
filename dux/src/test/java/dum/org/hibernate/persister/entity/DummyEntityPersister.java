@@ -54,6 +54,7 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 	private Serializable[] querySpaces = new Serializable[] {};
 	private boolean mutable;
 	private String rootEntityName;
+	private EntityEntryFactory entityEntryFactory;
 
 	@Override
 	public Comparator getVersionComparator() {
@@ -105,8 +106,11 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 
 	@Override
 	public EntityEntryFactory getEntityEntryFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return entityEntryFactory;
+	}
+
+	public void setEntityEntryFactory(EntityEntryFactory entityEntryFactory) {
+		this.entityEntryFactory = entityEntryFactory;
 	}
 
 	@Override

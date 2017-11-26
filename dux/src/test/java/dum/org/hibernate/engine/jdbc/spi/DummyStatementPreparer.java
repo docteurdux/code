@@ -7,8 +7,10 @@ import org.hibernate.ScrollMode;
 import org.hibernate.engine.jdbc.spi.StatementPreparer;
 
 import com.github.docteurdux.test.RunnableWithArgs;
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
 
-public class DummyStatementPreparer implements StatementPreparer {
+public class DummyStatementPreparer extends TestEventCollector implements StatementPreparer {
 
 	private RunnableWithArgs<PreparedStatement> prepareStatementRWA;
 
@@ -32,7 +34,10 @@ public class DummyStatementPreparer implements StatementPreparer {
 
 	@Override
 	public PreparedStatement prepareStatement(String sql, boolean isCallable) {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("prepareStatement").prop("sql", sql).prop("isCallable", isCallable));
+		if (prepareStatementRWA != null) {
+			return prepareStatementRWA.run(sql);
+		}
 		return null;
 	}
 

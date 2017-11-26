@@ -10,6 +10,7 @@ public class DummyTransactionCoordinator implements TransactionCoordinator {
 
 	private boolean joined;
 	private TransactionDriver transactionDriverControl;
+	private SynchronizationRegistry localSynchronizations;
 
 	@Override
 	public void explicitJoin() {
@@ -21,8 +22,6 @@ public class DummyTransactionCoordinator implements TransactionCoordinator {
 	public boolean isJoined() {
 		return joined;
 	}
-	
-	
 
 	public void setJoined(boolean joined) {
 		this.joined = joined;
@@ -38,8 +37,6 @@ public class DummyTransactionCoordinator implements TransactionCoordinator {
 	public TransactionDriver getTransactionDriverControl() {
 		return transactionDriverControl;
 	}
-	
-	
 
 	public void setTransactionDriverControl(TransactionDriver transactionDriverControl) {
 		this.transactionDriverControl = transactionDriverControl;
@@ -47,8 +44,11 @@ public class DummyTransactionCoordinator implements TransactionCoordinator {
 
 	@Override
 	public SynchronizationRegistry getLocalSynchronizations() {
-		// TODO Auto-generated method stub
-		return null;
+		return localSynchronizations;
+	}
+
+	public void setLocalSynchronizations(SynchronizationRegistry localSynchronizations) {
+		this.localSynchronizations = localSynchronizations;
 	}
 
 	@Override

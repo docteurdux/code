@@ -15,12 +15,16 @@ import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
 import org.hibernate.resource.jdbc.spi.LogicalConnectionImplementor;
 import org.hibernate.resource.transaction.backend.jdbc.spi.JdbcResourceTransaction;
 
-public class DummyJdbcCoordinator implements JdbcCoordinator {
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+
+public class DummyJdbcCoordinator extends TestEventCollector implements JdbcCoordinator {
 
 	private static final long serialVersionUID = 1L;
 	private StatementPreparer statementPreparer;
 	private ResultSetReturn resultSetReturn;
 	private LogicalConnectionImplementor logicalConnectionImplementor;
+	private JdbcSessionOwner jdbcSessionOwner;
 
 	@Override
 	public boolean isActive() {
@@ -48,8 +52,11 @@ public class DummyJdbcCoordinator implements JdbcCoordinator {
 
 	@Override
 	public JdbcSessionOwner getJdbcSessionOwner() {
-		// TODO Auto-generated method stub
-		return null;
+		return jdbcSessionOwner;
+	}
+
+	public void setJdbcSessionOwner(JdbcSessionOwner jdbcSessionOwner) {
+		this.jdbcSessionOwner = jdbcSessionOwner;
 	}
 
 	@Override
@@ -141,8 +148,7 @@ public class DummyJdbcCoordinator implements JdbcCoordinator {
 
 	@Override
 	public void afterStatementExecution() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("afterStatementExecution"));
 	}
 
 	@Override

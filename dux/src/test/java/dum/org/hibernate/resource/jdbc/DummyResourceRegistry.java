@@ -8,7 +8,13 @@ import java.sql.Statement;
 
 import org.hibernate.resource.jdbc.ResourceRegistry;
 
-public class DummyResourceRegistry implements ResourceRegistry {
+import com.github.docteurdux.test.RunnableWithArgs;
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+
+public class DummyResourceRegistry extends TestEventCollector implements ResourceRegistry {
+
+	private RunnableWithArgs<Void> releaseRWA;
 
 	@Override
 	public boolean hasRegisteredResources() {
@@ -30,8 +36,14 @@ public class DummyResourceRegistry implements ResourceRegistry {
 
 	@Override
 	public void release(Statement statement) {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("release").prop("statement", statement));
+		if (releaseRWA != null) {
+			releaseRWA.run(statement);
+		}
+	}
 
+	public void setReleaseRWA(RunnableWithArgs<Void> releaseRWA) {
+		this.releaseRWA = releaseRWA;
 	}
 
 	@Override

@@ -19,6 +19,7 @@ public class DummyType implements Type {
 
 	private Class returnedClass;
 	private String name;
+	private Type semiResolvedType;
 
 	@Override
 	public boolean isAssociationType() {
@@ -238,8 +239,11 @@ public class DummyType implements Type {
 
 	@Override
 	public Type getSemiResolvedType(SessionFactoryImplementor factory) {
-		// TODO Auto-generated method stub
-		return null;
+		return semiResolvedType;
+	}
+
+	public void setSemiResolvedType(Type semiResolvedType) {
+		this.semiResolvedType = semiResolvedType;
 	}
 
 	@Override

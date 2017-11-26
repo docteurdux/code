@@ -279,6 +279,16 @@ public abstract class AbstractTest {
 		return (T) constructor.newInstance(params);
 	}
 
+	protected <T> T instantiate(Constructor<T> constructor, Object... params) {
+		constructor.setAccessible(true);
+		try {
+			return (T) constructor.newInstance(params);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	protected Object invoke(Object o, String name) {
 		try {
 			Method m = o.getClass().getDeclaredMethod(name);
@@ -436,25 +446,46 @@ public abstract class AbstractTest {
 	}
 
 	protected void dumpTestEvents(Object instance) {
+
+		List<TestEvent> allTestEvents = new ArrayList<>();
+
 		try {
 			Class<?> clazz = instance.getClass();
 			for (Field field : clazz.getDeclaredFields()) {
 				field.setAccessible(true);
 				Object value = field.get(instance);
 				if (value instanceof TestEventCollector) {
-					List<TestEvent> testEvents = ((TestEventCollector) value).getTestEvents();
-					System.out.println(value.getClass().getName() + " : " + testEvents.size());
+					TestEventCollector tec = (TestEventCollector) value;
+					List<TestEvent> testEvents = tec.getTestEvents();
+					String sourceName = tec.getTestEventSourceName();
+					if (sourceName == null) {
+						sourceName = value.getClass().getInterfaces()[0].getSimpleName();
+					}
 					for (TestEvent testEvent : testEvents) {
-						StringBuffer buf = new StringBuffer();
-						buf.append(testEvent.getName());
-						for (Entry<String, Object> entry : testEvent.getProps().entrySet()) {
-							buf.append(" ");
-							buf.append(entry.getKey() + ":" + entry.getValue().getClass().getName());
-						}
-						System.out.println(buf.toString());
+						testEvent.setSource(sourceName);
+						allTestEvents.add(testEvent);
 					}
 
 				}
+			}
+			allTestEvents.sort(new Comparator<TestEvent>() {
+				@Override
+				public int compare(TestEvent te1, TestEvent te2) {
+					return Integer.compare(te1.getId(), te2.getId());
+				}
+			});
+			for (TestEvent testEvent : allTestEvents) {
+				StringBuffer buf = new StringBuffer();
+				buf.append(testEvent.getId());
+				buf.append(":");
+				buf.append(testEvent.getSource());
+				buf.append(":");
+				buf.append(testEvent.getName());
+				for (Entry<String, Object> entry : testEvent.getProps().entrySet()) {
+					buf.append(" ");
+					buf.append(entry.getKey() + ":" + entry.getValue().getClass().getName());
+				}
+				System.out.println(buf.toString());
 			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -573,5 +604,17 @@ public abstract class AbstractTest {
 	@SuppressWarnings("unchecked")
 	protected <T> T get(Map<String, Object> map, String key, Class<T> clazz) {
 		return (T) map.get(key);
+	}
+
+	protected boolean isProtected(Constructor<?> constructor) {
+		return Modifier.isProtected(constructor.getModifiers());
+	}
+
+	protected <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... parameterTypes) {
+		try {
+			return clazz.getDeclaredConstructor(parameterTypes);
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

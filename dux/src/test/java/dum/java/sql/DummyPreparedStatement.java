@@ -30,6 +30,7 @@ import com.github.docteurdux.test.TestEventCollector;
 public class DummyPreparedStatement extends TestEventCollector implements PreparedStatement {
 
 	private RunnableWithArgs<Void> setObjectRWA;
+	private RunnableWithArgs<int[]> executeBatchRWA;
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException {
@@ -189,8 +190,15 @@ public class DummyPreparedStatement extends TestEventCollector implements Prepar
 
 	@Override
 	public int[] executeBatch() throws SQLException {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("executeBatch"));
+		if (executeBatchRWA != null) {
+			return executeBatchRWA.run();
+		}
 		return null;
+	}
+
+	public void setExecuteBatchRWA(RunnableWithArgs<int[]> executeBatchRWA) {
+		this.executeBatchRWA = executeBatchRWA;
 	}
 
 	@Override

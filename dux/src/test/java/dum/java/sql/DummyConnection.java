@@ -29,6 +29,7 @@ public class DummyConnection extends TestEventCollector implements Connection {
 	private SQLException commitException;
 	private SQLException getAutoCommitException;
 	private RunnableWithArgs<PreparedStatement> prepareStatementRWA;
+	private DatabaseMetaData metaData;
 
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
@@ -113,8 +114,11 @@ public class DummyConnection extends TestEventCollector implements Connection {
 
 	@Override
 	public DatabaseMetaData getMetaData() throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		return metaData;
+	}
+
+	public void setMetaData(DatabaseMetaData metaData) {
+		this.metaData = metaData;
 	}
 
 	@Override

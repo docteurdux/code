@@ -16,6 +16,9 @@ public class DummyJdbcEnvironment implements JdbcEnvironment {
 	private static final long serialVersionUID = 1L;
 	private IdentifierHelper identifierHelper;
 	private Dialect dialect;
+	private SqlExceptionHelper sqlExceptionHelper;
+	private ExtractedDatabaseMetaData extractedDatabaseMetaData;
+	private LobCreatorBuilder lobCreatorBuilder;
 
 	@Override
 	public Dialect getDialect() {
@@ -28,8 +31,11 @@ public class DummyJdbcEnvironment implements JdbcEnvironment {
 
 	@Override
 	public ExtractedDatabaseMetaData getExtractedDatabaseMetaData() {
-		// TODO Auto-generated method stub
-		return null;
+		return extractedDatabaseMetaData;
+	}
+
+	public void setExtractedDatabaseMetaData(ExtractedDatabaseMetaData extractedDatabaseMetaData) {
+		this.extractedDatabaseMetaData = extractedDatabaseMetaData;
 	}
 
 	@Override
@@ -67,14 +73,20 @@ public class DummyJdbcEnvironment implements JdbcEnvironment {
 
 	@Override
 	public SqlExceptionHelper getSqlExceptionHelper() {
-		// TODO Auto-generated method stub
-		return null;
+		return sqlExceptionHelper;
+	}
+
+	public void setSqlExceptionHelper(SqlExceptionHelper sqlExceptionHelper) {
+		this.sqlExceptionHelper = sqlExceptionHelper;
 	}
 
 	@Override
 	public LobCreatorBuilder getLobCreatorBuilder() {
-		// TODO Auto-generated method stub
-		return null;
+		return lobCreatorBuilder;
+	}
+
+	public void setLobCreatorBuilder(LobCreatorBuilder lobCreatorBuilder) {
+		this.lobCreatorBuilder = lobCreatorBuilder;
 	}
 
 	@Override

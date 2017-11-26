@@ -1,7 +1,5 @@
-package dum.org.hibernate.boot.spi;
+package dum.org.hibernate.boot.internal;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -15,8 +13,8 @@ import org.hibernate.NullPrecedence;
 import org.hibernate.SessionFactoryObserver;
 import org.hibernate.boot.SchemaAutoTooling;
 import org.hibernate.boot.TempTableDdlTransactionHandling;
+import org.hibernate.boot.internal.SessionFactoryOptionsState;
 import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.spi.SessionFactoryOptions;
 import org.hibernate.cache.spi.QueryCacheFactory;
 import org.hibernate.cfg.BaselineSessionEventsListenerBuilder;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
@@ -28,20 +26,14 @@ import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.hibernate.tuple.entity.EntityTuplizerFactory;
 
-public class DummySessionFactoryOptions implements SessionFactoryOptions {
+public class DummySessionFactoryOptionsState implements SessionFactoryOptionsState {
 
 	private StandardServiceRegistry serviceRegistry;
-	private ArrayList<SessionFactoryObserver> sessionFactoryObservers = new ArrayList<SessionFactoryObserver>();
+	private SessionFactoryObserver[] sessionFactoryObservers = new SessionFactoryObserver[] {};
 	private MultiTableBulkIdStrategy multiTableBulkIdStrategy;
-
-	@SuppressWarnings("rawtypes")
-	private Map querySubstitutions = new HashMap<>();
-	private EntityTuplizerFactory entityTuplizerFactory;
-	private BatchFetchStyle batchFetchStyle;
-	private MultiTenancyStrategy multiTenancyStrategy;
-	private PhysicalConnectionHandlingMode physicalConnectionHandlingMode;
-	private EntityNotFoundDelegate entityNotFoundDelegate;
 	private BaselineSessionEventsListenerBuilder baselineSessionEventsListenerBuilder;
+	private PhysicalConnectionHandlingMode physicalConnectionHandlingMode;
+	private MultiTenancyStrategy multiTenancyStrategy;
 	private ConnectionReleaseMode connectionReleaseMode;
 
 	@Override
@@ -54,18 +46,6 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	}
 
 	@Override
-	public Object getBeanManagerReference() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object getValidatorFactoryReference() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public boolean isJpaBootstrap() {
 		// TODO Auto-generated method stub
 		return false;
@@ -75,6 +55,36 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	public boolean isJtaTransactionAccessEnabled() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public boolean isAllowRefreshDetachedEntity() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isAllowOutOfTransactionUpdateOperations() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isReleaseResourcesOnCloseEnabled() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Object getBeanManagerReference() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object getValidatorFactoryReference() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -127,7 +137,11 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public SessionFactoryObserver[] getSessionFactoryObservers() {
-		return sessionFactoryObservers.toArray(new SessionFactoryObserver[] {});
+		return sessionFactoryObservers;
+	}
+
+	public void setSessionFactoryObservers(SessionFactoryObserver[] sessionFactoryObservers) {
+		this.sessionFactoryObservers = sessionFactoryObservers;
 	}
 
 	@Override
@@ -154,11 +168,8 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public EntityTuplizerFactory getEntityTuplizerFactory() {
-		return entityTuplizerFactory;
-	}
-
-	public void setEntityTuplizerFactory(EntityTuplizerFactory entityTuplizerFactory) {
-		this.entityTuplizerFactory = entityTuplizerFactory;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -190,11 +201,8 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public BatchFetchStyle getBatchFetchStyle() {
-		return batchFetchStyle;
-	}
-
-	public void setBatchFetchStyle(BatchFetchStyle batchFetchStyle) {
-		this.batchFetchStyle = batchFetchStyle;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -248,10 +256,10 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 		return false;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public Map getQuerySubstitutions() {
-		return querySubstitutions;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -268,6 +276,18 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public boolean isConventionalJavaConstants() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isProcedureParameterNullPassingEnabled() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isCollectionJoinSubqueryRewriteEnabled() {
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -372,6 +392,12 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	}
 
 	@Override
+	public boolean connectionProviderDisablesAutoCommit() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
 	public ConnectionReleaseMode getConnectionReleaseMode() {
 		return connectionReleaseMode;
 	}
@@ -400,11 +426,8 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 
 	@Override
 	public EntityNotFoundDelegate getEntityNotFoundDelegate() {
-		return entityNotFoundDelegate;
-	}
-
-	public void setEntityNotFoundDelegate(EntityNotFoundDelegate entityNotFoundDelegate) {
-		this.entityNotFoundDelegate = entityNotFoundDelegate;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -414,37 +437,7 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	}
 
 	@Override
-	public void setCheckNullability(boolean enabled) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public boolean isPreferUserTransaction() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isProcedureParameterNullPassingEnabled() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isCollectionJoinSubqueryRewriteEnabled() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isAllowOutOfTransactionUpdateOperations() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean isReleaseResourcesOnCloseEnabled() {
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -453,6 +446,12 @@ public class DummySessionFactoryOptions implements SessionFactoryOptions {
 	public TimeZone getJdbcTimeZone() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean isQueryParametersValidationEnabled() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

@@ -8,8 +8,10 @@ import java.sql.Statement;
 import org.hibernate.engine.jdbc.spi.ResultSetReturn;
 
 import com.github.docteurdux.test.RunnableWithArgs;
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
 
-public class DummyResultSetReturn implements ResultSetReturn {
+public class DummyResultSetReturn extends TestEventCollector implements ResultSetReturn {
 
 	private RunnableWithArgs<ResultSet> extractRWA;
 	private RunnableWithArgs<ResultSet> executeRWA;
@@ -57,6 +59,7 @@ public class DummyResultSetReturn implements ResultSetReturn {
 
 	@Override
 	public int executeUpdate(PreparedStatement statement) {
+		testEvents.add(new TestEvent("executeUpdate").prop("statement", statement));
 		if (executeUpdateRWA != null) {
 			return executeUpdateRWA.run(statement);
 		}
