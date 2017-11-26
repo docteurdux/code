@@ -1,6 +1,8 @@
 package dux.org.hibernate.internal;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hibernate.Session;
@@ -8,19 +10,13 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.cfgxml.spi.CfgXmlAccessService;
-import org.hibernate.boot.internal.ClassLoaderAccessImpl;
-import org.hibernate.boot.internal.InFlightMetadataCollectorImpl;
 import org.hibernate.boot.internal.MetadataBuilderImpl;
-import org.hibernate.boot.internal.MetadataBuilderImpl.MetadataBuildingOptionsImpl;
-import org.hibernate.boot.internal.MetadataBuildingContextRootImpl;
-import org.hibernate.boot.internal.MetadataImpl;
 import org.hibernate.boot.internal.SessionFactoryBuilderImpl;
+import org.hibernate.boot.registry.StandardServiceInitiator;
 import org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
-import org.hibernate.boot.registry.selector.spi.StrategySelector;
-import org.hibernate.boot.spi.ClassLoaderAccess;
-import org.hibernate.boot.spi.InFlightMetadataCollector;
-import org.hibernate.boot.spi.MetadataBuildingOptions;
+import org.hibernate.boot.registry.internal.BootstrapServiceRegistryImpl;
+import org.hibernate.boot.registry.internal.StandardServiceRegistryImpl;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cfg.AvailableSettings;
@@ -34,16 +30,17 @@ import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.PersistEventListener;
+import org.hibernate.id.factory.spi.MutableIdentifierGeneratorFactory;
 import org.hibernate.integrator.spi.IntegratorService;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
+import org.hibernate.service.internal.ProvidedService;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
 import org.hibernate.service.spi.SessionFactoryServiceRegistryFactory;
 import org.hibernate.stat.spi.StatisticsImplementor;
-import org.hibernate.type.TypeResolver;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,8 +51,6 @@ import dum.java.sql.DummyConnection;
 import dum.org.hibernate.boot.cfgxml.spi.DummyCfgXmlAccessService;
 import dum.org.hibernate.boot.model.naming.DummyPhysicalNamingStrategy;
 import dum.org.hibernate.boot.registry.selector.spi.DummyStrategySelector;
-import dum.org.hibernate.boot.spi.DummyMappingDefaults;
-import dum.org.hibernate.boot.spi.DummyMetadataBuildingOptions;
 import dum.org.hibernate.cache.spi.DummyRegionFactory;
 import dum.org.hibernate.engine.config.spi.DummyConfigurationService;
 import dum.org.hibernate.engine.jdbc.connections.spi.DummyConnectionProvider;
@@ -67,6 +62,7 @@ import dum.org.hibernate.engine.spi.DummyCacheImplementor;
 import dum.org.hibernate.event.service.spi.DummyEventListenerGroup;
 import dum.org.hibernate.event.service.spi.DummyEventListenerRegistry;
 import dum.org.hibernate.hql.spi.id.DummyMultiTableBulkIdStrategy;
+import dum.org.hibernate.id.factory.spi.DummyMutableIdentifierGeneratorFactory;
 import dum.org.hibernate.resource.transaction.spi.DummySynchronizationRegistry;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinator;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinatorBuilder;
@@ -76,7 +72,6 @@ import dum.org.hibernate.service.spi.DummySessionFactoryServiceRegistryFactory;
 import dum.org.hibernate.stat.spi.DummyStatisticsImplementor;
 import dus.hibernate.core.HibernateCoreSummaryTest;
 import dux.org.hibernate.query.criteria.internal.DummyIntegratorService;
-import dux.org.hibernate.query.criteria.internal.DummyStandardServiceRegistry;
 
 public class SessionFactoryImplTest extends AbstractTest {
 
@@ -201,21 +196,31 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		ClassLoaderService classLoaderService = new ClassLoaderServiceImpl();
 
-		DummyStandardServiceRegistry standardServiceRegistry = new DummyStandardServiceRegistry();
-		standardServiceRegistry.setService(JdbcEnvironment.class, jdbcEnvironment);
-		standardServiceRegistry.setService(JdbcServices.class, jdbcServices);
-		standardServiceRegistry.setService(SessionFactoryServiceRegistryFactory.class,
-				sessionFactoryServiceRegistryFactory);
-		standardServiceRegistry.setService(ConfigurationService.class, configurationService);
-		standardServiceRegistry.setService(StrategySelector.class, strategySelector);
-		standardServiceRegistry.setService(RegionFactory.class, regionFactory);
-		standardServiceRegistry.setService(TransactionCoordinatorBuilder.class, transactionCoordinatorBuilder);
-		standardServiceRegistry.setService(ClassLoaderService.class, classLoaderService);
-		standardServiceRegistry.setService(CfgXmlAccessService.class, cfgXmlAccessService);
-
 		DummyPhysicalNamingStrategy physicalNamingStrategy = new DummyPhysicalNamingStrategy();
 
 		DummyMultiTableBulkIdStrategy multiTableBulkIdStrategy = new DummyMultiTableBulkIdStrategy();
+
+		DummyMutableIdentifierGeneratorFactory mutableIdentifierGeneratorFactory = new DummyMutableIdentifierGeneratorFactory();
+
+		BootstrapServiceRegistryImpl bootstrapServiceRegistry = new BootstrapServiceRegistryImpl(classLoaderService,
+				strategySelector, integratorService);
+		List<StandardServiceInitiator> serviceInitiators = new ArrayList<>();
+
+		List<ProvidedService> providedServices = new ArrayList<>();
+		providedServices.add(new ProvidedService<>(ConfigurationService.class, configurationService));
+		providedServices.add(new ProvidedService<>(RegionFactory.class, regionFactory));
+		providedServices.add(new ProvidedService<>(CfgXmlAccessService.class, cfgXmlAccessService));
+		providedServices.add(new ProvidedService<>(JdbcServices.class, jdbcServices));
+		providedServices
+				.add(new ProvidedService<>(MutableIdentifierGeneratorFactory.class, mutableIdentifierGeneratorFactory));
+		providedServices.add(new ProvidedService<>(JdbcEnvironment.class, jdbcEnvironment));
+		providedServices.add(new ProvidedService<>(TransactionCoordinatorBuilder.class, transactionCoordinatorBuilder));
+		providedServices.add(new ProvidedService<>(SessionFactoryServiceRegistryFactory.class,
+				sessionFactoryServiceRegistryFactory));
+
+		Map<?, ?> configurationValues = new HashMap<>();
+		StandardServiceRegistryImpl standardServiceRegistry = new StandardServiceRegistryImpl(bootstrapServiceRegistry,
+				serviceInitiators, providedServices, configurationValues);
 
 		MetadataSources sources = new MetadataSources(standardServiceRegistry);
 		MetadataBuilderImpl mbi = new MetadataBuilderImpl(sources, standardServiceRegistry);
