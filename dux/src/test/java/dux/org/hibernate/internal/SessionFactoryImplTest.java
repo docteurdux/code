@@ -2,42 +2,34 @@ package dux.org.hibernate.internal;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.boot.cfgxml.spi.CfgXmlAccessService;
+import org.hibernate.boot.internal.ClassLoaderAccessImpl;
+import org.hibernate.boot.internal.InFlightMetadataCollectorImpl;
+import org.hibernate.boot.internal.MetadataBuildingContextRootImpl;
 import org.hibernate.boot.internal.MetadataImpl;
 import org.hibernate.boot.internal.SessionFactoryBuilderImpl;
-import org.hibernate.boot.model.IdentifierGeneratorDefinition;
-import org.hibernate.boot.model.TypeDefinition;
-import org.hibernate.boot.model.relational.Database;
+import org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl;
+import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.selector.spi.StrategySelector;
+import org.hibernate.boot.spi.ClassLoaderAccess;
+import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.hibernate.cache.spi.RegionFactory;
-import org.hibernate.cfg.annotations.NamedEntityGraphDefinition;
-import org.hibernate.cfg.annotations.NamedProcedureCallDefinition;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.dialect.function.SQLFunction;
-import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.spi.CacheImplementor;
-import org.hibernate.engine.spi.FilterDefinition;
-import org.hibernate.engine.spi.NamedQueryDefinition;
-import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.PersistEventListener;
 import org.hibernate.integrator.spi.IntegratorService;
 import org.hibernate.internal.SessionFactoryImpl;
-import org.hibernate.mapping.Collection;
-import org.hibernate.mapping.FetchProfile;
-import org.hibernate.mapping.MappedSuperclass;
-import org.hibernate.mapping.PersistentClass;
 import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
@@ -56,6 +48,7 @@ import dum.java.sql.DummyConnection;
 import dum.org.hibernate.boot.cfgxml.spi.DummyCfgXmlAccessService;
 import dum.org.hibernate.boot.model.naming.DummyPhysicalNamingStrategy;
 import dum.org.hibernate.boot.registry.selector.spi.DummyStrategySelector;
+import dum.org.hibernate.boot.spi.DummyInFlightMetadataCollector;
 import dum.org.hibernate.boot.spi.DummyMappingDefaults;
 import dum.org.hibernate.boot.spi.DummyMetadataBuildingOptions;
 import dum.org.hibernate.cache.spi.DummyRegionFactory;
@@ -69,7 +62,6 @@ import dum.org.hibernate.engine.spi.DummyCacheImplementor;
 import dum.org.hibernate.event.service.spi.DummyEventListenerGroup;
 import dum.org.hibernate.event.service.spi.DummyEventListenerRegistry;
 import dum.org.hibernate.hql.spi.id.DummyMultiTableBulkIdStrategy;
-import dum.org.hibernate.id.factory.spi.DummyMutableIdentifierGeneratorFactory;
 import dum.org.hibernate.resource.transaction.spi.DummySynchronizationRegistry;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinator;
 import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinatorBuilder;
@@ -201,40 +193,30 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		DummyPhysicalNamingStrategy physicalNamingStrategy = new DummyPhysicalNamingStrategy();
 
+		DummyMultiTableBulkIdStrategy multiTableBulkIdStrategy = new DummyMultiTableBulkIdStrategy();
+
 		DummyMetadataBuildingOptions metadataBuildingOptions = new DummyMetadataBuildingOptions();
 		metadataBuildingOptions.setServiceRegistry(standardServiceRegistry);
 		metadataBuildingOptions.setMappingDefaults(mappingDefaults);
 		metadataBuildingOptions.setPhysicalNamingStrategy(physicalNamingStrategy);
 
-		Database database = new Database(metadataBuildingOptions);
-
 		TypeResolver typeResolver = new TypeResolver();
 
-		Map<String, NamedQueryDefinition> namedQueryDefinitionMap = new HashMap<>();
-		Map<String, NamedSQLQueryDefinition> namedSqlQueryDefinitionMap = new HashMap<>();
-		Map<String, ResultSetMappingDefinition> namedSqlResultSetMappingMap = new HashMap<>();
+		InFlightMetadataCollector metadataCollector = new InFlightMetadataCollectorImpl(metadataBuildingOptions,
+				typeResolver);
 
-		UUID uuid = new UUID(0, 0);
-		DummyMutableIdentifierGeneratorFactory identifierGeneratorFactory = new DummyMutableIdentifierGeneratorFactory();
-		Map<String, PersistentClass> entityBindingMap = new HashMap<>();
-		Map<Class, MappedSuperclass> mappedSuperclassMap = new HashMap<>();
-		Map<String, Collection> collectionBindingMap = new HashMap<>();
-		Map<String, TypeDefinition> typeDefinitionMap = new HashMap<>();
-		Map<String, FilterDefinition> filterDefinitionMap = new HashMap<>();
-		Map<String, FetchProfile> fetchProfileMap = new HashMap<>();
-		Map<String, String> imports = new HashMap<>();
-		Map<String, IdentifierGeneratorDefinition> idGeneratorDefinitionMap = new HashMap<>();
-		Map<String, NamedEntityGraphDefinition> namedEntityGraphMap = new HashMap<>();
-		Map<String, SQLFunction> sqlFunctionMap = new HashMap<>();
-		Map<String, NamedProcedureCallDefinition> namedProcedureCallMapp = new HashMap<>();
-		MetadataImpl mi = new MetadataImpl(uuid, metadataBuildingOptions, typeResolver, identifierGeneratorFactory,
-				entityBindingMap, mappedSuperclassMap, collectionBindingMap, typeDefinitionMap, filterDefinitionMap,
-				fetchProfileMap, imports, idGeneratorDefinitionMap, namedQueryDefinitionMap, namedSqlQueryDefinitionMap,
-				namedProcedureCallMapp, namedSqlResultSetMappingMap, namedEntityGraphMap, sqlFunctionMap, database);
+		ClassLoaderService classLoaderService = new ClassLoaderServiceImpl();
+		ClassLoaderAccess classLoaderAccess = new ClassLoaderAccessImpl(classLoaderService);
 
-		DummyMultiTableBulkIdStrategy multiTableBulkIdStrategy = new DummyMultiTableBulkIdStrategy();
+		MetadataBuildingContextRootImpl metadataBuildingContext = new MetadataBuildingContextRootImpl(
+				metadataBuildingOptions, classLoaderAccess, metadataCollector);
 
-		SessionFactoryBuilderImpl sessionFactoryBuilderImpl = new SessionFactoryBuilderImpl(mi);
+		InFlightMetadataCollectorImpl inFlightMetadataCollectorImpl = new InFlightMetadataCollectorImpl(
+				metadataBuildingOptions, typeResolver);
+
+		MetadataImpl metadataImpl = inFlightMetadataCollectorImpl.buildMetadataInstance(metadataBuildingContext);
+
+		SessionFactoryBuilderImpl sessionFactoryBuilderImpl = new SessionFactoryBuilderImpl(metadataImpl);
 		sessionFactoryBuilderImpl.applyMultiTableBulkIdStrategy(multiTableBulkIdStrategy);
 
 		SessionFactory sessionFactory = sessionFactoryBuilderImpl.build();

@@ -1,5 +1,7 @@
 package dum.org.hibernate.boot.spi;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +36,8 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 	private ReflectionManager reflectionManager;
 	private ClassLoader tempClassLoader;
 	private IdGeneratorStrategyInterpreter idGenerationTypeInterpreter;
+	private Map<String, SQLFunction> sqlFunctions = new HashMap<>();
+	private List<AuxiliaryDatabaseObject> auxiliaryDatabaseObjectList = new ArrayList<>();
 
 	@Override
 	public StandardServiceRegistry getServiceRegistry() {
@@ -196,14 +200,12 @@ public class DummyMetadataBuildingOptions implements MetadataBuildingOptions {
 
 	@Override
 	public Map<String, SQLFunction> getSqlFunctions() {
-		// TODO Auto-generated method stub
-		return null;
+		return sqlFunctions;
 	}
 
 	@Override
 	public List<AuxiliaryDatabaseObject> getAuxiliaryDatabaseObjectList() {
-		// TODO Auto-generated method stub
-		return null;
+		return auxiliaryDatabaseObjectList;
 	}
 
 	@Override
