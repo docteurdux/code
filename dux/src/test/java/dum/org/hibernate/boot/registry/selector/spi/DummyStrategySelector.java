@@ -5,9 +5,12 @@ import java.util.concurrent.Callable;
 import org.hibernate.boot.registry.selector.spi.StrategyCreator;
 import org.hibernate.boot.registry.selector.spi.StrategySelector;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyStrategySelector implements StrategySelector {
 
 	private static final long serialVersionUID = 1L;
+	private RunnableWithArgs<Object> resolveDefaultableStrategyRWA;
 
 	@Override
 	public <T> void registerStrategyImplementor(Class<T> strategy, String name, Class<? extends T> implementation) {
@@ -34,15 +37,25 @@ public class DummyStrategySelector implements StrategySelector {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T resolveDefaultableStrategy(Class<T> strategy, Object strategyReference, T defaultValue) {
-		// TODO Auto-generated method stub
+		if (resolveDefaultableStrategyRWA != null) {
+			return (T) resolveDefaultableStrategyRWA.run(strategy, strategyReference, defaultValue);
+		}
 		return null;
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T resolveDefaultableStrategy(Class<T> strategy, Object strategyReference, Callable<T> defaultResolver) {
-		// TODO Auto-generated method stub
+		if (resolveDefaultableStrategyRWA != null) {
+			return (T) resolveDefaultableStrategyRWA.run(strategy, strategyReference, defaultResolver);
+		}
 		return null;
+	}
+
+	public void setResolveDefaultableStrategyRWA(RunnableWithArgs<Object> resolveDefaultableStrategyRWA) {
+		this.resolveDefaultableStrategyRWA = resolveDefaultableStrategyRWA;
 	}
 
 	@Override

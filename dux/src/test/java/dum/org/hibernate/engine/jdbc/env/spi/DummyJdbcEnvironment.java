@@ -19,6 +19,7 @@ public class DummyJdbcEnvironment implements JdbcEnvironment {
 	private SqlExceptionHelper sqlExceptionHelper;
 	private ExtractedDatabaseMetaData extractedDatabaseMetaData;
 	private LobCreatorBuilder lobCreatorBuilder;
+	private QualifiedObjectNameFormatter qualifiedObjectNameFormatter;
 
 	@Override
 	public Dialect getDialect() {
@@ -52,8 +53,11 @@ public class DummyJdbcEnvironment implements JdbcEnvironment {
 
 	@Override
 	public QualifiedObjectNameFormatter getQualifiedObjectNameFormatter() {
-		// TODO Auto-generated method stub
-		return null;
+		return qualifiedObjectNameFormatter;
+	}
+
+	public void setQualifiedObjectNameFormatter(QualifiedObjectNameFormatter qualifiedObjectNameFormatter) {
+		this.qualifiedObjectNameFormatter = qualifiedObjectNameFormatter;
 	}
 
 	@Override

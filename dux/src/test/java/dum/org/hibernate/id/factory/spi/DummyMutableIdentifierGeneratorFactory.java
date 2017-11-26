@@ -7,7 +7,11 @@ import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.factory.spi.MutableIdentifierGeneratorFactory;
 import org.hibernate.type.Type;
 
+import com.github.docteurdux.test.RunnableWithArgs;
+
 public class DummyMutableIdentifierGeneratorFactory implements MutableIdentifierGeneratorFactory {
+
+	private RunnableWithArgs<IdentifierGenerator> createIdentifierGeneratorRWA;
 
 	@Override
 	public Dialect getDialect() {
@@ -23,8 +27,14 @@ public class DummyMutableIdentifierGeneratorFactory implements MutableIdentifier
 
 	@Override
 	public IdentifierGenerator createIdentifierGenerator(String strategy, Type type, Properties config) {
-		// TODO Auto-generated method stub
+		if (createIdentifierGeneratorRWA != null) {
+			return createIdentifierGeneratorRWA.run(strategy, type, config);
+		}
 		return null;
+	}
+
+	public void setCreateIdentifierGeneratorRWA(RunnableWithArgs<IdentifierGenerator> createIdentifierGeneratorRWA) {
+		this.createIdentifierGeneratorRWA = createIdentifierGeneratorRWA;
 	}
 
 	@Override
