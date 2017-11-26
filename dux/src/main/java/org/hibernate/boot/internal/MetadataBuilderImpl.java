@@ -85,72 +85,62 @@ import static org.hibernate.internal.log.DeprecationLogger.DEPRECATION_LOGGER;
  * @author Steve Ebersole
  */
 public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeContributions {
-	private static final CoreMessageLogger log = CoreLogging.messageLogger( MetadataBuilderImpl.class );
+	private static final CoreMessageLogger log = CoreLogging.messageLogger(MetadataBuilderImpl.class);
 
 	private final MetadataSources sources;
 	private final MetadataBuildingOptionsImpl options;
 
 	public MetadataBuilderImpl(MetadataSources sources) {
-		this(
-				sources,
-				getStandardServiceRegistry( sources.getServiceRegistry() )
-		);
+		this(sources, getStandardServiceRegistry(sources.getServiceRegistry()));
 	}
 
 	private static StandardServiceRegistry getStandardServiceRegistry(ServiceRegistry serviceRegistry) {
-		if ( serviceRegistry == null ) {
-			throw new HibernateException( "ServiceRegistry passed to MetadataBuilder cannot be null" );
+		if (serviceRegistry == null) {
+			throw new HibernateException("ServiceRegistry passed to MetadataBuilder cannot be null");
 		}
 
-		if ( StandardServiceRegistry.class.isInstance( serviceRegistry ) ) {
-			return ( StandardServiceRegistry ) serviceRegistry;
-		}
-		else if ( BootstrapServiceRegistry.class.isInstance( serviceRegistry ) ) {
+		if (StandardServiceRegistry.class.isInstance(serviceRegistry)) {
+			return (StandardServiceRegistry) serviceRegistry;
+		} else if (BootstrapServiceRegistry.class.isInstance(serviceRegistry)) {
 			log.debugf(
-					"ServiceRegistry passed to MetadataBuilder was a BootstrapServiceRegistry; this likely wont end well" +
-							"if attempt is made to build SessionFactory"
-			);
-			return new StandardServiceRegistryBuilder( (BootstrapServiceRegistry) serviceRegistry ).build();
-		}
-		else {
-			throw new HibernateException(
-					String.format(
-							"Unexpected type of ServiceRegistry [%s] encountered in attempt to build MetadataBuilder",
-							serviceRegistry.getClass().getName()
-					)
-			);
+					"ServiceRegistry passed to MetadataBuilder was a BootstrapServiceRegistry; this likely wont end well"
+							+ "if attempt is made to build SessionFactory");
+			return new StandardServiceRegistryBuilder((BootstrapServiceRegistry) serviceRegistry).build();
+		} else {
+			throw new HibernateException(String.format(
+					"Unexpected type of ServiceRegistry [%s] encountered in attempt to build MetadataBuilder",
+					serviceRegistry.getClass().getName()));
 		}
 	}
 
 	public MetadataBuilderImpl(MetadataSources sources, StandardServiceRegistry serviceRegistry) {
 		this.sources = sources;
-		this.options = new MetadataBuildingOptionsImpl( serviceRegistry );
+		this.options = new MetadataBuildingOptionsImpl(serviceRegistry);
 
-		for ( MetadataSourcesContributor contributor :
-				sources.getServiceRegistry()
-						.getService( ClassLoaderService.class )
-						.loadJavaServices( MetadataSourcesContributor.class ) ) {
-			contributor.contribute( sources );
+		for (MetadataSourcesContributor contributor : sources.getServiceRegistry().getService(ClassLoaderService.class)
+				.loadJavaServices(MetadataSourcesContributor.class)) {
+			contributor.contribute(sources);
 		}
 
 		// todo : not so sure this is needed anymore.
-		//		these should be set during the StandardServiceRegistryBuilder.configure call
-		applyCfgXmlValues( serviceRegistry.getService( CfgXmlAccessService.class ) );
+		// these should be set during the StandardServiceRegistryBuilder.configure call
+		applyCfgXmlValues(serviceRegistry.getService(CfgXmlAccessService.class));
 
-		final ClassLoaderService classLoaderService = serviceRegistry.getService( ClassLoaderService.class );
-		for ( MetadataBuilderInitializer contributor : classLoaderService.loadJavaServices( MetadataBuilderInitializer.class ) ) {
-			contributor.contribute( this, serviceRegistry );
+		final ClassLoaderService classLoaderService = serviceRegistry.getService(ClassLoaderService.class);
+		for (MetadataBuilderInitializer contributor : classLoaderService
+				.loadJavaServices(MetadataBuilderInitializer.class)) {
+			contributor.contribute(this, serviceRegistry);
 		}
 	}
 
 	private void applyCfgXmlValues(CfgXmlAccessService service) {
 		final LoadedConfig aggregatedConfig = service.getAggregatedConfig();
-		if ( aggregatedConfig == null ) {
+		if (aggregatedConfig == null) {
 			return;
 		}
 
-		for ( CacheRegionDefinition cacheRegionDefinition : aggregatedConfig.getCacheRegionDefinitions() ) {
-			applyCacheRegionDefinition( cacheRegionDefinition );
+		for (CacheRegionDefinition cacheRegionDefinition : aggregatedConfig.getCacheRegionDefinitions()) {
+			applyCacheRegionDefinition(cacheRegionDefinition);
 		}
 	}
 
@@ -181,7 +171,7 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 	@Override
 	public MetadataBuilder applyReflectionManager(ReflectionManager reflectionManager) {
 		this.options.reflectionManager = reflectionManager;
-		this.options.reflectionManager.injectClassLoaderDelegate( this.options.getHcannClassLoaderDelegate() );
+		this.options.reflectionManager.injectClassLoaderDelegate(this.options.getHcannClassLoaderDelegate());
 		return this;
 	}
 
@@ -253,60 +243,60 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 
 	@Override
 	public MetadataBuilder applyBasicType(BasicType type) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type ) );
+		options.basicTypeRegistrations.add(new BasicTypeRegistration(type));
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyBasicType(BasicType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		options.basicTypeRegistrations.add(new BasicTypeRegistration(type, keys));
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyBasicType(UserType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		options.basicTypeRegistrations.add(new BasicTypeRegistration(type, keys));
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyBasicType(CompositeUserType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		options.basicTypeRegistrations.add(new BasicTypeRegistration(type, keys));
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyTypes(TypeContributor typeContributor) {
-		typeContributor.contribute( this, options.serviceRegistry );
+		typeContributor.contribute(this, options.serviceRegistry);
 		return this;
 	}
 
 	@Override
 	public void contributeType(BasicType type) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type ) );
+		options.basicTypeRegistrations.add(new BasicTypeRegistration(type));
 	}
 
 	@Override
 	public void contributeType(BasicType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		options.basicTypeRegistrations.add(new BasicTypeRegistration(type, keys));
 	}
 
 	@Override
 	public void contributeType(UserType type, String[] keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		options.basicTypeRegistrations.add(new BasicTypeRegistration(type, keys));
 	}
 
 	@Override
 	public void contributeType(CompositeUserType type, String[] keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		options.basicTypeRegistrations.add(new BasicTypeRegistration(type, keys));
 	}
 
 	@Override
 	public MetadataBuilder applyCacheRegionDefinition(CacheRegionDefinition cacheRegionDefinition) {
-		if ( options.cacheRegionDefinitions == null ) {
+		if (options.cacheRegionDefinitions == null) {
 			options.cacheRegionDefinitions = new ArrayList<CacheRegionDefinition>();
 		}
-		options.cacheRegionDefinitions.add( cacheRegionDefinition );
+		options.cacheRegionDefinitions.add(cacheRegionDefinition);
 		return this;
 	}
 
@@ -318,7 +308,7 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 
 	@Override
 	public MetadataBuilder applySourceProcessOrdering(MetadataSourceType... sourceTypes) {
-		options.sourceProcessOrdering.addAll( Arrays.asList( sourceTypes ) );
+		options.sourceProcessOrdering.addAll(Arrays.asList(sourceTypes));
 		return this;
 	}
 
@@ -327,61 +317,60 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 		return this;
 	}
 
-
 	@Override
 	public MetadataBuilder applySqlFunction(String functionName, SQLFunction function) {
-		if ( this.options.sqlFunctionMap == null ) {
+		if (this.options.sqlFunctionMap == null) {
 			this.options.sqlFunctionMap = new HashMap<String, SQLFunction>();
 		}
-		this.options.sqlFunctionMap.put( functionName, function );
+		this.options.sqlFunctionMap.put(functionName, function);
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyAuxiliaryDatabaseObject(AuxiliaryDatabaseObject auxiliaryDatabaseObject) {
-		if ( this.options.auxiliaryDatabaseObjectList == null ) {
+		if (this.options.auxiliaryDatabaseObjectList == null) {
 			this.options.auxiliaryDatabaseObjectList = new ArrayList<AuxiliaryDatabaseObject>();
 		}
-		this.options.auxiliaryDatabaseObjectList.add( auxiliaryDatabaseObject );
+		this.options.auxiliaryDatabaseObjectList.add(auxiliaryDatabaseObject);
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyAttributeConverter(AttributeConverterDefinition definition) {
-		this.options.addAttributeConverterDefinition( definition );
+		this.options.addAttributeConverterDefinition(definition);
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass) {
-		applyAttributeConverter( AttributeConverterDefinition.from( attributeConverterClass ) );
+		applyAttributeConverter(AttributeConverterDefinition.from(attributeConverterClass));
 		return this;
 	}
 
 	@Override
-	public MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass, boolean autoApply) {
-		applyAttributeConverter( AttributeConverterDefinition.from( attributeConverterClass, autoApply ) );
+	public MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass,
+			boolean autoApply) {
+		applyAttributeConverter(AttributeConverterDefinition.from(attributeConverterClass, autoApply));
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyAttributeConverter(AttributeConverter attributeConverter) {
-		applyAttributeConverter( AttributeConverterDefinition.from( attributeConverter ) );
+		applyAttributeConverter(AttributeConverterDefinition.from(attributeConverter));
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyAttributeConverter(AttributeConverter attributeConverter, boolean autoApply) {
-		applyAttributeConverter( AttributeConverterDefinition.from( attributeConverter, autoApply ) );
+		applyAttributeConverter(AttributeConverterDefinition.from(attributeConverter, autoApply));
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder enableNewIdentifierGeneratorSupport(boolean enabled) {
-		if ( enabled ) {
+		if (enabled) {
 			this.options.idGenerationTypeInterpreter.disableLegacyFallback();
-		}
-		else {
+		} else {
 			this.options.idGenerationTypeInterpreter.enableLegacyFallback();
 		}
 		return this;
@@ -389,14 +378,14 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 
 	@Override
 	public MetadataBuilder applyIdGenerationTypeInterpreter(IdGeneratorStrategyInterpreter interpreter) {
-		this.options.idGenerationTypeInterpreter.addInterpreterDelegate( interpreter );
+		this.options.idGenerationTypeInterpreter.addInterpreterDelegate(interpreter);
 		return this;
 	}
 
-//	public MetadataBuilder with(PersistentAttributeMemberResolver resolver) {
-//		options.persistentAttributeMemberResolver = resolver;
-//		return this;
-//	}
+	// public MetadataBuilder with(PersistentAttributeMemberResolver resolver) {
+	// options.persistentAttributeMemberResolver = resolver;
+	// return this;
+	// }
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -406,16 +395,17 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 
 	@Override
 	public MetadataImplementor build() {
-		final CfgXmlAccessService cfgXmlAccessService = options.serviceRegistry.getService( CfgXmlAccessService.class );
-		if ( cfgXmlAccessService.getAggregatedConfig() != null ) {
-			if ( cfgXmlAccessService.getAggregatedConfig().getMappingReferences() != null ) {
-				for ( MappingReference mappingReference : cfgXmlAccessService.getAggregatedConfig().getMappingReferences() ) {
-					mappingReference.apply( sources );
+		final CfgXmlAccessService cfgXmlAccessService = options.serviceRegistry.getService(CfgXmlAccessService.class);
+		if (cfgXmlAccessService.getAggregatedConfig() != null) {
+			if (cfgXmlAccessService.getAggregatedConfig().getMappingReferences() != null) {
+				for (MappingReference mappingReference : cfgXmlAccessService.getAggregatedConfig()
+						.getMappingReferences()) {
+					mappingReference.apply(sources);
 				}
 			}
 		}
 
-		return MetadataBuildingProcess.build( sources, options );
+		return MetadataBuildingProcess.build(sources, options);
 	}
 
 	@Override
@@ -431,35 +421,25 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 		private AccessType implicitCacheAccessType;
 
 		public MappingDefaultsImpl(StandardServiceRegistry serviceRegistry) {
-			final ConfigurationService configService = serviceRegistry.getService( ConfigurationService.class );
+			final ConfigurationService configService = serviceRegistry.getService(ConfigurationService.class);
 
-			this.implicitSchemaName = configService.getSetting(
-					AvailableSettings.DEFAULT_SCHEMA,
-					StandardConverters.STRING,
-					null
-			);
+			this.implicitSchemaName = configService.getSetting(AvailableSettings.DEFAULT_SCHEMA,
+					StandardConverters.STRING, null);
 
-			this.implicitCatalogName = configService.getSetting(
-					AvailableSettings.DEFAULT_CATALOG,
-					StandardConverters.STRING,
-					null
-			);
+			this.implicitCatalogName = configService.getSetting(AvailableSettings.DEFAULT_CATALOG,
+					StandardConverters.STRING, null);
 
-			this.implicitlyQuoteIdentifiers = configService.getSetting(
-					AvailableSettings.GLOBALLY_QUOTED_IDENTIFIERS,
-					StandardConverters.BOOLEAN,
-					false
-			);
+			this.implicitlyQuoteIdentifiers = configService.getSetting(AvailableSettings.GLOBALLY_QUOTED_IDENTIFIERS,
+					StandardConverters.BOOLEAN, false);
 
 			this.implicitCacheAccessType = configService.getSetting(
 					AvailableSettings.DEFAULT_CACHE_CONCURRENCY_STRATEGY,
 					new ConfigurationService.Converter<AccessType>() {
 						@Override
 						public AccessType convert(Object value) {
-							return AccessType.fromExternalName( value.toString() );
+							return AccessType.fromExternalName(value.toString());
 						}
-					}
-			);
+					});
 		}
 
 		@Override
@@ -562,155 +542,122 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 		private boolean specjProprietarySyntaxEnabled;
 		private ArrayList<MetadataSourceType> sourceProcessOrdering;
 
-		private HashMap<String,SQLFunction> sqlFunctionMap;
+		private HashMap<String, SQLFunction> sqlFunctionMap;
 		private ArrayList<AuxiliaryDatabaseObject> auxiliaryDatabaseObjectList;
-		private HashMap<Class,AttributeConverterDefinition> attributeConverterDefinitionsByClass;
+		private HashMap<Class, AttributeConverterDefinition> attributeConverterDefinitionsByClass;
 
 		private IdGeneratorInterpreterImpl idGenerationTypeInterpreter = new IdGeneratorInterpreterImpl();
 
 		private boolean autoQuoteKeywords;
 
-//		private PersistentAttributeMemberResolver persistentAttributeMemberResolver =
-//				StandardPersistentAttributeMemberResolver.INSTANCE;
+		// private PersistentAttributeMemberResolver persistentAttributeMemberResolver =
+		// StandardPersistentAttributeMemberResolver.INSTANCE;
 
 		public MetadataBuildingOptionsImpl(StandardServiceRegistry serviceRegistry) {
 			this.serviceRegistry = serviceRegistry;
 
-			final StrategySelector strategySelector = serviceRegistry.getService( StrategySelector.class );
-			final ConfigurationService configService = serviceRegistry.getService( ConfigurationService.class );
+			final StrategySelector strategySelector = serviceRegistry.getService(StrategySelector.class);
+			final ConfigurationService configService = serviceRegistry.getService(ConfigurationService.class);
 
-			this.mappingDefaults = new MappingDefaultsImpl( serviceRegistry );
+			this.mappingDefaults = new MappingDefaultsImpl(serviceRegistry);
 
-//			jandexView = (IndexView) configService.getSettings().get( AvailableSettings.JANDEX_INDEX );
+			// jandexView = (IndexView) configService.getSettings().get(
+			// AvailableSettings.JANDEX_INDEX );
 
 			this.scanOptions = new StandardScanOptions(
-					(String) configService.getSettings().get( AvailableSettings.SCANNER_DISCOVERY ),
-					false
-			);
+					(String) configService.getSettings().get(AvailableSettings.SCANNER_DISCOVERY), false);
 			// ScanEnvironment must be set explicitly
-			this.scannerSetting = configService.getSettings().get( AvailableSettings.SCANNER );
-			if ( this.scannerSetting == null ) {
-				this.scannerSetting = configService.getSettings().get( AvailableSettings.SCANNER_DEPRECATED );
-				if ( this.scannerSetting != null ) {
+			this.scannerSetting = configService.getSettings().get(AvailableSettings.SCANNER);
+			if (this.scannerSetting == null) {
+				this.scannerSetting = configService.getSettings().get(AvailableSettings.SCANNER_DEPRECATED);
+				if (this.scannerSetting != null) {
 					DEPRECATION_LOGGER.logDeprecatedScannerSetting();
 				}
 			}
-			this.archiveDescriptorFactory = strategySelector.resolveStrategy(
-					ArchiveDescriptorFactory.class,
-					configService.getSettings().get( AvailableSettings.SCANNER_ARCHIVE_INTERPRETER )
-			);
+			this.archiveDescriptorFactory = strategySelector.resolveStrategy(ArchiveDescriptorFactory.class,
+					configService.getSettings().get(AvailableSettings.SCANNER_ARCHIVE_INTERPRETER));
 
-			this.multiTenancyStrategy =  MultiTenancyStrategy.determineMultiTenancyStrategy( configService.getSettings() );
+			this.multiTenancyStrategy = MultiTenancyStrategy.determineMultiTenancyStrategy(configService.getSettings());
 
 			this.implicitDiscriminatorsForJoinedInheritanceSupported = configService.getSetting(
-					AvailableSettings.IMPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,
-					StandardConverters.BOOLEAN,
-					false
-			);
+					AvailableSettings.IMPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS, StandardConverters.BOOLEAN,
+					false);
 
 			this.explicitDiscriminatorsForJoinedInheritanceSupported = !configService.getSetting(
 					AvailableSettings.IGNORE_EXPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS,
-					StandardConverters.BOOLEAN,
-					false
-			);
+					StandardConverters.BOOLEAN, false);
 
 			this.implicitlyForceDiscriminatorInSelect = configService.getSetting(
-					AvailableSettings.FORCE_DISCRIMINATOR_IN_SELECTS_BY_DEFAULT,
-					StandardConverters.BOOLEAN,
-					false
-			);
+					AvailableSettings.FORCE_DISCRIMINATOR_IN_SELECTS_BY_DEFAULT, StandardConverters.BOOLEAN, false);
 
-			this.sharedCacheMode = configService.getSetting(
-					"javax.persistence.sharedCache.mode",
+			this.sharedCacheMode = configService.getSetting("javax.persistence.sharedCache.mode",
 					new ConfigurationService.Converter<SharedCacheMode>() {
 						@Override
 						public SharedCacheMode convert(Object value) {
-							if ( value == null ) {
+							if (value == null) {
 								return null;
 							}
 
-							if ( SharedCacheMode.class.isInstance( value ) ) {
+							if (SharedCacheMode.class.isInstance(value)) {
 								return (SharedCacheMode) value;
 							}
 
-							return SharedCacheMode.valueOf( value.toString() );
+							return SharedCacheMode.valueOf(value.toString());
 						}
-					},
-					SharedCacheMode.UNSPECIFIED
-			);
+					}, SharedCacheMode.UNSPECIFIED);
 
-			this.defaultCacheAccessType = configService.getSetting(
-					AvailableSettings.DEFAULT_CACHE_CONCURRENCY_STRATEGY,
+			this.defaultCacheAccessType = configService.getSetting(AvailableSettings.DEFAULT_CACHE_CONCURRENCY_STRATEGY,
 					new ConfigurationService.Converter<AccessType>() {
 						@Override
 						public AccessType convert(Object value) {
-							if ( value == null ) {
+							if (value == null) {
 								return null;
 							}
 
-							if ( CacheConcurrencyStrategy.class.isInstance( value ) ) {
-								return ( (CacheConcurrencyStrategy) value ).toAccessType();
+							if (CacheConcurrencyStrategy.class.isInstance(value)) {
+								return ((CacheConcurrencyStrategy) value).toAccessType();
 							}
 
-							if ( AccessType.class.isInstance( value ) ) {
+							if (AccessType.class.isInstance(value)) {
 								return (AccessType) value;
 							}
 
-							return AccessType.fromExternalName( value.toString() );
+							return AccessType.fromExternalName(value.toString());
 						}
 					},
 					// by default, see if the defined RegionFactory (if one) defines a default
-					serviceRegistry.getService( RegionFactory.class ) == null
-							? null
-							: serviceRegistry.getService( RegionFactory.class ).getDefaultAccessType()
-			);
+					serviceRegistry.getService(RegionFactory.class) == null ? null
+							: serviceRegistry.getService(RegionFactory.class).getDefaultAccessType());
 
-			this.specjProprietarySyntaxEnabled = configService.getSetting(
-					"hibernate.enable_specj_proprietary_syntax",
-					StandardConverters.BOOLEAN,
-					false
-			);
+			this.specjProprietarySyntaxEnabled = configService.getSetting("hibernate.enable_specj_proprietary_syntax",
+					StandardConverters.BOOLEAN, false);
 
-			this.implicitNamingStrategy = strategySelector.resolveDefaultableStrategy(
-					ImplicitNamingStrategy.class,
-					configService.getSettings().get( AvailableSettings.IMPLICIT_NAMING_STRATEGY ),
+			this.implicitNamingStrategy = strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class,
+					configService.getSettings().get(AvailableSettings.IMPLICIT_NAMING_STRATEGY),
 					new Callable<ImplicitNamingStrategy>() {
 						@Override
 						public ImplicitNamingStrategy call() throws Exception {
-							return strategySelector.resolveDefaultableStrategy(
-									ImplicitNamingStrategy.class,
-									"default",
-									ImplicitNamingStrategyJpaCompliantImpl.INSTANCE
-							);
+							return strategySelector.resolveDefaultableStrategy(ImplicitNamingStrategy.class, "default",
+									ImplicitNamingStrategyJpaCompliantImpl.INSTANCE);
 						}
-					}
-			);
+					});
 
-			this.physicalNamingStrategy = strategySelector.resolveDefaultableStrategy(
-					PhysicalNamingStrategy.class,
-					configService.getSettings().get( AvailableSettings.PHYSICAL_NAMING_STRATEGY ),
-					PhysicalNamingStrategyStandardImpl.INSTANCE
-			);
+			this.physicalNamingStrategy = strategySelector.resolveDefaultableStrategy(PhysicalNamingStrategy.class,
+					configService.getSettings().get(AvailableSettings.PHYSICAL_NAMING_STRATEGY),
+					PhysicalNamingStrategyStandardImpl.INSTANCE);
 
-			this.sourceProcessOrdering = resolveInitialSourceProcessOrdering( configService );
+			this.sourceProcessOrdering = resolveInitialSourceProcessOrdering(configService);
 
-			final boolean useNewIdentifierGenerators = configService.getSetting(
-					AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS,
-					StandardConverters.BOOLEAN,
-					true
-			);
-			if ( useNewIdentifierGenerators ) {
+			final boolean useNewIdentifierGenerators = configService
+					.getSetting(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS, StandardConverters.BOOLEAN, true);
+			if (useNewIdentifierGenerators) {
 				this.idGenerationTypeInterpreter.disableLegacyFallback();
-			}
-			else {
+			} else {
 				this.idGenerationTypeInterpreter.enableLegacyFallback();
 			}
 
-			this.useNationalizedCharacterData = configService.getSetting(
-					AvailableSettings.USE_NATIONALIZED_CHARACTER_DATA,
-					StandardConverters.BOOLEAN,
-					false
-			);
+			this.useNationalizedCharacterData = configService
+					.getSetting(AvailableSettings.USE_NATIONALIZED_CHARACTER_DATA, StandardConverters.BOOLEAN, false);
 
 			this.reflectionManager = generateDefaultReflectionManager();
 		}
@@ -718,20 +665,18 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 		private ArrayList<MetadataSourceType> resolveInitialSourceProcessOrdering(ConfigurationService configService) {
 			final ArrayList<MetadataSourceType> initialSelections = new ArrayList<MetadataSourceType>();
 
-			final String sourceProcessOrderingSetting = configService.getSetting(
-					AvailableSettings.ARTIFACT_PROCESSING_ORDER,
-					StandardConverters.STRING
-			);
-			if ( sourceProcessOrderingSetting != null ) {
-				final String[] orderChoices = StringHelper.split( ",; ", sourceProcessOrderingSetting, false );
-				initialSelections.addAll( CollectionHelper.<MetadataSourceType>arrayList( orderChoices.length ) );
-				for ( String orderChoice : orderChoices ) {
-					initialSelections.add( MetadataSourceType.parsePrecedence( orderChoice ) );
+			final String sourceProcessOrderingSetting = configService
+					.getSetting(AvailableSettings.ARTIFACT_PROCESSING_ORDER, StandardConverters.STRING);
+			if (sourceProcessOrderingSetting != null) {
+				final String[] orderChoices = StringHelper.split(",; ", sourceProcessOrderingSetting, false);
+				initialSelections.addAll(CollectionHelper.<MetadataSourceType>arrayList(orderChoices.length));
+				for (String orderChoice : orderChoices) {
+					initialSelections.add(MetadataSourceType.parsePrecedence(orderChoice));
 				}
 			}
-			if ( initialSelections.isEmpty() ) {
-				initialSelections.add( MetadataSourceType.HBM );
-				initialSelections.add( MetadataSourceType.CLASS );
+			if (initialSelections.isEmpty()) {
+				initialSelections.add(MetadataSourceType.HBM);
+				initialSelections.add(MetadataSourceType.CLASS);
 			}
 
 			return initialSelections;
@@ -739,23 +684,23 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 
 		private ReflectionManager generateDefaultReflectionManager() {
 			final JavaReflectionManager reflectionManager = new JavaReflectionManager();
-			reflectionManager.setMetadataProvider( new JPAMetadataProvider( this ) );
-			reflectionManager.injectClassLoaderDelegate( getHcannClassLoaderDelegate() );
+			reflectionManager.setMetadataProvider(new JPAMetadataProvider(this));
+			reflectionManager.injectClassLoaderDelegate(getHcannClassLoaderDelegate());
 			return reflectionManager;
 		}
 
 		public ClassLoaderDelegate getHcannClassLoaderDelegate() {
-			if ( hcannClassLoaderDelegate == null ) {
+			if (hcannClassLoaderDelegate == null) {
 				hcannClassLoaderDelegate = new ClassLoaderDelegate() {
-					private final  ClassLoaderService classLoaderService = getServiceRegistry().getService( ClassLoaderService.class );
+					private final ClassLoaderService classLoaderService = getServiceRegistry()
+							.getService(ClassLoaderService.class);
 
 					@Override
 					public <T> Class<T> classForName(String className) throws ClassLoadingException {
 						try {
-							return classLoaderService.classForName( className );
-						}
-						catch (org.hibernate.boot.registry.classloading.spi.ClassLoadingException e) {
-							return StandardClassLoaderDelegateImpl.INSTANCE.classForName( className );
+							return classLoaderService.classForName(className);
+						} catch (org.hibernate.boot.registry.classloading.spi.ClassLoadingException e) {
+							return StandardClassLoaderDelegateImpl.INSTANCE.classForName(className);
 						}
 					}
 				};
@@ -885,61 +830,56 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 
 		@Override
 		public List<AuxiliaryDatabaseObject> getAuxiliaryDatabaseObjectList() {
-			return auxiliaryDatabaseObjectList == null
-					? Collections.<AuxiliaryDatabaseObject>emptyList()
+			return auxiliaryDatabaseObjectList == null ? Collections.<AuxiliaryDatabaseObject>emptyList()
 					: auxiliaryDatabaseObjectList;
 		}
 
 		@Override
 		public List<AttributeConverterDefinition> getAttributeConverters() {
-			return attributeConverterDefinitionsByClass == null
-					? Collections.<AttributeConverterDefinition>emptyList()
-					: new ArrayList<AttributeConverterDefinition>( attributeConverterDefinitionsByClass.values() );
+			return attributeConverterDefinitionsByClass == null ? Collections.<AttributeConverterDefinition>emptyList()
+					: new ArrayList<AttributeConverterDefinition>(attributeConverterDefinitionsByClass.values());
 		}
 
 		public void addAttributeConverterDefinition(AttributeConverterDefinition definition) {
-			if ( this.attributeConverterDefinitionsByClass == null ) {
+			if (this.attributeConverterDefinitionsByClass == null) {
 				this.attributeConverterDefinitionsByClass = new HashMap<Class, AttributeConverterDefinition>();
 			}
 
-			final Object old = this.attributeConverterDefinitionsByClass.put( definition.getAttributeConverter().getClass(), definition );
+			final Object old = this.attributeConverterDefinitionsByClass
+					.put(definition.getAttributeConverter().getClass(), definition);
 
-			if ( old != null ) {
-				throw new AssertionFailure(
-						String.format(
-								"AttributeConverter class [%s] registered multiple times",
-								definition.getAttributeConverter().getClass()
-						)
-				);
+			if (old != null) {
+				throw new AssertionFailure(String.format("AttributeConverter class [%s] registered multiple times",
+						definition.getAttributeConverter().getClass()));
 			}
 		}
 
 		/**
-		 * Yuck.  This is needed because JPA lets users define "global building options"
-		 * in {@code orm.xml} mappings.  Forget that there are generally multiple
-		 * {@code orm.xml} mappings if using XML approach...  Ugh
+		 * Yuck. This is needed because JPA lets users define "global building options"
+		 * in {@code orm.xml} mappings. Forget that there are generally multiple
+		 * {@code orm.xml} mappings if using XML approach... Ugh
 		 */
 		public void apply(JpaOrmXmlPersistenceUnitDefaults jpaOrmXmlPersistenceUnitDefaults) {
-			if ( !mappingDefaults.shouldImplicitlyQuoteIdentifiers() ) {
-				mappingDefaults.implicitlyQuoteIdentifiers = jpaOrmXmlPersistenceUnitDefaults.shouldImplicitlyQuoteIdentifiers();
+			if (!mappingDefaults.shouldImplicitlyQuoteIdentifiers()) {
+				mappingDefaults.implicitlyQuoteIdentifiers = jpaOrmXmlPersistenceUnitDefaults
+						.shouldImplicitlyQuoteIdentifiers();
 			}
 
-			if ( mappingDefaults.getImplicitCatalogName() == null ) {
-				mappingDefaults.implicitCatalogName = StringHelper.nullIfEmpty(
-						jpaOrmXmlPersistenceUnitDefaults.getDefaultCatalogName()
-				);
+			if (mappingDefaults.getImplicitCatalogName() == null) {
+				mappingDefaults.implicitCatalogName = StringHelper
+						.nullIfEmpty(jpaOrmXmlPersistenceUnitDefaults.getDefaultCatalogName());
 			}
 
-			if ( mappingDefaults.getImplicitSchemaName() == null ) {
-				mappingDefaults.implicitSchemaName = StringHelper.nullIfEmpty(
-						jpaOrmXmlPersistenceUnitDefaults.getDefaultSchemaName()
-				);
+			if (mappingDefaults.getImplicitSchemaName() == null) {
+				mappingDefaults.implicitSchemaName = StringHelper
+						.nullIfEmpty(jpaOrmXmlPersistenceUnitDefaults.getDefaultSchemaName());
 			}
 		}
 
-		//		@Override
-//		public PersistentAttributeMemberResolver getPersistentAttributeMemberResolver() {
-//			return persistentAttributeMemberResolver;
-//		}
+		// @Override
+		// public PersistentAttributeMemberResolver
+		// getPersistentAttributeMemberResolver() {
+		// return persistentAttributeMemberResolver;
+		// }
 	}
 }

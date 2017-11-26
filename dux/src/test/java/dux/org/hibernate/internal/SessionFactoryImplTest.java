@@ -6,9 +6,12 @@ import java.util.Map;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.cfgxml.spi.CfgXmlAccessService;
 import org.hibernate.boot.internal.ClassLoaderAccessImpl;
 import org.hibernate.boot.internal.InFlightMetadataCollectorImpl;
+import org.hibernate.boot.internal.MetadataBuilderImpl;
+import org.hibernate.boot.internal.MetadataBuilderImpl.MetadataBuildingOptionsImpl;
 import org.hibernate.boot.internal.MetadataBuildingContextRootImpl;
 import org.hibernate.boot.internal.MetadataImpl;
 import org.hibernate.boot.internal.SessionFactoryBuilderImpl;
@@ -17,7 +20,10 @@ import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.selector.spi.StrategySelector;
 import org.hibernate.boot.spi.ClassLoaderAccess;
 import org.hibernate.boot.spi.InFlightMetadataCollector;
+import org.hibernate.boot.spi.MetadataBuildingOptions;
+import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cache.spi.RegionFactory;
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
@@ -48,7 +54,6 @@ import dum.java.sql.DummyConnection;
 import dum.org.hibernate.boot.cfgxml.spi.DummyCfgXmlAccessService;
 import dum.org.hibernate.boot.model.naming.DummyPhysicalNamingStrategy;
 import dum.org.hibernate.boot.registry.selector.spi.DummyStrategySelector;
-import dum.org.hibernate.boot.spi.DummyInFlightMetadataCollector;
 import dum.org.hibernate.boot.spi.DummyMappingDefaults;
 import dum.org.hibernate.boot.spi.DummyMetadataBuildingOptions;
 import dum.org.hibernate.cache.spi.DummyRegionFactory;
@@ -105,8 +110,25 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		DummyCfgXmlAccessService cfgXmlAccessService = new DummyCfgXmlAccessService();
 
+		Map<String, Object> config = new HashMap<>();
+		config.put(AvailableSettings.GLOBALLY_QUOTED_IDENTIFIERS, false);
+		config.put(AvailableSettings.IMPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS, false);
+		config.put(AvailableSettings.IGNORE_EXPLICIT_DISCRIMINATOR_COLUMNS_FOR_JOINED_SUBCLASS, false);
+		config.put(AvailableSettings.FORCE_DISCRIMINATOR_IN_SELECTS_BY_DEFAULT, false);
+		config.put("hibernate.enable_specj_proprietary_syntax", false);
+		config.put(AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS, true);
+		config.put(AvailableSettings.USE_NATIONALIZED_CHARACTER_DATA, false);
+		config.put(AvailableSettings.USE_LEGACY_LIMIT_HANDLERS, false);
+
 		DummyConfigurationService configurationService = new DummyConfigurationService();
 		configurationService.getSettings().put("hibernate.current_session_context_class", "thread");
+		configurationService.setGetSettingRWA(new RunnableWithArgs<Object>() {
+			@Override
+			public Object run(Object... args) {
+				String name = (String) args[0];
+				return config.get(name);
+			}
+		});
 
 		DummyIntegratorService integratorService = new DummyIntegratorService();
 
@@ -177,6 +199,8 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		DummyStrategySelector strategySelector = new DummyStrategySelector();
 
+		ClassLoaderService classLoaderService = new ClassLoaderServiceImpl();
+
 		DummyStandardServiceRegistry standardServiceRegistry = new DummyStandardServiceRegistry();
 		standardServiceRegistry.setService(JdbcEnvironment.class, jdbcEnvironment);
 		standardServiceRegistry.setService(JdbcServices.class, jdbcServices);
@@ -186,35 +210,18 @@ public class SessionFactoryImplTest extends AbstractTest {
 		standardServiceRegistry.setService(StrategySelector.class, strategySelector);
 		standardServiceRegistry.setService(RegionFactory.class, regionFactory);
 		standardServiceRegistry.setService(TransactionCoordinatorBuilder.class, transactionCoordinatorBuilder);
-
-		DummyMappingDefaults mappingDefaults = new DummyMappingDefaults();
-		mappingDefaults.setImplicitCatalogName("implicitCatalogName");
-		mappingDefaults.setImplicitSchemaName("implicitSchemaName");
+		standardServiceRegistry.setService(ClassLoaderService.class, classLoaderService);
+		standardServiceRegistry.setService(CfgXmlAccessService.class, cfgXmlAccessService);
 
 		DummyPhysicalNamingStrategy physicalNamingStrategy = new DummyPhysicalNamingStrategy();
 
 		DummyMultiTableBulkIdStrategy multiTableBulkIdStrategy = new DummyMultiTableBulkIdStrategy();
 
-		DummyMetadataBuildingOptions metadataBuildingOptions = new DummyMetadataBuildingOptions();
-		metadataBuildingOptions.setServiceRegistry(standardServiceRegistry);
-		metadataBuildingOptions.setMappingDefaults(mappingDefaults);
-		metadataBuildingOptions.setPhysicalNamingStrategy(physicalNamingStrategy);
+		MetadataSources sources = new MetadataSources(standardServiceRegistry);
+		MetadataBuilderImpl mbi = new MetadataBuilderImpl(sources, standardServiceRegistry);
+		mbi.applyPhysicalNamingStrategy(physicalNamingStrategy);
 
-		TypeResolver typeResolver = new TypeResolver();
-
-		InFlightMetadataCollector metadataCollector = new InFlightMetadataCollectorImpl(metadataBuildingOptions,
-				typeResolver);
-
-		ClassLoaderService classLoaderService = new ClassLoaderServiceImpl();
-		ClassLoaderAccess classLoaderAccess = new ClassLoaderAccessImpl(classLoaderService);
-
-		MetadataBuildingContextRootImpl metadataBuildingContext = new MetadataBuildingContextRootImpl(
-				metadataBuildingOptions, classLoaderAccess, metadataCollector);
-
-		InFlightMetadataCollectorImpl inFlightMetadataCollectorImpl = new InFlightMetadataCollectorImpl(
-				metadataBuildingOptions, typeResolver);
-
-		MetadataImpl metadataImpl = inFlightMetadataCollectorImpl.buildMetadataInstance(metadataBuildingContext);
+		MetadataImplementor metadataImpl = mbi.build();
 
 		SessionFactoryBuilderImpl sessionFactoryBuilderImpl = new SessionFactoryBuilderImpl(metadataImpl);
 		sessionFactoryBuilderImpl.applyMultiTableBulkIdStrategy(multiTableBulkIdStrategy);
