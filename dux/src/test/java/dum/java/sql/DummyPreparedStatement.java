@@ -378,8 +378,7 @@ public class DummyPreparedStatement extends TestEventCollector implements Prepar
 
 	@Override
 	public void setString(int parameterIndex, String x) throws SQLException {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("setString").prop("parameterIndex", parameterIndex).prop("x", x));
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -28,6 +29,9 @@ import javax.xml.bind.annotation.XmlType;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import dum.org.hibernate.DummySessionEventListener;
 
 public abstract class AbstractTest {
@@ -36,6 +40,7 @@ public abstract class AbstractTest {
 	protected static final boolean[] booleans = { false, true };
 	private static boolean tried;
 	private static RuntimeException requireSourcesException;
+	private ObjectMapper om;
 
 	protected void at(Boolean b) {
 		Assert.assertTrue(b);
@@ -109,7 +114,38 @@ public abstract class AbstractTest {
 		if (o instanceof String) {
 			return "s$" + o;
 		}
+		if (o instanceof Number) {
+			return "n$" + o;
+		}
+		if (o.getClass().isArray()) {
+			Class<?> componentType = o.getClass().getComponentType();
+			if (componentType == String.class) {
+				return "a$" + componentType.getName() + " " + strom(o);
+			} else if (Number.class.isAssignableFrom(componentType)) {
+				return "a$" + componentType.getName() + " " + strom(o);
+			} else {
+				return "a$" + o.getClass().getComponentType().getName() + " (" + ((Object[]) o).length + ")";
+			}
+		}
+		if (o instanceof Collection) {
+			return "col$" + o.getClass().getName() + " (" + ((Collection) o).size() + ")";
+		}
 		return "c$" + o.getClass().getName();
+	}
+
+	private String strom(Object o) {
+		try {
+			return getObjectMapper().writeValueAsString(o);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private ObjectMapper getObjectMapper() {
+		if (om == null) {
+			om = new ObjectMapper();
+		}
+		return om;
 	}
 
 	protected void has4(Map<String, ?> map, String key, Class<?> clazz) {

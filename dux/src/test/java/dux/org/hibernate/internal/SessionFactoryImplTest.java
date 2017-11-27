@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -131,8 +129,11 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 	@Entity
 	public static class A {
+
 		@Id
 		private Long id;
+
+		private String name;
 
 		public Long getId() {
 			return id;
@@ -140,6 +141,14 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		public void setId(Long id) {
 			this.id = id;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
 		}
 
 	}
@@ -416,6 +425,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 		// transactionDriverControl.setStatus(TransactionStatus.ACTIVE);
 
 		A a = new A();
+		a.setName("name");
 		s.persist(a);
 
 		t.commit();
@@ -424,18 +434,6 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		List<TestEvent> testEvents = getAllTestEvents(this);
 		dumpTestEvents(testEvents);
-
-		testEvents.stream().filter(new Predicate<TestEvent>() {
-			@Override
-			public boolean test(TestEvent t) {
-				return "inspect".equals(t.getName());
-			}
-		}).forEachOrdered(new Consumer<TestEvent>() {
-			@Override
-			public void accept(TestEvent t) {
-				System.out.println(t.prop("sql"));
-			}
-		});
 
 	}
 }
