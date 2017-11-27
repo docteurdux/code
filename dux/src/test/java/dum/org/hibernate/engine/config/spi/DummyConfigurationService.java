@@ -22,8 +22,11 @@ public class DummyConfigurationService implements ConfigurationService {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T getSetting(String name, Converter<T> converter) {
-		// TODO Auto-generated method stub
+		if (getSettingRWA != null) {
+			return (T) getSettingRWA.run(name, converter);
+		}
 		return null;
 	}
 
@@ -36,14 +39,17 @@ public class DummyConfigurationService implements ConfigurationService {
 		return null;
 	}
 
-	public void setGetSettingRWA(RunnableWithArgs<Object> getSettingRWA) {
-		this.getSettingRWA = getSettingRWA;
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T getSetting(String name, Class<T> expected, T defaultValue) {
+		if (getSettingRWA != null) {
+			return (T) getSettingRWA.run(name, expected, defaultValue);
+		}
+		return null;
 	}
 
-	@Override
-	public <T> T getSetting(String name, Class<T> expected, T defaultValue) {
-		// TODO Auto-generated method stub
-		return null;
+	public void setGetSettingRWA(RunnableWithArgs<Object> getSettingRWA) {
+		this.getSettingRWA = getSettingRWA;
 	}
 
 	@Override

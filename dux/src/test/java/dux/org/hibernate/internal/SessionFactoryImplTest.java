@@ -1,12 +1,12 @@
 package dux.org.hibernate.internal;
 
-import java.beans.BeanDescriptor;
 import java.io.Serializable;
-import java.lang.reflect.AnnotatedType;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import javax.persistence.Entity;
@@ -77,6 +77,46 @@ import dux.org.hibernate.query.criteria.internal.DummyIntegratorService;
 
 public class SessionFactoryImplTest extends AbstractTest {
 
+	private DummyIdentifierHelper identifierHelper;
+	private Dialect dialect;
+	private DummyQualifiedObjectNameFormatter qualifiedObjectNameFormatter;
+	private DummyJdbcEnvironment jdbcEnvironment;
+	private DummyExtractedDatabaseMetaData extractedMetaDataSupport;
+	private DummyJdbcServices jdbcServices;
+	private DummyCfgXmlAccessService cfgXmlAccessService;
+	private DummyConfigurationService configurationService;
+	private DummyIntegratorService integratorService;
+	private DummyRegionFactory regionFactory;
+	private DummyCacheImplementor cacheImplementor;
+	private DummyConnection connection;
+	private DummyConnectionProvider connectionProvider;
+	private DummySynchronizationRegistry localSynchronizations;
+	private DummyTransactionDriver transactionDriverControl;
+	private DummyTransactionCoordinator transactionCoordinator;
+	private PhysicalConnectionHandlingMode physicalConnectionHandlingMode;
+	private DummyTransactionCoordinatorBuilder transactionCoordinatorBuilder;
+	private DummyStrategySelector strategySelector;
+	private ClassLoaderService classLoaderService;
+	private DummyPhysicalNamingStrategy physicalNamingStrategy;
+	private DummyMultiTableBulkIdStrategy multiTableBulkIdStrategy;
+	private Long generatedId;
+	private DummyIdentifierGenerator identifierGenerator;
+	private DummyMutableIdentifierGeneratorFactory mutableIdentifierGeneratorFactory;
+	private DummyJndiService jndiService;
+	private BootstrapServiceRegistryImpl bootstrapServiceRegistryImpl;
+	@SuppressWarnings("rawtypes")
+	private List<StandardServiceInitiator> standardServiceInitiators;
+	@SuppressWarnings("rawtypes")
+	private List<ProvidedService> providedServices;
+	private Map<?, ?> standardServiceRegistryConfigurationMap;
+	private StandardServiceRegistryImpl standardServiceRegistryImpl;
+	private MetadataSources metadataSources;
+	private MetadataBuilderImpl metadataBuilderImpl;
+	private MetadataImplementor metadataImplementor;
+	private SessionFactoryBuilderImpl sessionFactoryBuilderImpl;
+	private SessionFactory sessionFactory;
+	private Set<String> nullConfigurationSettings;
+
 	@Entity
 	public static class A {
 		@Id
@@ -92,6 +132,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@Before
 	public void before() {
 		requireAllSourcesBut(HibernateCoreSummaryTest.MVNNAME,
@@ -121,13 +162,8 @@ public class SessionFactoryImplTest extends AbstractTest {
 				"org.hibernate.bytecode.enhance.internal.bytebuddy.EnhancerImpl",
 				"org.hibernate.result.internal.ResultSetOutputImpl",
 				"org.hibernate.engine.spi.SessionDelegatorBaseImpl");
-	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test
-	public void test() {
-
-		DummyIdentifierHelper identifierHelper = new DummyIdentifierHelper();
+		identifierHelper = new DummyIdentifierHelper();
 		identifierHelper.setToIdentifierRWA(new RunnableWithArgs<Identifier>() {
 			@Override
 			public Identifier run(Object... args) {
@@ -139,10 +175,10 @@ public class SessionFactoryImplTest extends AbstractTest {
 			}
 		});
 
-		Dialect dialect = new Dialect() {
+		dialect = new Dialect() {
 		};
 
-		DummyQualifiedObjectNameFormatter qualifiedObjectNameFormatter = new DummyQualifiedObjectNameFormatter();
+		qualifiedObjectNameFormatter = new DummyQualifiedObjectNameFormatter();
 		qualifiedObjectNameFormatter.setFormatRWA(new RunnableWithArgs<String>() {
 			@Override
 			public String run(Object... args) {
@@ -170,51 +206,63 @@ public class SessionFactoryImplTest extends AbstractTest {
 			}
 		});
 
-		DummyJdbcEnvironment jdbcEnvironment = new DummyJdbcEnvironment();
+		jdbcEnvironment = new DummyJdbcEnvironment();
 		jdbcEnvironment.setIdentifierHelper(identifierHelper);
 		jdbcEnvironment.setDialect(dialect);
 		jdbcEnvironment.setQualifiedObjectNameFormatter(qualifiedObjectNameFormatter);
 
-		DummyExtractedDatabaseMetaData extractedMetaDataSupport = new DummyExtractedDatabaseMetaData();
+		extractedMetaDataSupport = new DummyExtractedDatabaseMetaData();
 
-		DummyJdbcServices jdbcServices = new DummyJdbcServices();
+		jdbcServices = new DummyJdbcServices();
 		jdbcServices.setJdbcEnvironment(jdbcEnvironment);
 		jdbcServices.setExtractedMetaDataSupport(extractedMetaDataSupport);
 
-		DummyCfgXmlAccessService cfgXmlAccessService = new DummyCfgXmlAccessService();
+		cfgXmlAccessService = new DummyCfgXmlAccessService();
 
-		DummyConfigurationService configurationService = new DummyConfigurationService();
+		nullConfigurationSettings = new HashSet<>();
+
+		configurationService = new DummyConfigurationService();
 		configurationService.getSettings().put("hibernate.current_session_context_class", "thread");
 		configurationService.setGetSettingRWA(new RunnableWithArgs<Object>() {
 			@Override
 			public Object run(Object... args) {
-				return args[2];
+				String name = (String) args[0];
+				Object value = configurationService.getSettings().get(name);
+				if (value == null && args.length == 3) {
+					value = args[2];
+					if (value != null) {
+						configurationService.getSettings().put(name, value);
+					} else {
+						nullConfigurationSettings.add(name);
+					}
+				}
+				return value;
 			}
 		});
 
-		DummyIntegratorService integratorService = new DummyIntegratorService();
+		integratorService = new DummyIntegratorService();
 
-		DummyRegionFactory regionFactory = new DummyRegionFactory();
+		regionFactory = new DummyRegionFactory();
 
-		DummyCacheImplementor cacheImplementor = new DummyCacheImplementor();
+		cacheImplementor = new DummyCacheImplementor();
 		cacheImplementor.setRegionFactory(regionFactory);
 
-		DummyConnection connection = new DummyConnection();
+		connection = new DummyConnection();
 
-		DummyConnectionProvider connectionProvider = new DummyConnectionProvider();
+		connectionProvider = new DummyConnectionProvider();
 		connectionProvider.setConnection(connection);
 
-		DummySynchronizationRegistry localSynchronizations = new DummySynchronizationRegistry();
+		localSynchronizations = new DummySynchronizationRegistry();
 
-		DummyTransactionDriver transactionDriverControl = new DummyTransactionDriver();
+		transactionDriverControl = new DummyTransactionDriver();
 
-		DummyTransactionCoordinator transactionCoordinator = new DummyTransactionCoordinator();
+		transactionCoordinator = new DummyTransactionCoordinator();
 		transactionCoordinator.setLocalSynchronizations(localSynchronizations);
 		transactionCoordinator.setTransactionDriverControl(transactionDriverControl);
 
-		PhysicalConnectionHandlingMode physicalConnectionHandlingMode = PhysicalConnectionHandlingMode.IMMEDIATE_ACQUISITION_AND_HOLD;
+		physicalConnectionHandlingMode = PhysicalConnectionHandlingMode.IMMEDIATE_ACQUISITION_AND_HOLD;
 
-		DummyTransactionCoordinatorBuilder transactionCoordinatorBuilder = new DummyTransactionCoordinatorBuilder();
+		transactionCoordinatorBuilder = new DummyTransactionCoordinatorBuilder();
 		transactionCoordinatorBuilder.setDefaultConnectionHandlingMode(physicalConnectionHandlingMode);
 		transactionCoordinatorBuilder.setBuildTransactionCoordinatorRWA(new RunnableWithArgs<TransactionCoordinator>() {
 			@Override
@@ -223,7 +271,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 			}
 		});
 
-		DummyStrategySelector strategySelector = new DummyStrategySelector();
+		strategySelector = new DummyStrategySelector();
 		strategySelector.setResolveDefaultableStrategyRWA(new RunnableWithArgs<Object>() {
 
 			@Override
@@ -241,9 +289,9 @@ public class SessionFactoryImplTest extends AbstractTest {
 			}
 		});
 
-		ClassLoaderService classLoaderService = new ClassLoaderServiceImpl();
+		classLoaderService = new ClassLoaderServiceImpl();
 
-		DummyPhysicalNamingStrategy physicalNamingStrategy = new DummyPhysicalNamingStrategy();
+		physicalNamingStrategy = new DummyPhysicalNamingStrategy();
 		physicalNamingStrategy.setToPhysicalNameRWA(new RunnableWithArgs<Identifier>() {
 			@Override
 			public Identifier run(Object... args) {
@@ -251,19 +299,19 @@ public class SessionFactoryImplTest extends AbstractTest {
 			}
 		});
 
-		DummyMultiTableBulkIdStrategy multiTableBulkIdStrategy = new DummyMultiTableBulkIdStrategy();
+		multiTableBulkIdStrategy = new DummyMultiTableBulkIdStrategy();
 
-		Long id = 1L;
+		generatedId = 1L;
 
-		DummyIdentifierGenerator identifierGenerator = new DummyIdentifierGenerator();
+		identifierGenerator = new DummyIdentifierGenerator();
 		identifierGenerator.setGenerateRWA(new RunnableWithArgs<Serializable>() {
 			@Override
 			public Serializable run(Object... args) {
-				return id;
+				return generatedId;
 			}
 		});
 
-		DummyMutableIdentifierGeneratorFactory mutableIdentifierGeneratorFactory = new DummyMutableIdentifierGeneratorFactory();
+		mutableIdentifierGeneratorFactory = new DummyMutableIdentifierGeneratorFactory();
 		mutableIdentifierGeneratorFactory.setCreateIdentifierGeneratorRWA(new RunnableWithArgs<IdentifierGenerator>() {
 			@Override
 			public IdentifierGenerator run(Object... args) {
@@ -271,17 +319,17 @@ public class SessionFactoryImplTest extends AbstractTest {
 			}
 		});
 
-		DummyJndiService jndiService = new DummyJndiService();
+		jndiService = new DummyJndiService();
 
-		BootstrapServiceRegistryImpl bootstrapServiceRegistry = new BootstrapServiceRegistryImpl(classLoaderService,
-				strategySelector, integratorService);
-		List<StandardServiceInitiator> serviceInitiators = new ArrayList<>();
-		serviceInitiators.add(SessionFactoryServiceRegistryFactoryInitiator.INSTANCE);
-		serviceInitiators.add(PersisterFactoryInitiator.INSTANCE);
-		serviceInitiators.add(PersisterClassResolverInitiator.INSTANCE);
-		serviceInitiators.add(PropertyAccessStrategyResolverInitiator.INSTANCE);
+		bootstrapServiceRegistryImpl = new BootstrapServiceRegistryImpl(classLoaderService, strategySelector,
+				integratorService);
+		standardServiceInitiators = new ArrayList<>();
+		standardServiceInitiators.add(SessionFactoryServiceRegistryFactoryInitiator.INSTANCE);
+		standardServiceInitiators.add(PersisterFactoryInitiator.INSTANCE);
+		standardServiceInitiators.add(PersisterClassResolverInitiator.INSTANCE);
+		standardServiceInitiators.add(PropertyAccessStrategyResolverInitiator.INSTANCE);
 
-		List<ProvidedService> providedServices = new ArrayList<>();
+		providedServices = new ArrayList<>();
 		providedServices.add(new ProvidedService<>(ConfigurationService.class, configurationService));
 		providedServices.add(new ProvidedService<>(RegionFactory.class, regionFactory));
 		providedServices.add(new ProvidedService<>(CfgXmlAccessService.class, cfgXmlAccessService));
@@ -293,21 +341,25 @@ public class SessionFactoryImplTest extends AbstractTest {
 		providedServices.add(new ProvidedService<>(JndiService.class, jndiService));
 		providedServices.add(new ProvidedService<>(ConnectionProvider.class, connectionProvider));
 
-		Map<?, ?> configurationValues = new HashMap<>();
-		StandardServiceRegistryImpl standardServiceRegistry = new StandardServiceRegistryImpl(bootstrapServiceRegistry,
-				serviceInitiators, providedServices, configurationValues);
+		standardServiceRegistryConfigurationMap = new HashMap<>();
+		standardServiceRegistryImpl = new StandardServiceRegistryImpl(bootstrapServiceRegistryImpl,
+				standardServiceInitiators, providedServices, standardServiceRegistryConfigurationMap);
 
-		MetadataSources sources = new MetadataSources(standardServiceRegistry);
-		sources.addAnnotatedClass(A.class);
-		MetadataBuilderImpl mbi = new MetadataBuilderImpl(sources, standardServiceRegistry);
-		mbi.applyPhysicalNamingStrategy(physicalNamingStrategy);
+		metadataSources = new MetadataSources(standardServiceRegistryImpl);
+		metadataSources.addAnnotatedClass(A.class);
+		metadataBuilderImpl = new MetadataBuilderImpl(metadataSources, standardServiceRegistryImpl);
+		metadataBuilderImpl.applyPhysicalNamingStrategy(physicalNamingStrategy);
 
-		MetadataImplementor metadataImpl = mbi.build();
+		metadataImplementor = metadataBuilderImpl.build();
 
-		SessionFactoryBuilderImpl sessionFactoryBuilderImpl = new SessionFactoryBuilderImpl(metadataImpl);
+		sessionFactoryBuilderImpl = new SessionFactoryBuilderImpl(metadataImplementor);
 		sessionFactoryBuilderImpl.applyMultiTableBulkIdStrategy(multiTableBulkIdStrategy);
 
-		SessionFactory sessionFactory = sessionFactoryBuilderImpl.build();
+		sessionFactory = sessionFactoryBuilderImpl.build();
+	}
+
+	@Test
+	public void test() {
 
 		Session s = sessionFactory.getCurrentSession();
 
@@ -321,6 +373,13 @@ public class SessionFactoryImplTest extends AbstractTest {
 		t.commit();
 
 		sessionFactory.close();
+
+		for (String nullConfigurationSetting : nullConfigurationSettings) {
+			System.out.println(nullConfigurationSetting + " : null");
+		}
+		for (Object configurationName : configurationService.getSettings().keySet()) {
+			System.out.println(configurationName);
+		}
 
 	}
 }
