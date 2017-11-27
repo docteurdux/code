@@ -52,17 +52,31 @@ public class MiscTest extends AbstractTest {
 		com.sun.xml.internal.bind.v2.runtime.MarshallerImpl.class.getName();
 
 	}
-	
-	@Test public void test5() {
+
+	@Test
+	public void test5() {
 		af(null instanceof String);
 	}
-	
-	@Test public void test6() {
+
+	@Test
+	public void test6() {
 		// https://geoservices.geoconcept.com/EU/GCW/geoconcept-web/
 		Pattern p = Pattern.compile(".*/([^/]+)/GCW/geoconcept-web/$");
 		Matcher m = p.matcher("https://geoservices.geoconcept.com/EU/GCW/geoconcept-web/");
 		m.find();
 		System.out.println(m.group(1));
-		
+
+	}
+
+	@Test
+	public void test7() {
+
+		aeq(true, long.class.isPrimitive());
+		aeq(false, Long.class.isPrimitive());
+
+		aeq(false, String.class.isPrimitive());
+
+		aeq(true, new Long(1) instanceof Number);
+		aeq(true, ((Object)(1L)) instanceof Number);
 	}
 }

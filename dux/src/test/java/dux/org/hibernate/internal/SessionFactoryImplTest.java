@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -35,6 +37,7 @@ import org.hibernate.engine.jdbc.batch.internal.BatchBuilderInitiator;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
+import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 import org.hibernate.engine.jdbc.spi.SqlStatementLogger;
 import org.hibernate.engine.jndi.spi.JndiService;
 import org.hibernate.id.IdentifierGenerator;
@@ -54,6 +57,7 @@ import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
 import com.github.docteurdux.test.RunnableWithArgs;
+import com.github.docteurdux.test.TestEvent;
 
 import dum.java.sql.DummyConnection;
 import dum.java.sql.DummyPreparedStatement;
@@ -223,10 +227,13 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		SqlStatementLogger sqlStatementLogger = new SqlStatementLogger();
 
+		SqlExceptionHelper sqlExceptionHelper = new SqlExceptionHelper(false);
+
 		jdbcServices = new DummyJdbcServices();
 		jdbcServices.setJdbcEnvironment(jdbcEnvironment);
 		jdbcServices.setExtractedMetaDataSupport(extractedMetaDataSupport);
 		jdbcServices.setSqlStatementLogger(sqlStatementLogger);
+		jdbcServices.setSqlExceptionHelper(sqlExceptionHelper);
 
 		cfgXmlAccessService = new DummyCfgXmlAccessService();
 
@@ -263,6 +270,12 @@ public class SessionFactoryImplTest extends AbstractTest {
 		cacheImplementor.setRegionFactory(regionFactory);
 
 		preparedStatement = new DummyPreparedStatement();
+		preparedStatement.setExecuteUpdateRWA(new RunnableWithArgs<Integer>() {
+			@Override
+			public Integer run(Object... args) {
+				return 1;
+			}
+		});
 
 		connection = new DummyConnection();
 		connection.setPrepareStatementRWA(new RunnableWithArgs<PreparedStatement>() {
@@ -409,7 +422,20 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		sessionFactory.close();
 
-		dumpTestEvents(this);
+		List<TestEvent> testEvents = getAllTestEvents(this);
+		dumpTestEvents(testEvents);
+
+		testEvents.stream().filter(new Predicate<TestEvent>() {
+			@Override
+			public boolean test(TestEvent t) {
+				return "inspect".equals(t.getName());
+			}
+		}).forEachOrdered(new Consumer<TestEvent>() {
+			@Override
+			public void accept(TestEvent t) {
+				System.out.println(t.prop("sql"));
+			}
+		});
 
 	}
 }

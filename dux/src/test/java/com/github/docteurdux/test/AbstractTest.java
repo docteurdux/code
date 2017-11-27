@@ -449,7 +449,11 @@ public abstract class AbstractTest {
 	}
 
 	protected void dumpTestEvents(Object instance) {
+		List<TestEvent> allTestEvents = getAllTestEvents(instance);
+		dumpTestEvents(allTestEvents);
+	}
 
+	protected List<TestEvent> getAllTestEvents(Object instance) {
 		List<TestEvent> allTestEvents = new ArrayList<>();
 
 		try {
@@ -488,6 +492,15 @@ public abstract class AbstractTest {
 					return Integer.compare(te1.getId(), te2.getId());
 				}
 			});
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return allTestEvents;
+	}
+
+	protected void dumpTestEvents(List<TestEvent> allTestEvents) {
+
+		try {
 			for (TestEvent testEvent : allTestEvents) {
 				StringBuffer buf = new StringBuffer();
 				buf.append(testEvent.getId());
@@ -495,15 +508,16 @@ public abstract class AbstractTest {
 				buf.append(testEvent.getSource());
 				buf.append(":");
 				buf.append(testEvent.getName());
-				for (Entry<String, Object> entry : testEvent.getProps().entrySet()) {
-					buf.append(" ");
-					buf.append(entry.getKey() + ":" + entry.getValue().getClass().getName());
-				}
 				System.out.println(buf.toString());
-			}
-		} catch (IllegalArgumentException |
+				for (Entry<String, Object> entry : testEvent.getProps().entrySet()) {
+					String name = entry.getKey();
+					Object value = entry.getValue();
+					String formattedValue = str(value);
+					System.out.println(" - " + name + " : " + formattedValue);
 
-				IllegalAccessException e) {
+				}
+			}
+		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
 		}
 

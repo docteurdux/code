@@ -31,6 +31,7 @@ public class DummyPreparedStatement extends TestEventCollector implements Prepar
 
 	private RunnableWithArgs<Void> setObjectRWA;
 	private RunnableWithArgs<int[]> executeBatchRWA;
+	private RunnableWithArgs<Integer> executeUpdateRWA;
 
 	@Override
 	public ResultSet executeQuery(String sql) throws SQLException {
@@ -46,8 +47,7 @@ public class DummyPreparedStatement extends TestEventCollector implements Prepar
 
 	@Override
 	public void close() throws SQLException {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("close"));
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class DummyPreparedStatement extends TestEventCollector implements Prepar
 
 	@Override
 	public int getMaxRows() throws SQLException {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("getMaxRows"));
 		return 0;
 	}
 
@@ -82,7 +82,7 @@ public class DummyPreparedStatement extends TestEventCollector implements Prepar
 
 	@Override
 	public int getQueryTimeout() throws SQLException {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("getQueryTimeout"));
 		return 0;
 	}
 
@@ -311,8 +311,15 @@ public class DummyPreparedStatement extends TestEventCollector implements Prepar
 
 	@Override
 	public int executeUpdate() throws SQLException {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("executeUpdate"));
+		if (executeUpdateRWA != null) {
+			return executeUpdateRWA.run();
+		}
 		return 0;
+	}
+
+	public void setExecuteUpdateRWA(RunnableWithArgs<Integer> executeUpdateRWA) {
+		this.executeUpdateRWA = executeUpdateRWA;
 	}
 
 	@Override
@@ -347,7 +354,7 @@ public class DummyPreparedStatement extends TestEventCollector implements Prepar
 
 	@Override
 	public void setLong(int parameterIndex, long x) throws SQLException {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("setLong").prop("parameterIndex", parameterIndex).prop("x", x));
 
 	}
 
