@@ -601,6 +601,81 @@ public abstract class AbstractTest {
 		}
 	}
 
+	protected void requireAllSourcesBut(String mvnName, String... classnames) {
+
+		if (tried) {
+			if (requireSourcesException != null) {
+				throw requireSourcesException;
+			}
+			return;
+		}
+
+		boolean refreshNeeded = false;
+
+		tried = true;
+
+		String userDir = System.getProperty("user.dir");
+
+		Set<String> blacklist = new HashSet<>();
+		for (String name : classnames) {
+			name = name.replaceAll("\\.", "/");
+			name = name + ".java";
+			blacklist.add(name);
+		}
+
+		try {
+			for (String cp : System.getProperty("java.class.path").split(";")) {
+				if (cp.contains(mvnName)) {
+					cp = cp.replace(".jar", "-sources.jar");
+					File f = new File(cp);
+					if (f.exists()) {
+						ZipFile z = new ZipFile(cp);
+						Enumeration<? extends ZipEntry> entries = z.entries();
+						while (entries.hasMoreElements()) {
+							ZipEntry entry = entries.nextElement();
+							String name = entry.getName();
+							if (name.endsWith(".java")) {
+								InputStream is = z.getInputStream(entry);
+								String targetFileName = userDir + "/src/main/java/" + name;
+								File targetFile = new File(targetFileName);
+								if (targetFile.exists()) {
+									if (blacklist.contains(name)) {
+										System.out.println("Delete [blacklisted]: " + targetFileName);
+										targetFile.delete();
+										refreshNeeded = true;
+									}
+									// System.out.println("Exists: " + targetFileName);
+								} else {
+									if (!blacklist.contains(name)) {
+										System.out.println("Create: " + targetFileName);
+										targetFile.getParentFile().mkdirs();
+										targetFile.createNewFile();
+										FileOutputStream fos = new FileOutputStream(targetFile);
+										IOUtils.copy(is, fos);
+										refreshNeeded = true;
+									} else {
+										System.out.println("Blacklist: " + targetFileName);
+									}
+
+								}
+							}
+						}
+						z.close();
+					}
+				}
+			}
+		} catch (Exception ex) {
+			requireSourcesException = new RuntimeException(ex);
+			throw requireSourcesException;
+		}
+
+		if (refreshNeeded) {
+			requireSourcesException = new RuntimeException(
+					"Project content modified ; refresh workspace and try again");
+			throw requireSourcesException;
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	protected <T> T get(Map<String, Object> map, String key, Class<T> clazz) {
 		return (T) map.get(key);

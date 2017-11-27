@@ -1,6 +1,8 @@
 package dux.org.hibernate.internal;
 
+import java.beans.BeanDescriptor;
 import java.io.Serializable;
+import java.lang.reflect.AnnotatedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +36,6 @@ import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jndi.spi.JndiService;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.factory.spi.MutableIdentifierGeneratorFactory;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.persister.internal.PersisterClassResolverInitiator;
 import org.hibernate.persister.internal.PersisterFactoryInitiator;
 import org.hibernate.property.access.internal.PropertyAccessStrategyResolverInitiator;
@@ -93,7 +94,33 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 	@Before
 	public void before() {
-		requireSources(HibernateCoreSummaryTest.MVNNAME, SessionFactoryImpl.class);
+		requireAllSourcesBut(HibernateCoreSummaryTest.MVNNAME,
+				"org.hibernate.jpa.event.internal.jpa.ListenerFactoryBeanManagerDelayedImpl",
+				"org.hibernate.jpa.event.internal.jpa.ListenerFactoryBeanManagerExtendedImpl",
+				"org.hibernate.jpa.event.internal.jpa.ListenerFactoryBeanManagerStandardImpl",
+				"org.hibernate.cfg.beanvalidation.TypeSafeActivator",
+				"org.hibernate.jpa.event.spi.jpa.ExtendedBeanManager", "org.hibernate.tool.enhance.EnhancementTask",
+				"org.hibernate.tool.instrument.javassist.InstrumentTask",
+				"org.hibernate.cfg.beanvalidation.BeanValidationEventListener",
+				"org.hibernate.tool.hbm2ddl.SchemaExportTask", "org.hibernate.tool.hbm2ddl.SchemaUpdateTask",
+				"org.hibernate.tool.hbm2ddl.SchemaValidatorTask", "org.hibernate.internal.CoreMessageLogger",
+				"org.hibernate.internal.log.DeprecationLogger", "org.hibernate.internal.log.UrlMessageBundle",
+				"org.hibernate.bytecode.enhance.internal.bytebuddy.FieldReaderAppender",
+				"org.hibernate.internal.EntityManagerMessageLogger",
+				"org.hibernate.internal.log.ConnectionPoolingLogger",
+				"org.hibernate.bytecode.enhance.internal.bytebuddy.FieldWriterAppender",
+				"org.hibernate.bytecode.enhance.internal.bytebuddy.BiDirectionalAssociationHandler",
+				"org.hibernate.bytecode.enhance.internal.bytebuddy.PersistentAttributeTransformer",
+				"org.hibernate.bytecode.enhance.internal.bytebuddy.FieldAccessEnhancer",
+				"org.hibernate.bytecode.enhance.internal.bytebuddy.InlineDirtyCheckingHandler",
+				"org.hibernate.bytecode.internal.bytebuddy.BytecodeProviderImpl",
+				"org.hibernate.cfg.beanvalidation.GroupsPerOperation",
+				"org.hibernate.secure.internal.StandardJaccServiceImpl",
+				"org.hibernate.cfg.beanvalidation.HibernateTraversableResolver",
+				"org.hibernate.internal.log.ConnectionAccessLogger",
+				"org.hibernate.bytecode.enhance.internal.bytebuddy.EnhancerImpl",
+				"org.hibernate.result.internal.ResultSetOutputImpl",
+				"org.hibernate.engine.spi.SessionDelegatorBaseImpl");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
