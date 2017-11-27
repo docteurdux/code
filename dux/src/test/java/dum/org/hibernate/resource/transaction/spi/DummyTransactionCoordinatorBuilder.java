@@ -6,8 +6,10 @@ import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorOwner;
 
 import com.github.docteurdux.test.RunnableWithArgs;
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
 
-public class DummyTransactionCoordinatorBuilder implements TransactionCoordinatorBuilder {
+public class DummyTransactionCoordinatorBuilder extends TestEventCollector implements TransactionCoordinatorBuilder {
 
 	private static final long serialVersionUID = 1L;
 	private RunnableWithArgs<TransactionCoordinator> buildTransactionCoordinatorRWA;
@@ -15,6 +17,7 @@ public class DummyTransactionCoordinatorBuilder implements TransactionCoordinato
 
 	@Override
 	public TransactionCoordinator buildTransactionCoordinator(TransactionCoordinatorOwner owner, Options options) {
+		testEvents.add(new TestEvent("buildTransactionCoordinator").prop("owner", owner).prop("options", options));
 		if (buildTransactionCoordinatorRWA != null) {
 			return buildTransactionCoordinatorRWA.run(owner, options);
 		}

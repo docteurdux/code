@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -26,6 +27,8 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+
+import dum.org.hibernate.DummySessionEventListener;
 
 public abstract class AbstractTest {
 
@@ -454,18 +457,29 @@ public abstract class AbstractTest {
 			for (Field field : clazz.getDeclaredFields()) {
 				field.setAccessible(true);
 				Object value = field.get(instance);
-				if (value instanceof TestEventCollector) {
-					TestEventCollector tec = (TestEventCollector) value;
-					List<TestEvent> testEvents = tec.getTestEvents();
-					String sourceName = tec.getTestEventSourceName();
-					if (sourceName == null) {
-						sourceName = value.getClass().getInterfaces()[0].getSimpleName();
+				TestEventCollector tec = null;
+
+				if (value instanceof TestEventCollectorI) {
+					tec = ((TestEventCollectorI) value).getTestEventCollector();
+
+				} else if (value instanceof TestEventCollector) {
+					tec = (TestEventCollector) value;
+				}
+				if (tec != null) {
+
+					String tecSourceName = null;
+					tecSourceName = tec.getTestEventSourceName();
+					if (tecSourceName == null) {
+						tecSourceName = value.getClass().getSimpleName();
+						if (tecSourceName.startsWith("Dummy")) {
+							tecSourceName = tecSourceName.substring("Dummy".length());
+						}
 					}
+					List<TestEvent> testEvents = tec.getTestEvents();
 					for (TestEvent testEvent : testEvents) {
-						testEvent.setSource(sourceName);
+						testEvent.setSource(tecSourceName);
 						allTestEvents.add(testEvent);
 					}
-
 				}
 			}
 			allTestEvents.sort(new Comparator<TestEvent>() {
@@ -487,7 +501,9 @@ public abstract class AbstractTest {
 				}
 				System.out.println(buf.toString());
 			}
-		} catch (IllegalArgumentException | IllegalAccessException e) {
+		} catch (IllegalArgumentException |
+
+				IllegalAccessException e) {
 			e.printStackTrace();
 		}
 
@@ -654,7 +670,7 @@ public abstract class AbstractTest {
 										IOUtils.copy(is, fos);
 										refreshNeeded = true;
 									} else {
-										System.out.println("Blacklist: " + targetFileName);
+										// System.out.println("Blacklist: " + targetFileName);
 									}
 
 								}
@@ -691,5 +707,17 @@ public abstract class AbstractTest {
 		} catch (NoSuchMethodException | SecurityException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	protected void generateTestEventCollection(Class<DummySessionEventListener> clazz) {
+		for (Method method : clazz.getDeclaredMethods()) {
+			System.out.println("testEvents.add(new TestEvent(\"" + method.getName() + "\")");
+			for (Parameter p : method.getParameters()) {
+				String name = p.getName();
+				System.out.println(".prop(\"" + name + "\"," + name + ")");
+			}
+			System.out.println(");");
+		}
+		throw new RuntimeException("HALT !");
 	}
 }

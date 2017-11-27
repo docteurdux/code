@@ -5,7 +5,7 @@ import java.util.List;
 
 public abstract class TestEventCollector {
 
-	protected List<TestEvent> testEvents = new ArrayList<TestEvent>();
+	protected List<TestEvent> testEvents = new ArrayList<>();
 	private String testEventSourceName;
 
 	public List<TestEvent> getTestEvents() {
@@ -18,6 +18,7 @@ public abstract class TestEventCollector {
 
 	public void setTestEventSourceName(String testEventSourceName) {
 		this.testEventSourceName = testEventSourceName;
+
 	}
 
 }

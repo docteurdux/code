@@ -1,6 +1,7 @@
 package dux.org.hibernate.internal;
 
 import java.io.Serializable;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,19 +31,22 @@ import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.config.spi.ConfigurationService;
+import org.hibernate.engine.jdbc.batch.internal.BatchBuilderInitiator;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
+import org.hibernate.engine.jdbc.spi.SqlStatementLogger;
 import org.hibernate.engine.jndi.spi.JndiService;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.factory.spi.MutableIdentifierGeneratorFactory;
+import org.hibernate.jmx.internal.JmxServiceInitiator;
 import org.hibernate.persister.internal.PersisterClassResolverInitiator;
 import org.hibernate.persister.internal.PersisterFactoryInitiator;
 import org.hibernate.property.access.internal.PropertyAccessStrategyResolverInitiator;
 import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
-import org.hibernate.resource.transaction.spi.TransactionCoordinator;
+import org.hibernate.resource.jdbc.spi.StatementInspector;
+import org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorBuilderImpl;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
-import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.service.internal.ProvidedService;
 import org.hibernate.service.internal.SessionFactoryServiceRegistryFactoryInitiator;
 import org.junit.Before;
@@ -52,6 +56,9 @@ import com.github.docteurdux.test.AbstractTest;
 import com.github.docteurdux.test.RunnableWithArgs;
 
 import dum.java.sql.DummyConnection;
+import dum.java.sql.DummyPreparedStatement;
+import dum.org.hibernate.DummyInterceptor;
+import dum.org.hibernate.DummySessionEventListener;
 import dum.org.hibernate.boot.cfgxml.spi.DummyCfgXmlAccessService;
 import dum.org.hibernate.boot.model.naming.DummyPhysicalNamingStrategy;
 import dum.org.hibernate.boot.registry.selector.spi.DummyStrategySelector;
@@ -68,10 +75,7 @@ import dum.org.hibernate.engine.spi.DummyCacheImplementor;
 import dum.org.hibernate.hql.spi.id.DummyMultiTableBulkIdStrategy;
 import dum.org.hibernate.id.DummyIdentifierGenerator;
 import dum.org.hibernate.id.factory.spi.DummyMutableIdentifierGeneratorFactory;
-import dum.org.hibernate.resource.transaction.spi.DummySynchronizationRegistry;
-import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinator;
-import dum.org.hibernate.resource.transaction.spi.DummyTransactionCoordinatorBuilder;
-import dum.org.hibernate.resource.transaction.spi.TransactionCoordinator.DummyTransactionDriver;
+import dum.org.hibernate.resource.jdbc.spi.DummyStatementInspector;
 import dus.hibernate.core.HibernateCoreSummaryTest;
 import dux.org.hibernate.query.criteria.internal.DummyIntegratorService;
 
@@ -90,11 +94,11 @@ public class SessionFactoryImplTest extends AbstractTest {
 	private DummyCacheImplementor cacheImplementor;
 	private DummyConnection connection;
 	private DummyConnectionProvider connectionProvider;
-	private DummySynchronizationRegistry localSynchronizations;
-	private DummyTransactionDriver transactionDriverControl;
-	private DummyTransactionCoordinator transactionCoordinator;
+	// private DummySynchronizationRegistry localSynchronizations;
+	// private DummyTransactionDriver transactionDriverControl;
+	// private DummyTransactionCoordinator transactionCoordinator;
 	private PhysicalConnectionHandlingMode physicalConnectionHandlingMode;
-	private DummyTransactionCoordinatorBuilder transactionCoordinatorBuilder;
+	private JdbcResourceLocalTransactionCoordinatorBuilderImpl transactionCoordinatorBuilder;
 	private DummyStrategySelector strategySelector;
 	private ClassLoaderService classLoaderService;
 	private DummyPhysicalNamingStrategy physicalNamingStrategy;
@@ -116,6 +120,10 @@ public class SessionFactoryImplTest extends AbstractTest {
 	private SessionFactoryBuilderImpl sessionFactoryBuilderImpl;
 	private SessionFactory sessionFactory;
 	private Set<String> nullConfigurationSettings;
+	private StatementInspector statementInspector;
+	private DummyInterceptor interceptor;
+	private DummySessionEventListener sessionEventListener;
+	private DummyPreparedStatement preparedStatement;
 
 	@Entity
 	public static class A {
@@ -213,16 +221,23 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		extractedMetaDataSupport = new DummyExtractedDatabaseMetaData();
 
+		SqlStatementLogger sqlStatementLogger = new SqlStatementLogger();
+
 		jdbcServices = new DummyJdbcServices();
 		jdbcServices.setJdbcEnvironment(jdbcEnvironment);
 		jdbcServices.setExtractedMetaDataSupport(extractedMetaDataSupport);
+		jdbcServices.setSqlStatementLogger(sqlStatementLogger);
 
 		cfgXmlAccessService = new DummyCfgXmlAccessService();
 
 		nullConfigurationSettings = new HashSet<>();
 
+		sessionEventListener = new DummySessionEventListener();
+
 		configurationService = new DummyConfigurationService();
 		configurationService.getSettings().put("hibernate.current_session_context_class", "thread");
+		configurationService.getSettings().put("hibernate.session.events.log", "true");
+		configurationService.getSettings().put("hibernate.session.events.auto", "true");
 		configurationService.setGetSettingRWA(new RunnableWithArgs<Object>() {
 			@Override
 			public Object run(Object... args) {
@@ -247,29 +262,39 @@ public class SessionFactoryImplTest extends AbstractTest {
 		cacheImplementor = new DummyCacheImplementor();
 		cacheImplementor.setRegionFactory(regionFactory);
 
+		preparedStatement = new DummyPreparedStatement();
+
 		connection = new DummyConnection();
+		connection.setPrepareStatementRWA(new RunnableWithArgs<PreparedStatement>() {
+			@Override
+			public PreparedStatement run(Object... args) {
+				return preparedStatement;
+			}
+		});
 
 		connectionProvider = new DummyConnectionProvider();
 		connectionProvider.setConnection(connection);
 
-		localSynchronizations = new DummySynchronizationRegistry();
+		// localSynchronizations = new DummySynchronizationRegistry();
 
-		transactionDriverControl = new DummyTransactionDriver();
+		// transactionDriverControl = new DummyTransactionDriver();
 
-		transactionCoordinator = new DummyTransactionCoordinator();
-		transactionCoordinator.setLocalSynchronizations(localSynchronizations);
-		transactionCoordinator.setTransactionDriverControl(transactionDriverControl);
+		// transactionCoordinator = new DummyTransactionCoordinator();
+		// transactionCoordinator.setLocalSynchronizations(localSynchronizations);
+		// transactionCoordinator.setTransactionDriverControl(transactionDriverControl);
 
 		physicalConnectionHandlingMode = PhysicalConnectionHandlingMode.IMMEDIATE_ACQUISITION_AND_HOLD;
 
-		transactionCoordinatorBuilder = new DummyTransactionCoordinatorBuilder();
-		transactionCoordinatorBuilder.setDefaultConnectionHandlingMode(physicalConnectionHandlingMode);
-		transactionCoordinatorBuilder.setBuildTransactionCoordinatorRWA(new RunnableWithArgs<TransactionCoordinator>() {
-			@Override
-			public TransactionCoordinator run(Object... args) {
-				return transactionCoordinator;
-			}
-		});
+		// transactionCoordinatorBuilder = new DummyTransactionCoordinatorBuilder();
+		// transactionCoordinatorBuilder.setDefaultConnectionHandlingMode(physicalConnectionHandlingMode);
+		// transactionCoordinatorBuilder.setBuildTransactionCoordinatorRWA(new
+		// RunnableWithArgs<TransactionCoordinator>() {
+		// @Override
+		// public TransactionCoordinator run(Object... args) {
+		// return transactionCoordinator;
+		// }
+		// });
+		transactionCoordinatorBuilder = new JdbcResourceLocalTransactionCoordinatorBuilderImpl();
 
 		strategySelector = new DummyStrategySelector();
 		strategySelector.setResolveDefaultableStrategyRWA(new RunnableWithArgs<Object>() {
@@ -328,6 +353,8 @@ public class SessionFactoryImplTest extends AbstractTest {
 		standardServiceInitiators.add(PersisterFactoryInitiator.INSTANCE);
 		standardServiceInitiators.add(PersisterClassResolverInitiator.INSTANCE);
 		standardServiceInitiators.add(PropertyAccessStrategyResolverInitiator.INSTANCE);
+		standardServiceInitiators.add(BatchBuilderInitiator.INSTANCE);
+		standardServiceInitiators.add(JmxServiceInitiator.INSTANCE);
 
 		providedServices = new ArrayList<>();
 		providedServices.add(new ProvidedService<>(ConfigurationService.class, configurationService));
@@ -352,8 +379,14 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		metadataImplementor = metadataBuilderImpl.build();
 
+		statementInspector = new DummyStatementInspector();
+
+		interceptor = new DummyInterceptor();
+
 		sessionFactoryBuilderImpl = new SessionFactoryBuilderImpl(metadataImplementor);
 		sessionFactoryBuilderImpl.applyMultiTableBulkIdStrategy(multiTableBulkIdStrategy);
+		sessionFactoryBuilderImpl.applyStatementInspector(statementInspector);
+		sessionFactoryBuilderImpl.applyInterceptor(interceptor);
 
 		sessionFactory = sessionFactoryBuilderImpl.build();
 	}
@@ -365,7 +398,9 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		Transaction t = s.getTransaction();
 
-		transactionDriverControl.setStatus(TransactionStatus.ACTIVE);
+		t.begin();
+
+		// transactionDriverControl.setStatus(TransactionStatus.ACTIVE);
 
 		A a = new A();
 		s.persist(a);
@@ -374,12 +409,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		sessionFactory.close();
 
-		for (String nullConfigurationSetting : nullConfigurationSettings) {
-			System.out.println(nullConfigurationSetting + " : null");
-		}
-		for (Object configurationName : configurationService.getSettings().keySet()) {
-			System.out.println(configurationName);
-		}
+		dumpTestEvents(this);
 
 	}
 }

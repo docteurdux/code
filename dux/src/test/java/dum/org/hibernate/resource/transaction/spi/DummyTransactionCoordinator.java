@@ -6,7 +6,10 @@ import org.hibernate.resource.transaction.spi.SynchronizationRegistry;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
 
-public class DummyTransactionCoordinator implements TransactionCoordinator {
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+
+public class DummyTransactionCoordinator extends TestEventCollector implements TransactionCoordinator {
 
 	private boolean joined;
 	private TransactionDriver transactionDriverControl;
@@ -29,8 +32,7 @@ public class DummyTransactionCoordinator implements TransactionCoordinator {
 
 	@Override
 	public void pulse() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("pulse"));
 	}
 
 	@Override

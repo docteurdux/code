@@ -3,7 +3,10 @@ package dum.org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator.TransactionDriver;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 
-public class DummyTransactionDriver implements TransactionDriver {
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+
+public class DummyTransactionDriver extends TestEventCollector implements TransactionDriver {
 
 	private TransactionStatus status;
 
@@ -15,8 +18,7 @@ public class DummyTransactionDriver implements TransactionDriver {
 
 	@Override
 	public void commit() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("commit"));
 	}
 
 	@Override

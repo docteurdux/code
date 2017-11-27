@@ -5,7 +5,13 @@ import java.sql.SQLException;
 
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 
-public class DummyConnectionProvider implements ConnectionProvider {
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+import com.github.docteurdux.test.TestEventCollectorI;
+
+public class DummyConnectionProvider extends TestEventCollector implements ConnectionProvider {
+
+	private static final long serialVersionUID = 1L;
 
 	private Connection connection;
 
@@ -23,6 +29,7 @@ public class DummyConnectionProvider implements ConnectionProvider {
 
 	@Override
 	public Connection getConnection() throws SQLException {
+		testEvents.add(new TestEvent("getConnection"));
 		return connection;
 	}
 

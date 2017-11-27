@@ -4,11 +4,14 @@ import javax.transaction.Synchronization;
 
 import org.hibernate.resource.transaction.spi.SynchronizationRegistry;
 
-public class DummySynchronizationRegistry implements SynchronizationRegistry {
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+
+public class DummySynchronizationRegistry extends TestEventCollector implements SynchronizationRegistry {
 
 	@Override
 	public void registerSynchronization(Synchronization synchronization) {
-		// TODO Auto-generated method stub
+		testEvents.add(new TestEvent("registerSynchronization").prop("synchronization", synchronization));
 
 	}
 

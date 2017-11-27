@@ -2,138 +2,124 @@ package dum.org.hibernate;
 
 import org.hibernate.SessionEventListener;
 
-public class DummySessionEventListener implements SessionEventListener {
+import com.github.docteurdux.test.TestEvent;
+import com.github.docteurdux.test.TestEventCollector;
+import com.github.docteurdux.test.TestEventCollectorI;
+
+public class DummySessionEventListener extends TestEventCollector implements SessionEventListener {
+
+	private static final long serialVersionUID = 1L;
 
 	@Override
 	public void transactionCompletion(boolean successful) {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("transactionCompletion").prop("successful", successful));
 	}
 
 	@Override
 	public void jdbcConnectionAcquisitionStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcConnectionAcquisitionStart"));
 	}
 
 	@Override
 	public void jdbcConnectionAcquisitionEnd() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcConnectionAcquisitionEnd"));
 	}
 
 	@Override
 	public void jdbcConnectionReleaseStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcConnectionReleaseStart"));
 	}
 
 	@Override
 	public void jdbcConnectionReleaseEnd() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcConnectionReleaseEnd"));
 	}
 
 	@Override
 	public void jdbcPrepareStatementStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcPrepareStatementStart"));
 	}
 
 	@Override
 	public void jdbcPrepareStatementEnd() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcPrepareStatementEnd"));
 	}
 
 	@Override
 	public void jdbcExecuteStatementStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcExecuteStatementStart"));
 	}
 
 	@Override
 	public void jdbcExecuteStatementEnd() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcExecuteStatementEnd"));
 	}
 
 	@Override
 	public void jdbcExecuteBatchStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcExecuteBatchStart"));
 	}
 
 	@Override
 	public void jdbcExecuteBatchEnd() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("jdbcExecuteBatchEnd"));
 	}
 
 	@Override
 	public void cachePutStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("cachePutStart"));
 	}
 
 	@Override
 	public void cachePutEnd() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("cachePutEnd"));
 	}
 
 	@Override
 	public void cacheGetStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("cacheGetStart"));
 	}
 
 	@Override
 	public void cacheGetEnd(boolean hit) {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("cacheGetEnd").prop("hit", hit));
 	}
 
 	@Override
 	public void flushStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("flushStart"));
 	}
 
 	@Override
 	public void flushEnd(int numberOfEntities, int numberOfCollections) {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("flushEnd").prop("numberOfEntities", numberOfEntities).prop("numberOfCollections",
+				numberOfCollections));
 	}
 
 	@Override
 	public void partialFlushStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("partialFlushStart"));
 	}
 
 	@Override
 	public void partialFlushEnd(int numberOfEntities, int numberOfCollections) {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("partialFlushEnd").prop("numberOfEntities", numberOfEntities)
+				.prop("numberOfCollections", numberOfCollections));
 	}
 
 	@Override
 	public void dirtyCalculationStart() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("dirtyCalculationStart"));
 	}
 
 	@Override
 	public void dirtyCalculationEnd(boolean dirty) {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("dirtyCalculationEnd").prop("dirty", dirty));
 	}
 
 	@Override
 	public void end() {
-		// TODO Auto-generated method stub
-
+		testEvents.add(new TestEvent("end"));
 	}
 
 }
