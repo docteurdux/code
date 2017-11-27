@@ -32,9 +32,6 @@ import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jndi.spi.JndiService;
-import org.hibernate.event.service.spi.EventListenerGroup;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.event.spi.PersistEventListener;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.factory.spi.MutableIdentifierGeneratorFactory;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -67,8 +64,6 @@ import dum.org.hibernate.engine.jdbc.env.spi.DummyQualifiedObjectNameFormatter;
 import dum.org.hibernate.engine.jdbc.spi.DummyJdbcServices;
 import dum.org.hibernate.engine.jndi.spi.DummyJndiService;
 import dum.org.hibernate.engine.spi.DummyCacheImplementor;
-import dum.org.hibernate.event.service.spi.DummyEventListenerGroup;
-import dum.org.hibernate.event.service.spi.DummyEventListenerRegistry;
 import dum.org.hibernate.hql.spi.id.DummyMultiTableBulkIdStrategy;
 import dum.org.hibernate.id.DummyIdentifierGenerator;
 import dum.org.hibernate.id.factory.spi.DummyMutableIdentifierGeneratorFactory;
@@ -198,20 +193,6 @@ public class SessionFactoryImplTest extends AbstractTest {
 			@Override
 			public TransactionCoordinator run(Object... args) {
 				return transactionCoordinator;
-			}
-		});
-
-		DummyEventListenerGroup eventListenerGroupPersist = new DummyEventListenerGroup<>();
-
-		Map<Class<?>, EventListenerGroup<?>> eventListenerGroups = new HashMap<>();
-		eventListenerGroups.put(PersistEventListener.class, eventListenerGroupPersist);
-
-		DummyEventListenerRegistry eventListenerRegistry = new DummyEventListenerRegistry();
-		eventListenerRegistry.setGetEventListenerGroupRWA(new RunnableWithArgs<EventListenerGroup>() {
-			@Override
-			public EventListenerGroup run(Object... args) {
-				EventType<?> eventType = (EventType<?>) args[0];
-				return eventListenerGroups.get(eventType.baseListenerInterface());
 			}
 		});
 
