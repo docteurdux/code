@@ -1,133 +1,129 @@
 package dux.org.hibernate.internal;
 
-import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.cfgxml.internal.CfgXmlAccessServiceInitiator;
 import org.hibernate.boot.cfgxml.spi.CfgXmlAccessService;
 import org.hibernate.boot.internal.MetadataBuilderImpl;
 import org.hibernate.boot.internal.SessionFactoryBuilderImpl;
-import org.hibernate.boot.model.naming.Identifier;
-import org.hibernate.boot.model.relational.QualifiedName;
+import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.boot.registry.StandardServiceInitiator;
 import org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.internal.BootstrapServiceRegistryImpl;
 import org.hibernate.boot.registry.internal.StandardServiceRegistryImpl;
+import org.hibernate.boot.registry.selector.internal.StrategySelectorImpl;
+import org.hibernate.boot.registry.selector.spi.StrategySelector;
 import org.hibernate.boot.spi.MetadataImplementor;
+import org.hibernate.cache.internal.RegionFactoryInitiator;
 import org.hibernate.cache.spi.RegionFactory;
-import org.hibernate.dialect.Dialect;
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.engine.config.internal.ConfigurationServiceImpl;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.jdbc.batch.internal.BatchBuilderInitiator;
+import org.hibernate.engine.jdbc.batch.spi.BatchBuilder;
+import org.hibernate.engine.jdbc.connections.internal.ConnectionProviderInitiator;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
+import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
+import org.hibernate.engine.jdbc.cursor.spi.RefCursorSupport;
+import org.hibernate.engine.jdbc.dialect.internal.DialectFactoryInitiator;
+import org.hibernate.engine.jdbc.dialect.internal.DialectResolverInitiator;
+import org.hibernate.engine.jdbc.dialect.spi.DialectFactory;
+import org.hibernate.engine.jdbc.dialect.spi.DialectResolver;
+import org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
+import org.hibernate.engine.jdbc.internal.JdbcServicesInitiator;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
-import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
-import org.hibernate.engine.jdbc.spi.SqlStatementLogger;
+import org.hibernate.engine.jndi.internal.JndiServiceInitiator;
 import org.hibernate.engine.jndi.spi.JndiService;
-import org.hibernate.id.IdentifierGenerator;
+import org.hibernate.engine.query.spi.NativeQueryInterpreter;
+import org.hibernate.engine.spi.CacheImplementor;
+import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
+import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatformResolver;
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.hql.spi.QueryTranslatorFactory;
+import org.hibernate.id.factory.internal.MutableIdentifierGeneratorFactoryInitiator;
 import org.hibernate.id.factory.spi.MutableIdentifierGeneratorFactory;
+import org.hibernate.integrator.internal.IntegratorServiceImpl;
+import org.hibernate.integrator.spi.Integrator;
+import org.hibernate.integrator.spi.IntegratorService;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jmx.internal.JmxServiceInitiator;
+import org.hibernate.jmx.spi.JmxService;
 import org.hibernate.persister.internal.PersisterClassResolverInitiator;
 import org.hibernate.persister.internal.PersisterFactoryInitiator;
+import org.hibernate.persister.spi.PersisterClassResolver;
+import org.hibernate.persister.spi.PersisterFactory;
 import org.hibernate.property.access.internal.PropertyAccessStrategyResolverInitiator;
-import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
-import org.hibernate.resource.jdbc.spi.StatementInspector;
-import org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorBuilderImpl;
+import org.hibernate.property.access.spi.PropertyAccessStrategyResolver;
+import org.hibernate.resource.transaction.internal.TransactionCoordinatorBuilderInitiator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
+import org.hibernate.secure.spi.JaccService;
+import org.hibernate.service.Service;
+import org.hibernate.service.internal.AbstractServiceRegistryImpl;
 import org.hibernate.service.internal.ProvidedService;
 import org.hibernate.service.internal.SessionFactoryServiceRegistryFactoryInitiator;
+import org.hibernate.service.spi.ServiceBinding;
+import org.hibernate.service.spi.ServiceRegistryImplementor;
+import org.hibernate.service.spi.SessionFactoryServiceRegistryFactory;
+import org.hibernate.stat.spi.StatisticsImplementor;
+import org.hibernate.tool.hbm2ddl.ImportSqlCommandExtractor;
+import org.hibernate.tool.hbm2ddl.ImportSqlCommandExtractorInitiator;
+import org.hibernate.tool.schema.internal.SchemaManagementToolInitiator;
+import org.hibernate.tool.schema.spi.SchemaManagementTool;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
-import com.github.docteurdux.test.RunnableWithArgs;
 import com.github.docteurdux.test.TestEvent;
 
-import dum.java.sql.DummyConnection;
-import dum.java.sql.DummyPreparedStatement;
-import dum.org.hibernate.DummyInterceptor;
-import dum.org.hibernate.DummySessionEventListener;
-import dum.org.hibernate.boot.cfgxml.spi.DummyCfgXmlAccessService;
-import dum.org.hibernate.boot.model.naming.DummyPhysicalNamingStrategy;
-import dum.org.hibernate.boot.registry.selector.spi.DummyStrategySelector;
-import dum.org.hibernate.cache.spi.DummyRegionFactory;
-import dum.org.hibernate.engine.config.spi.DummyConfigurationService;
-import dum.org.hibernate.engine.jdbc.connections.spi.DummyConnectionProvider;
-import dum.org.hibernate.engine.jdbc.env.spi.DummyExtractedDatabaseMetaData;
-import dum.org.hibernate.engine.jdbc.env.spi.DummyIdentifierHelper;
-import dum.org.hibernate.engine.jdbc.env.spi.DummyJdbcEnvironment;
-import dum.org.hibernate.engine.jdbc.env.spi.DummyQualifiedObjectNameFormatter;
-import dum.org.hibernate.engine.jdbc.spi.DummyJdbcServices;
-import dum.org.hibernate.engine.jndi.spi.DummyJndiService;
-import dum.org.hibernate.engine.spi.DummyCacheImplementor;
-import dum.org.hibernate.hql.spi.id.DummyMultiTableBulkIdStrategy;
-import dum.org.hibernate.id.DummyIdentifierGenerator;
-import dum.org.hibernate.id.factory.spi.DummyMutableIdentifierGeneratorFactory;
-import dum.org.hibernate.resource.jdbc.spi.DummyStatementInspector;
 import dus.hibernate.core.HibernateCoreSummaryTest;
-import dux.org.hibernate.query.criteria.internal.DummyIntegratorService;
 
 public class SessionFactoryImplTest extends AbstractTest {
 
-	private DummyIdentifierHelper identifierHelper;
-	private Dialect dialect;
-	private DummyQualifiedObjectNameFormatter qualifiedObjectNameFormatter;
-	private DummyJdbcEnvironment jdbcEnvironment;
-	private DummyExtractedDatabaseMetaData extractedMetaDataSupport;
-	private DummyJdbcServices jdbcServices;
-	private DummyCfgXmlAccessService cfgXmlAccessService;
-	private DummyConfigurationService configurationService;
-	private DummyIntegratorService integratorService;
-	private DummyRegionFactory regionFactory;
-	private DummyCacheImplementor cacheImplementor;
-	private DummyConnection connection;
-	private DummyConnectionProvider connectionProvider;
-	// private DummySynchronizationRegistry localSynchronizations;
-	// private DummyTransactionDriver transactionDriverControl;
-	// private DummyTransactionCoordinator transactionCoordinator;
-	private PhysicalConnectionHandlingMode physicalConnectionHandlingMode;
-	private JdbcResourceLocalTransactionCoordinatorBuilderImpl transactionCoordinatorBuilder;
-	private DummyStrategySelector strategySelector;
+	private ConfigurationServiceImpl configurationService;
+	private IntegratorServiceImpl integratorService;
+	private StrategySelectorImpl strategySelector;
 	private ClassLoaderService classLoaderService;
-	private DummyPhysicalNamingStrategy physicalNamingStrategy;
-	private DummyMultiTableBulkIdStrategy multiTableBulkIdStrategy;
-	private Long generatedId;
-	private DummyIdentifierGenerator identifierGenerator;
-	private DummyMutableIdentifierGeneratorFactory mutableIdentifierGeneratorFactory;
-	private DummyJndiService jndiService;
+	private PhysicalNamingStrategyStandardImpl physicalNamingStrategy;
 	private BootstrapServiceRegistryImpl bootstrapServiceRegistryImpl;
 	@SuppressWarnings("rawtypes")
 	private List<StandardServiceInitiator> standardServiceInitiators;
 	@SuppressWarnings("rawtypes")
 	private List<ProvidedService> providedServices;
-	private Map<?, ?> standardServiceRegistryConfigurationMap;
+	private Map<Object, Object> standardServiceRegistryConfigurationMap;
 	private StandardServiceRegistryImpl standardServiceRegistryImpl;
 	private MetadataSources metadataSources;
 	private MetadataBuilderImpl metadataBuilderImpl;
 	private MetadataImplementor metadataImplementor;
 	private SessionFactoryBuilderImpl sessionFactoryBuilderImpl;
 	private SessionFactory sessionFactory;
-	private Set<String> nullConfigurationSettings;
-	private StatementInspector statementInspector;
-	private DummyInterceptor interceptor;
-	private DummySessionEventListener sessionEventListener;
-	private DummyPreparedStatement preparedStatement;
+	private Map<Object, Object> initialConfigurationSettings;
+	private Set<Class<?>> proxiedResults;
 
 	@Entity
+	@Table(name = "A")
 	public static class A {
 
 		@Id
@@ -153,9 +149,8 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	@Before
-	public void before() {
+	public void before() throws Exception {
 		requireAllSourcesBut(HibernateCoreSummaryTest.MVNNAME,
 				"org.hibernate.jpa.event.internal.jpa.ListenerFactoryBeanManagerDelayedImpl",
 				"org.hibernate.jpa.event.internal.jpa.ListenerFactoryBeanManagerExtendedImpl",
@@ -184,189 +179,45 @@ public class SessionFactoryImplTest extends AbstractTest {
 				"org.hibernate.result.internal.ResultSetOutputImpl",
 				"org.hibernate.engine.spi.SessionDelegatorBaseImpl");
 
-		identifierHelper = new DummyIdentifierHelper();
-		identifierHelper.setToIdentifierRWA(new RunnableWithArgs<Identifier>() {
-			@Override
-			public Identifier run(Object... args) {
-				String text = (String) args[0];
-				if (text == null) {
-					return null;
-				}
-				return new Identifier(text, false);
-			}
-		});
+		resetRequireAllSources();
 
-		dialect = new Dialect() {
-		};
+		requireAllSourcesBut("mysql-connector-java-6.0.6", "com.mysql.cj.x.protobuf.Mysqlx",
+				"com.mysql.cj.x.io.XProtocol", "com.mysql.cj.api.x.io.MessageConstants",
+				"com.mysql.cj.api.x.io.MessageReader", "com.mysql.cj.api.x.io.MessageWriter",
+				"com.mysql.cj.x.core.XDevAPIError", "com.mysql.cj.x.io.AsyncMessageReader",
+				"com.mysql.cj.x.io.AsyncMessageWriter", "com.mysql.cj.x.io.ResultMessageListener",
+				"com.mysql.cj.api.x.io.MessageListener", "com.mysql.cj.x.io.SqlResultMessageListener",
+				"com.mysql.cj.x.io.StatementExecuteOkMessageListener", "com.mysql.cj.x.io.SyncMessageReader",
+				"com.mysql.cj.x.protobuf.MysqlxConnection", "com.mysql.cj.x.protobuf.MysqlxCrud",
+				"com.mysql.cj.x.protobuf.MysqlxDatatypes", "com.mysql.cj.x.protobuf.MysqlxExpect",
+				"com.mysql.cj.x.protobuf.MysqlxExpr", "com.mysql.cj.x.protobuf.MysqlxNotice",
+				"com.mysql.cj.x.protobuf.MysqlxResultset", "com.mysql.cj.x.protobuf.MysqlxSession",
+				"com.mysql.cj.x.protobuf.MysqlxSql", "com.mysql.cj.x.io.SyncMessageWriter",
+				"com.mysql.cj.xdevapi.ExprUtil", "com.mysql.cj.x.io.MessageBuilder", "com.mysql.cj.x.io.XProtocolRow",
+				"com.mysql.cj.jdbc.integration.c3p0.MysqlConnectionTester", "com.mysql.cj.api.x.io.DecoderFunction",
+				"com.mysql.cj.x.io.XProtocolDecoder",
+				"com.mysql.cj.jdbc.integration.jboss.ExtendedMysqlExceptionSorter",
+				"com.mysql.cj.x.io.StatementExecuteOkBuilder", "com.mysql.cj.x.io.XProtocolDecoder",
+				"com.mysql.cj.xdevapi.UpdateSpec", "com.mysql.cj.jdbc.integration.jboss.MysqlValidConnectionChecker",
+				"com.mysql.cj.xdevapi.ExprUnparser");
 
-		qualifiedObjectNameFormatter = new DummyQualifiedObjectNameFormatter();
-		qualifiedObjectNameFormatter.setFormatRWA(new RunnableWithArgs<String>() {
-			@Override
-			public String run(Object... args) {
-
-				String catalogText = "?";
-				String schemaText = "?";
-				String objectText = "?";
-
-				QualifiedName q = (QualifiedName) args[0];
-				if (q != null) {
-					Identifier catalogId = q.getCatalogName();
-					if (catalogId != null) {
-						catalogText = catalogId.getText();
-					}
-					Identifier schemaId = q.getSchemaName();
-					if (schemaId != null) {
-						schemaText = schemaId.getText();
-					}
-					Identifier objectId = q.getObjectName();
-					if (objectId != null) {
-						objectText = objectId.getText();
-					}
-				}
-				return catalogText + "/" + schemaText + "/" + objectText;
-			}
-		});
-
-		jdbcEnvironment = new DummyJdbcEnvironment();
-		jdbcEnvironment.setIdentifierHelper(identifierHelper);
-		jdbcEnvironment.setDialect(dialect);
-		jdbcEnvironment.setQualifiedObjectNameFormatter(qualifiedObjectNameFormatter);
-
-		extractedMetaDataSupport = new DummyExtractedDatabaseMetaData();
-
-		SqlStatementLogger sqlStatementLogger = new SqlStatementLogger();
-
-		SqlExceptionHelper sqlExceptionHelper = new SqlExceptionHelper(false);
-
-		jdbcServices = new DummyJdbcServices();
-		jdbcServices.setJdbcEnvironment(jdbcEnvironment);
-		jdbcServices.setExtractedMetaDataSupport(extractedMetaDataSupport);
-		jdbcServices.setSqlStatementLogger(sqlStatementLogger);
-		jdbcServices.setSqlExceptionHelper(sqlExceptionHelper);
-
-		cfgXmlAccessService = new DummyCfgXmlAccessService();
-
-		nullConfigurationSettings = new HashSet<>();
-
-		sessionEventListener = new DummySessionEventListener();
-
-		configurationService = new DummyConfigurationService();
-		configurationService.getSettings().put("hibernate.current_session_context_class", "thread");
-		configurationService.getSettings().put("hibernate.session.events.log", "true");
-		configurationService.getSettings().put("hibernate.session.events.auto", "true");
-		configurationService.setGetSettingRWA(new RunnableWithArgs<Object>() {
-			@Override
-			public Object run(Object... args) {
-				String name = (String) args[0];
-				Object value = configurationService.getSettings().get(name);
-				if (value == null && args.length == 3) {
-					value = args[2];
-					if (value != null) {
-						configurationService.getSettings().put(name, value);
-					} else {
-						nullConfigurationSettings.add(name);
-					}
-				}
-				return value;
-			}
-		});
-
-		integratorService = new DummyIntegratorService();
-
-		regionFactory = new DummyRegionFactory();
-
-		cacheImplementor = new DummyCacheImplementor();
-		cacheImplementor.setRegionFactory(regionFactory);
-
-		preparedStatement = new DummyPreparedStatement();
-		preparedStatement.setExecuteUpdateRWA(new RunnableWithArgs<Integer>() {
-			@Override
-			public Integer run(Object... args) {
-				return 1;
-			}
-		});
-
-		connection = new DummyConnection();
-		connection.setPrepareStatementRWA(new RunnableWithArgs<PreparedStatement>() {
-			@Override
-			public PreparedStatement run(Object... args) {
-				return preparedStatement;
-			}
-		});
-
-		connectionProvider = new DummyConnectionProvider();
-		connectionProvider.setConnection(connection);
-
-		// localSynchronizations = new DummySynchronizationRegistry();
-
-		// transactionDriverControl = new DummyTransactionDriver();
-
-		// transactionCoordinator = new DummyTransactionCoordinator();
-		// transactionCoordinator.setLocalSynchronizations(localSynchronizations);
-		// transactionCoordinator.setTransactionDriverControl(transactionDriverControl);
-
-		physicalConnectionHandlingMode = PhysicalConnectionHandlingMode.IMMEDIATE_ACQUISITION_AND_HOLD;
-
-		// transactionCoordinatorBuilder = new DummyTransactionCoordinatorBuilder();
-		// transactionCoordinatorBuilder.setDefaultConnectionHandlingMode(physicalConnectionHandlingMode);
-		// transactionCoordinatorBuilder.setBuildTransactionCoordinatorRWA(new
-		// RunnableWithArgs<TransactionCoordinator>() {
-		// @Override
-		// public TransactionCoordinator run(Object... args) {
-		// return transactionCoordinator;
-		// }
-		// });
-		transactionCoordinatorBuilder = new JdbcResourceLocalTransactionCoordinatorBuilderImpl();
-
-		strategySelector = new DummyStrategySelector();
-		strategySelector.setResolveDefaultableStrategyRWA(new RunnableWithArgs<Object>() {
-
-			@Override
-			public Object run(Object... args) {
-				Object def = args[2];
-				if (def instanceof Callable) {
-					try {
-						return ((Callable<?>) def).call();
-					} catch (Exception e) {
-						throw new RuntimeException(e);
-					}
-				} else {
-					return def;
-				}
-			}
-		});
+		initialConfigurationSettings = new HashMap<>();
+		initialConfigurationSettings.put("hibernate.current_session_context_class", "thread");
+		initialConfigurationSettings.put("hibernate.session.events.log", "true");
+		// initialConfigurationSettings.put("hibernate.session.events.auto", "true");
+		initialConfigurationSettings.put(AvailableSettings.IMPLICIT_NAMING_STRATEGY,
+				"org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl");
+		initialConfigurationSettings.put(AvailableSettings.HBM2DDL_AUTO, "create");
+		configurationService = new ConfigurationServiceImpl(initialConfigurationSettings);
 
 		classLoaderService = new ClassLoaderServiceImpl();
 
-		physicalNamingStrategy = new DummyPhysicalNamingStrategy();
-		physicalNamingStrategy.setToPhysicalNameRWA(new RunnableWithArgs<Identifier>() {
-			@Override
-			public Identifier run(Object... args) {
-				return (Identifier) args[0];
-			}
-		});
+		LinkedHashSet<Integrator> providedIntegrators = new LinkedHashSet<>();
+		integratorService = new IntegratorServiceImpl(providedIntegrators, classLoaderService);
 
-		multiTableBulkIdStrategy = new DummyMultiTableBulkIdStrategy();
+		strategySelector = new StrategySelectorImpl(classLoaderService);
 
-		generatedId = 1L;
-
-		identifierGenerator = new DummyIdentifierGenerator();
-		identifierGenerator.setGenerateRWA(new RunnableWithArgs<Serializable>() {
-			@Override
-			public Serializable run(Object... args) {
-				return generatedId;
-			}
-		});
-
-		mutableIdentifierGeneratorFactory = new DummyMutableIdentifierGeneratorFactory();
-		mutableIdentifierGeneratorFactory.setCreateIdentifierGeneratorRWA(new RunnableWithArgs<IdentifierGenerator>() {
-			@Override
-			public IdentifierGenerator run(Object... args) {
-				return identifierGenerator;
-			}
-		});
-
-		jndiService = new DummyJndiService();
+		physicalNamingStrategy = new PhysicalNamingStrategyStandardImpl();
 
 		bootstrapServiceRegistryImpl = new BootstrapServiceRegistryImpl(classLoaderService, strategySelector,
 				integratorService);
@@ -377,20 +228,30 @@ public class SessionFactoryImplTest extends AbstractTest {
 		standardServiceInitiators.add(PropertyAccessStrategyResolverInitiator.INSTANCE);
 		standardServiceInitiators.add(BatchBuilderInitiator.INSTANCE);
 		standardServiceInitiators.add(JmxServiceInitiator.INSTANCE);
+		standardServiceInitiators.add(ConnectionProviderInitiator.INSTANCE);
+		standardServiceInitiators.add(JdbcEnvironmentInitiator.INSTANCE);
+		standardServiceInitiators.add(JdbcServicesInitiator.INSTANCE);
+		standardServiceInitiators.add(CfgXmlAccessServiceInitiator.INSTANCE);
+		standardServiceInitiators.add(RegionFactoryInitiator.INSTANCE);
+		standardServiceInitiators.add(MutableIdentifierGeneratorFactoryInitiator.INSTANCE);
+		standardServiceInitiators.add(JndiServiceInitiator.INSTANCE);
+		standardServiceInitiators.add(TransactionCoordinatorBuilderInitiator.INSTANCE);
+		standardServiceInitiators.add(DialectFactoryInitiator.INSTANCE);
+		standardServiceInitiators.add(DialectResolverInitiator.INSTANCE);
+		standardServiceInitiators.add(SchemaManagementToolInitiator.INSTANCE);
+		standardServiceInitiators.add(ImportSqlCommandExtractorInitiator.INSTANCE);
 
 		providedServices = new ArrayList<>();
 		providedServices.add(new ProvidedService<>(ConfigurationService.class, configurationService));
-		providedServices.add(new ProvidedService<>(RegionFactory.class, regionFactory));
-		providedServices.add(new ProvidedService<>(CfgXmlAccessService.class, cfgXmlAccessService));
-		providedServices.add(new ProvidedService<>(JdbcServices.class, jdbcServices));
-		providedServices
-				.add(new ProvidedService<>(MutableIdentifierGeneratorFactory.class, mutableIdentifierGeneratorFactory));
-		providedServices.add(new ProvidedService<>(JdbcEnvironment.class, jdbcEnvironment));
-		providedServices.add(new ProvidedService<>(TransactionCoordinatorBuilder.class, transactionCoordinatorBuilder));
-		providedServices.add(new ProvidedService<>(JndiService.class, jndiService));
-		providedServices.add(new ProvidedService<>(ConnectionProvider.class, connectionProvider));
 
 		standardServiceRegistryConfigurationMap = new HashMap<>();
+		standardServiceRegistryConfigurationMap.put(AvailableSettings.URL, "jdbc:mysql://localhost:3306/dummydb");
+		standardServiceRegistryConfigurationMap.put(AvailableSettings.DRIVER, "com.mysql.jdbc.Driver");
+		standardServiceRegistryConfigurationMap.put(AvailableSettings.PASS, "user");
+		standardServiceRegistryConfigurationMap.put(AvailableSettings.USER, "user");
+		standardServiceRegistryConfigurationMap.put(AvailableSettings.CONNECTION_PREFIX + ".serverTimezone", "UTC");
+		standardServiceRegistryConfigurationMap.put(AvailableSettings.DIALECT, "org.hibernate.dialect.MySQL57Dialect");
+
 		standardServiceRegistryImpl = new StandardServiceRegistryImpl(bootstrapServiceRegistryImpl,
 				standardServiceInitiators, providedServices, standardServiceRegistryConfigurationMap);
 
@@ -401,20 +262,85 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		metadataImplementor = metadataBuilderImpl.build();
 
-		statementInspector = new DummyStatementInspector();
-
-		interceptor = new DummyInterceptor();
-
 		sessionFactoryBuilderImpl = new SessionFactoryBuilderImpl(metadataImplementor);
-		sessionFactoryBuilderImpl.applyMultiTableBulkIdStrategy(multiTableBulkIdStrategy);
-		sessionFactoryBuilderImpl.applyStatementInspector(statementInspector);
-		sessionFactoryBuilderImpl.applyInterceptor(interceptor);
 
 		sessionFactory = sessionFactoryBuilderImpl.build();
+
+		proxiedResults = new HashSet<>();
+		proxiedResults.add(ConnectionProvider.class);
+		proxiedResults.add(Connection.class);
+		proxiedResults.add(PreparedStatement.class);
+
+		ServiceRegistryImplementor sr = ((SessionFactoryImpl) sessionFactory).getServiceRegistry();
+
+		@SuppressWarnings("unchecked")
+		ConcurrentMap<Class<?>, Service> initializedServiceByRole = (ConcurrentMap<Class<?>, Service>) getField(sr,
+				"initializedServiceByRole", AbstractServiceRegistryImpl.class);
+
+		Set<Class<?>> ks = new HashSet<>();
+		ks.addAll(initializedServiceByRole.keySet());
+		for (Class<?> clazz : ks) {
+			Service previous = initializedServiceByRole.get(clazz);
+			Object proxied = proxy(previous);
+			initializedServiceByRole.put(clazz, (Service) proxied);
+		}
+
+		@SuppressWarnings("unchecked")
+		ConcurrentMap<Class<?>, ServiceBinding> serviceBindingMap = (ConcurrentMap<Class<?>, ServiceBinding>) getField(
+				sr, "serviceBindingMap", AbstractServiceRegistryImpl.class);
+
+		Field serviceField = ServiceBinding.class.getDeclaredField("service");
+		serviceField.setAccessible(true);
+
+		for (Class<?> clazz : new Class<?>[] { BatchBuilder.class, CacheImplementor.class, CfgXmlAccessService.class,
+				ClassLoaderService.class, ConfigurationService.class, ConnectionProvider.class, DialectFactory.class,
+				DialectResolver.class, EventListenerRegistry.class, ImportSqlCommandExtractor.class,
+				IntegratorService.class, JaccService.class, JdbcEnvironment.class, JdbcServices.class, JmxService.class,
+				JndiService.class, JtaPlatform.class, JtaPlatformResolver.class, MultiTenantConnectionProvider.class,
+				MutableIdentifierGeneratorFactory.class, NativeQueryInterpreter.class, PersisterClassResolver.class,
+				PersisterFactory.class, PropertyAccessStrategyResolver.class, QueryTranslatorFactory.class,
+				RefCursorSupport.class, RegionFactory.class, SchemaManagementTool.class,
+				SessionFactoryServiceRegistryFactory.class, StatisticsImplementor.class, StrategySelector.class,
+				TransactionCoordinatorBuilder.class
+
+		}) {
+			ServiceBinding binding = (ServiceBinding) this.invoke(sr, "locateServiceBinding",
+					AbstractServiceRegistryImpl.class, new Class<?>[] { Class.class }, clazz);
+			if (binding != null) {
+				Service service = binding.getService();
+				if (service != null) {
+					Service proxy = (Service) proxy(service);
+					serviceField.set(binding, proxy);
+				}
+			}
+		}
+
+	}
+
+	private Object proxy(Object o) {
+		return Proxy.newProxyInstance(this.getClass().getClassLoader(), o.getClass().getInterfaces(),
+				new InvocationHandler() {
+					@Override
+					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						System.out.println(o.getClass().getName() + " : " + method.getName());
+						Object result = method.invoke(o, args);
+						if (result != null) {
+							for (Class<?> clazz : proxiedResults) {
+								if (clazz.isAssignableFrom(result.getClass())) {
+									if (!Proxy.isProxyClass(result.getClass())) {
+										result = proxy(result);
+									}
+									break;
+								}
+							}
+						}
+						return result;
+					}
+				});
 	}
 
 	@Test
-	public void test() {
+	public void test() throws Exception {
 
 		Session s = sessionFactory.getCurrentSession();
 
@@ -422,9 +348,8 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		t.begin();
 
-		// transactionDriverControl.setStatus(TransactionStatus.ACTIVE);
-
 		A a = new A();
+		a.setId(1L);
 		a.setName("name");
 		s.persist(a);
 

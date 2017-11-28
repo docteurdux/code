@@ -742,6 +742,11 @@ public abstract class AbstractTest {
 		}
 	}
 
+	protected void resetRequireAllSources() {
+		tried = false;
+		requireSourcesException = null;
+	}
+
 	@SuppressWarnings("unchecked")
 	protected <T> T get(Map<String, Object> map, String key, Class<T> clazz) {
 		return (T) map.get(key);
