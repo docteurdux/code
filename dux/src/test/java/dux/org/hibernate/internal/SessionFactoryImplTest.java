@@ -60,6 +60,7 @@ import org.hibernate.tool.schema.internal.SchemaManagementToolInitiator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.powermock.api.mockito.PowerMockito;
 
 import com.github.docteurdux.test.AbstractTest;
 
@@ -127,6 +128,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 	@Before
 	public void before() throws Exception {
 
+		/*
 		ClassPool pool = ClassPool.getDefault();
 		Loader cl = new Loader(pool);
 		cl.addTranslator(pool, new Translator() {
@@ -146,6 +148,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 		Class<?> aClass = cl.loadClass("dux.org.hibernate.internal.SessionFactoryImplTest$A");
 		Object o = aClass.newInstance();
 		o.getClass().getMethod("getName").invoke(o);
+		*/
 
 		requireAllSourcesBut(HibernateCoreSummaryTest.MVNNAME,
 				"org.hibernate.jpa.event.internal.jpa.ListenerFactoryBeanManagerDelayedImpl",
