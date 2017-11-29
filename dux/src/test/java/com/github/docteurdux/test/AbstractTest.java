@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -774,5 +777,58 @@ public abstract class AbstractTest {
 			System.out.println(");");
 		}
 		throw new RuntimeException("HALT !");
+	}
+
+	protected Set<Class<?>> collectInheritance(Object o) {
+		Set<Class<?>> classes = new HashSet<>();
+		if (o != null) {
+			if (o instanceof Class) {
+				collectInheritance((Class<?>) o, classes);
+			} else {
+				collectInheritance(o.getClass(), classes);
+			}
+		}
+		return classes;
+
+	}
+
+	protected void collectInheritance(Class<?> clazz, Set<Class<?>> classes) {
+		if (clazz != null && !classes.contains(clazz)) {
+			classes.add(clazz);
+			collectInheritance(clazz.getSuperclass(), classes);
+			for (Class<?> i : clazz.getInterfaces()) {
+				collectInheritance(i, classes);
+			}
+		}
+	}
+
+	protected List<Class<?>> sortClassesByName(Set<Class<?>> set) {
+		List<Class<?>> list = new ArrayList<>();
+		list.addAll(set);
+		return sortClassesByName(list);
+	}
+
+	protected List<Class<?>> sortClassesByName(List<Class<?>> list) {
+		list.sort(new Comparator<Class<?>>() {
+			@Override
+			public int compare(Class<?> o1, Class<?> o2) {
+				return o1.getName().compareTo(o2.getName());
+			}
+		});
+		return list;
+	}
+
+	protected List<WeakReference<Class<?>>> sortClassesByNameWR(Collection<WeakReference<Class<?>>> list) {
+		return list.stream().filter(new Predicate<WeakReference<Class<?>>>() {
+			@Override
+			public boolean test(WeakReference<Class<?>> t) {
+				return t.get() != null;
+			}
+		}).sorted(new Comparator<WeakReference<Class<?>>>() {
+			@Override
+			public int compare(WeakReference<Class<?>> o1, WeakReference<Class<?>> o2) {
+				return o1.get().getName().compareTo(o2.get().getName());
+			}
+		}).collect(Collectors.toList());
 	}
 }

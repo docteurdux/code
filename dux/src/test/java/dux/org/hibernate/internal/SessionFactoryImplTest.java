@@ -1,19 +1,18 @@
 package dux.org.hibernate.internal;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
+import java.util.WeakHashMap;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -24,7 +23,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.cfgxml.internal.CfgXmlAccessServiceInitiator;
-import org.hibernate.boot.cfgxml.spi.CfgXmlAccessService;
 import org.hibernate.boot.internal.MetadataBuilderImpl;
 import org.hibernate.boot.internal.SessionFactoryBuilderImpl;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
@@ -34,71 +32,45 @@ import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.internal.BootstrapServiceRegistryImpl;
 import org.hibernate.boot.registry.internal.StandardServiceRegistryImpl;
 import org.hibernate.boot.registry.selector.internal.StrategySelectorImpl;
-import org.hibernate.boot.registry.selector.spi.StrategySelector;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cache.internal.RegionFactoryInitiator;
-import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.config.internal.ConfigurationServiceImpl;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.jdbc.batch.internal.BatchBuilderInitiator;
-import org.hibernate.engine.jdbc.batch.spi.BatchBuilder;
 import org.hibernate.engine.jdbc.connections.internal.ConnectionProviderInitiator;
-import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
-import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
-import org.hibernate.engine.jdbc.cursor.spi.RefCursorSupport;
 import org.hibernate.engine.jdbc.dialect.internal.DialectFactoryInitiator;
 import org.hibernate.engine.jdbc.dialect.internal.DialectResolverInitiator;
-import org.hibernate.engine.jdbc.dialect.spi.DialectFactory;
-import org.hibernate.engine.jdbc.dialect.spi.DialectResolver;
 import org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator;
-import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.internal.JdbcServicesInitiator;
-import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jndi.internal.JndiServiceInitiator;
-import org.hibernate.engine.jndi.spi.JndiService;
-import org.hibernate.engine.query.spi.NativeQueryInterpreter;
-import org.hibernate.engine.spi.CacheImplementor;
-import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
-import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatformResolver;
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.hql.spi.QueryTranslatorFactory;
 import org.hibernate.id.factory.internal.MutableIdentifierGeneratorFactoryInitiator;
-import org.hibernate.id.factory.spi.MutableIdentifierGeneratorFactory;
 import org.hibernate.integrator.internal.IntegratorServiceImpl;
 import org.hibernate.integrator.spi.Integrator;
-import org.hibernate.integrator.spi.IntegratorService;
-import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jmx.internal.JmxServiceInitiator;
-import org.hibernate.jmx.spi.JmxService;
 import org.hibernate.persister.internal.PersisterClassResolverInitiator;
 import org.hibernate.persister.internal.PersisterFactoryInitiator;
-import org.hibernate.persister.spi.PersisterClassResolver;
-import org.hibernate.persister.spi.PersisterFactory;
 import org.hibernate.property.access.internal.PropertyAccessStrategyResolverInitiator;
-import org.hibernate.property.access.spi.PropertyAccessStrategyResolver;
 import org.hibernate.resource.transaction.internal.TransactionCoordinatorBuilderInitiator;
-import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
-import org.hibernate.secure.spi.JaccService;
 import org.hibernate.service.Service;
-import org.hibernate.service.internal.AbstractServiceRegistryImpl;
 import org.hibernate.service.internal.ProvidedService;
 import org.hibernate.service.internal.SessionFactoryServiceRegistryFactoryInitiator;
-import org.hibernate.service.spi.ServiceBinding;
-import org.hibernate.service.spi.ServiceRegistryImplementor;
-import org.hibernate.service.spi.SessionFactoryServiceRegistryFactory;
-import org.hibernate.stat.spi.StatisticsImplementor;
-import org.hibernate.tool.hbm2ddl.ImportSqlCommandExtractor;
 import org.hibernate.tool.hbm2ddl.ImportSqlCommandExtractorInitiator;
 import org.hibernate.tool.schema.internal.SchemaManagementToolInitiator;
-import org.hibernate.tool.schema.spi.SchemaManagementTool;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
-import com.github.docteurdux.test.TestEvent;
 
 import dus.hibernate.core.HibernateCoreSummaryTest;
+import javassist.CannotCompileException;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.Loader;
+import javassist.NotFoundException;
+import javassist.Translator;
 
 public class SessionFactoryImplTest extends AbstractTest {
 
@@ -120,7 +92,10 @@ public class SessionFactoryImplTest extends AbstractTest {
 	private SessionFactoryBuilderImpl sessionFactoryBuilderImpl;
 	private SessionFactory sessionFactory;
 	private Map<Object, Object> initialConfigurationSettings;
-	private Set<Class<?>> proxiedResults;
+	private Map<Integer, List<WeakReference<Object>>> proxies;
+
+	private Set<Class<?>> collectedClasses = Collections.newSetFromMap(new WeakHashMap<Class<?>, Boolean>());
+	private Class<?>[] targets = new Class<?>[] { Session.class, Transaction.class, Service.class };
 
 	@Entity
 	@Table(name = "A")
@@ -151,6 +126,27 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 	@Before
 	public void before() throws Exception {
+
+		ClassPool pool = ClassPool.getDefault();
+		Loader cl = new Loader(pool);
+		cl.addTranslator(pool, new Translator() {
+			@Override
+			public void start(ClassPool pool) throws NotFoundException, CannotCompileException {
+			}
+
+			@Override
+			public void onLoad(ClassPool pool, String classname) throws NotFoundException, CannotCompileException {
+				CtClass ct = pool.get("dux.org.hibernate.internal.SessionFactoryImplTest$A");
+				for (CtMethod method : ct.getDeclaredMethods()) {
+					method.insertBefore("System.out.println(\"" + method.getName() + "\");");
+				}
+			}
+		});
+
+		Class<?> aClass = cl.loadClass("dux.org.hibernate.internal.SessionFactoryImplTest$A");
+		Object o = aClass.newInstance();
+		o.getClass().getMethod("getName").invoke(o);
+
 		requireAllSourcesBut(HibernateCoreSummaryTest.MVNNAME,
 				"org.hibernate.jpa.event.internal.jpa.ListenerFactoryBeanManagerDelayedImpl",
 				"org.hibernate.jpa.event.internal.jpa.ListenerFactoryBeanManagerExtendedImpl",
@@ -204,7 +200,9 @@ public class SessionFactoryImplTest extends AbstractTest {
 				"com.mysql.cj.xdevapi.ExprParser", "com.mysql.cj.xdevapi.FilterParams",
 				"com.mysql.cj.xdevapi.FilterParams", "com.mysql.cj.xdevapi.FindParams",
 				"com.mysql.cj.xdevapi.InsertParams", "com.mysql.cj.xdevapi.SqlStatementImpl",
-				"com.mysql.cj.xdevapi.TableFindParams","com.mysql.cj.xdevapi.UpdateParams");
+				"com.mysql.cj.xdevapi.TableFindParams", "com.mysql.cj.xdevapi.UpdateParams");
+
+		proxies = new HashMap<>();
 
 		initialConfigurationSettings = new HashMap<>();
 		initialConfigurationSettings.put("hibernate.current_session_context_class", "thread");
@@ -271,77 +269,119 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		sessionFactory = sessionFactoryBuilderImpl.build();
 
-		proxiedResults = new HashSet<>();
-		proxiedResults.add(ConnectionProvider.class);
-		proxiedResults.add(Connection.class);
-		proxiedResults.add(PreparedStatement.class);
-
-		ServiceRegistryImplementor sr = ((SessionFactoryImpl) sessionFactory).getServiceRegistry();
-
-		@SuppressWarnings("unchecked")
-		ConcurrentMap<Class<?>, Service> initializedServiceByRole = (ConcurrentMap<Class<?>, Service>) getField(sr,
-				"initializedServiceByRole", AbstractServiceRegistryImpl.class);
-
-		Set<Class<?>> ks = new HashSet<>();
-		ks.addAll(initializedServiceByRole.keySet());
-		for (Class<?> clazz : ks) {
-			Service previous = initializedServiceByRole.get(clazz);
-			Object proxied = proxy(previous);
-			initializedServiceByRole.put(clazz, (Service) proxied);
-		}
-
-		@SuppressWarnings("unchecked")
-		ConcurrentMap<Class<?>, ServiceBinding> serviceBindingMap = (ConcurrentMap<Class<?>, ServiceBinding>) getField(
-				sr, "serviceBindingMap", AbstractServiceRegistryImpl.class);
-
-		Field serviceField = ServiceBinding.class.getDeclaredField("service");
-		serviceField.setAccessible(true);
-
-		for (Class<?> clazz : new Class<?>[] { BatchBuilder.class, CacheImplementor.class, CfgXmlAccessService.class,
-				ClassLoaderService.class, ConfigurationService.class, ConnectionProvider.class, DialectFactory.class,
-				DialectResolver.class, EventListenerRegistry.class, ImportSqlCommandExtractor.class,
-				IntegratorService.class, JaccService.class, JdbcEnvironment.class, JdbcServices.class, JmxService.class,
-				JndiService.class, JtaPlatform.class, JtaPlatformResolver.class, MultiTenantConnectionProvider.class,
-				MutableIdentifierGeneratorFactory.class, NativeQueryInterpreter.class, PersisterClassResolver.class,
-				PersisterFactory.class, PropertyAccessStrategyResolver.class, QueryTranslatorFactory.class,
-				RefCursorSupport.class, RegionFactory.class, SchemaManagementTool.class,
-				SessionFactoryServiceRegistryFactory.class, StatisticsImplementor.class, StrategySelector.class,
-				TransactionCoordinatorBuilder.class
-
-		}) {
-			ServiceBinding binding = (ServiceBinding) this.invoke(sr, "locateServiceBinding",
-					AbstractServiceRegistryImpl.class, new Class<?>[] { Class.class }, clazz);
-			if (binding != null) {
-				Service service = binding.getService();
-				if (service != null) {
-					Service proxy = (Service) proxy(service);
-					serviceField.set(binding, proxy);
-				}
-			}
-		}
+		proxyFields(sessionFactory);
+		sessionFactory = (SessionFactory) proxy(sessionFactory);
 
 	}
 
+	@After
+	public void after() throws Exception {
+
+		List<Class<?>> sorted = sortClassesByName(collectedClasses);
+		for (Class<?> clazz : sorted) {
+			if (clazz != null && clazz.isInterface()) {
+				System.out.println(clazz.getName());
+			}
+		}
+	}
+
 	private Object proxy(Object o) {
-		return Proxy.newProxyInstance(this.getClass().getClassLoader(), o.getClass().getInterfaces(),
+		if (o == null) {
+			return null;
+		}
+
+		int h = System.identityHashCode(o);
+		if (!proxies.containsKey(h)) {
+			proxies.put(h, new ArrayList<>());
+		}
+		for (WeakReference<Object> wr : proxies.get(h)) {
+			if (wr.get() == o) {
+				return o;
+			}
+		}
+
+		Object proxy = Proxy.newProxyInstance(this.getClass().getClassLoader(), o.getClass().getInterfaces(),
 				new InvocationHandler() {
 					@Override
 					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 						System.out.println(o.getClass().getName() + " : " + method.getName());
+						if ("getDialect".equals(method.getName())) {
+							f();
+						}
 						Object result = method.invoke(o, args);
-						if (result != null) {
-							for (Class<?> clazz : proxiedResults) {
-								if (clazz.isAssignableFrom(result.getClass())) {
-									if (!Proxy.isProxyClass(result.getClass())) {
-										result = proxy(result);
-									}
+						if (result == null) {
+							return result;
+						}
+						if (isProxied(result)) {
+							return result;
+						}
+						for (Class<?> target : targets) {
+							if (target.isAssignableFrom(result.getClass())) {
+								proxyFields(result);
+								return proxy(result);
+							}
+						}
+
+						Set<Class<?>> inheritance = collectInheritance(result);
+						for (Class<?> clazz : inheritance) {
+							collectedClasses.add(clazz);
+						}
+						return result;
+					}
+
+				});
+		proxies.get(h).add(new WeakReference<Object>(proxy));
+		return proxy;
+	}
+
+	private void proxyFields(Object result) {
+		Set<Class<?>> inh = this.collectInheritance(result);
+		for (Class<?> clazz : inh) {
+			for (Field f : clazz.getDeclaredFields()) {
+				boolean proxied = false;
+				try {
+					f.setAccessible(true);
+					Object v = f.get(result);
+					if (v != null) {
+						for (Class<?> target : targets) {
+							if (target == null) {
+								continue;
+							}
+							if (target.isAssignableFrom(v.getClass())) {
+								if (!isProxied(v)) {
+									Object proxyf = proxy(v);
+									f.set(result, proxyf);
+									proxied = true;
 									break;
 								}
 							}
 						}
-						return result;
+						if (!proxied) {
+							collectedClasses.addAll(collectInheritance(v));
+						}
 					}
-				});
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		}
+	}
+
+	private boolean isProxied(Object o) {
+		if (o == null) {
+			return false;
+		}
+		int h = System.identityHashCode(o);
+
+		if (!proxies.containsKey(h)) {
+			return false;
+		}
+		for (WeakReference<Object> wr : proxies.get(h)) {
+			if (wr.get() == o) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Test
@@ -361,9 +401,6 @@ public class SessionFactoryImplTest extends AbstractTest {
 		t.commit();
 
 		sessionFactory.close();
-
-		List<TestEvent> testEvents = getAllTestEvents(this);
-		dumpTestEvents(testEvents);
 
 	}
 }
