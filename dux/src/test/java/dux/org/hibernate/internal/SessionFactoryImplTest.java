@@ -199,7 +199,12 @@ public class SessionFactoryImplTest extends AbstractTest {
 				"com.mysql.cj.jdbc.integration.jboss.ExtendedMysqlExceptionSorter",
 				"com.mysql.cj.x.io.StatementExecuteOkBuilder", "com.mysql.cj.x.io.XProtocolDecoder",
 				"com.mysql.cj.xdevapi.UpdateSpec", "com.mysql.cj.jdbc.integration.jboss.MysqlValidConnectionChecker",
-				"com.mysql.cj.xdevapi.ExprUnparser");
+				"com.mysql.cj.xdevapi.ExprUnparser", "com.mysql.cj.api.x.io.ColToFieldTransformer",
+				"com.mysql.cj.x.core.CoreWarning", "com.mysql.cj.xdevapi.DocFindParams",
+				"com.mysql.cj.xdevapi.ExprParser", "com.mysql.cj.xdevapi.FilterParams",
+				"com.mysql.cj.xdevapi.FilterParams", "com.mysql.cj.xdevapi.FindParams",
+				"com.mysql.cj.xdevapi.InsertParams", "com.mysql.cj.xdevapi.SqlStatementImpl",
+				"com.mysql.cj.xdevapi.TableFindParams","com.mysql.cj.xdevapi.UpdateParams");
 
 		initialConfigurationSettings = new HashMap<>();
 		initialConfigurationSettings.put("hibernate.current_session_context_class", "thread");
