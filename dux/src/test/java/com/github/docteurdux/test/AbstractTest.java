@@ -115,7 +115,7 @@ public abstract class AbstractTest {
 			return "n$";
 		}
 		if (o instanceof String) {
-			return "s$" + o;
+			return (String) o;
 		}
 		if (o instanceof Number) {
 			return "n$" + o;
@@ -553,7 +553,9 @@ public abstract class AbstractTest {
 					Object value = entry.getValue();
 					String formattedValue = str(value);
 					System.out.println(" - " + name + " : " + formattedValue);
-
+				}
+				if (testEvent.hasResult()) {
+					System.out.println(" => " + testEvent.getResult());
 				}
 			}
 		} catch (IllegalArgumentException e) {

@@ -1,18 +1,10 @@
 package dux.org.hibernate.internal;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -52,26 +44,20 @@ import org.hibernate.persister.internal.PersisterClassResolverInitiator;
 import org.hibernate.persister.internal.PersisterFactoryInitiator;
 import org.hibernate.property.access.internal.PropertyAccessStrategyResolverInitiator;
 import org.hibernate.resource.transaction.internal.TransactionCoordinatorBuilderInitiator;
-import org.hibernate.service.Service;
 import org.hibernate.service.internal.ProvidedService;
 import org.hibernate.service.internal.SessionFactoryServiceRegistryFactoryInitiator;
 import org.hibernate.tool.hbm2ddl.ImportSqlCommandExtractorInitiator;
 import org.hibernate.tool.schema.internal.SchemaManagementToolInitiator;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
+import org.junit.runner.RunWith;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.TestEvents;
+import com.mysql.jdbc.Driver;
 
+import dud.java.sql.DelegatingDriver;
 import dus.hibernate.core.HibernateCoreSummaryTest;
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.Loader;
-import javassist.NotFoundException;
-import javassist.Translator;
 
 public class SessionFactoryImplTest extends AbstractTest {
 
@@ -93,10 +79,6 @@ public class SessionFactoryImplTest extends AbstractTest {
 	private SessionFactoryBuilderImpl sessionFactoryBuilderImpl;
 	private SessionFactory sessionFactory;
 	private Map<Object, Object> initialConfigurationSettings;
-	private Map<Integer, List<WeakReference<Object>>> proxies;
-
-	private Set<Class<?>> collectedClasses = Collections.newSetFromMap(new WeakHashMap<Class<?>, Boolean>());
-	private Class<?>[] targets = new Class<?>[] { Session.class, Transaction.class, Service.class };
 
 	@Entity
 	@Table(name = "A")
@@ -128,27 +110,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 	@Before
 	public void before() throws Exception {
 
-		/*
-		ClassPool pool = ClassPool.getDefault();
-		Loader cl = new Loader(pool);
-		cl.addTranslator(pool, new Translator() {
-			@Override
-			public void start(ClassPool pool) throws NotFoundException, CannotCompileException {
-			}
-
-			@Override
-			public void onLoad(ClassPool pool, String classname) throws NotFoundException, CannotCompileException {
-				CtClass ct = pool.get("dux.org.hibernate.internal.SessionFactoryImplTest$A");
-				for (CtMethod method : ct.getDeclaredMethods()) {
-					method.insertBefore("System.out.println(\"" + method.getName() + "\");");
-				}
-			}
-		});
-
-		Class<?> aClass = cl.loadClass("dux.org.hibernate.internal.SessionFactoryImplTest$A");
-		Object o = aClass.newInstance();
-		o.getClass().getMethod("getName").invoke(o);
-		*/
+		DelegatingDriver.setDelegate(new Driver());
 
 		requireAllSourcesBut(HibernateCoreSummaryTest.MVNNAME,
 				"org.hibernate.jpa.event.internal.jpa.ListenerFactoryBeanManagerDelayedImpl",
@@ -205,8 +167,6 @@ public class SessionFactoryImplTest extends AbstractTest {
 				"com.mysql.cj.xdevapi.InsertParams", "com.mysql.cj.xdevapi.SqlStatementImpl",
 				"com.mysql.cj.xdevapi.TableFindParams", "com.mysql.cj.xdevapi.UpdateParams");
 
-		proxies = new HashMap<>();
-
 		initialConfigurationSettings = new HashMap<>();
 		initialConfigurationSettings.put("hibernate.current_session_context_class", "thread");
 		initialConfigurationSettings.put("hibernate.session.events.log", "true");
@@ -252,7 +212,9 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		standardServiceRegistryConfigurationMap = new HashMap<>();
 		standardServiceRegistryConfigurationMap.put(AvailableSettings.URL, "jdbc:mysql://localhost:3306/dummydb");
-		standardServiceRegistryConfigurationMap.put(AvailableSettings.DRIVER, "com.mysql.jdbc.Driver");
+		// standardServiceRegistryConfigurationMap.put(AvailableSettings.DRIVER,
+		// "com.mysql.jdbc.Driver");
+		standardServiceRegistryConfigurationMap.put(AvailableSettings.DRIVER, "dud.java.sql.DelegatingDriver");
 		standardServiceRegistryConfigurationMap.put(AvailableSettings.PASS, "user");
 		standardServiceRegistryConfigurationMap.put(AvailableSettings.USER, "user");
 		standardServiceRegistryConfigurationMap.put(AvailableSettings.CONNECTION_PREFIX + ".serverTimezone", "UTC");
@@ -272,138 +234,37 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		sessionFactory = sessionFactoryBuilderImpl.build();
 
-		proxyFields(sessionFactory);
-		sessionFactory = (SessionFactory) proxy(sessionFactory);
-
-	}
-
-	@After
-	public void after() throws Exception {
-
-		List<Class<?>> sorted = sortClassesByName(collectedClasses);
-		for (Class<?> clazz : sorted) {
-			if (clazz != null && clazz.isInterface()) {
-				System.out.println(clazz.getName());
-			}
-		}
-	}
-
-	private Object proxy(Object o) {
-		if (o == null) {
-			return null;
-		}
-
-		int h = System.identityHashCode(o);
-		if (!proxies.containsKey(h)) {
-			proxies.put(h, new ArrayList<>());
-		}
-		for (WeakReference<Object> wr : proxies.get(h)) {
-			if (wr.get() == o) {
-				return o;
-			}
-		}
-
-		Object proxy = Proxy.newProxyInstance(this.getClass().getClassLoader(), o.getClass().getInterfaces(),
-				new InvocationHandler() {
-					@Override
-					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-						System.out.println(o.getClass().getName() + " : " + method.getName());
-						if ("getDialect".equals(method.getName())) {
-							f();
-						}
-						Object result = method.invoke(o, args);
-						if (result == null) {
-							return result;
-						}
-						if (isProxied(result)) {
-							return result;
-						}
-						for (Class<?> target : targets) {
-							if (target.isAssignableFrom(result.getClass())) {
-								proxyFields(result);
-								return proxy(result);
-							}
-						}
-
-						Set<Class<?>> inheritance = collectInheritance(result);
-						for (Class<?> clazz : inheritance) {
-							collectedClasses.add(clazz);
-						}
-						return result;
-					}
-
-				});
-		proxies.get(h).add(new WeakReference<Object>(proxy));
-		return proxy;
-	}
-
-	private void proxyFields(Object result) {
-		Set<Class<?>> inh = this.collectInheritance(result);
-		for (Class<?> clazz : inh) {
-			for (Field f : clazz.getDeclaredFields()) {
-				boolean proxied = false;
-				try {
-					f.setAccessible(true);
-					Object v = f.get(result);
-					if (v != null) {
-						for (Class<?> target : targets) {
-							if (target == null) {
-								continue;
-							}
-							if (target.isAssignableFrom(v.getClass())) {
-								if (!isProxied(v)) {
-									Object proxyf = proxy(v);
-									f.set(result, proxyf);
-									proxied = true;
-									break;
-								}
-							}
-						}
-						if (!proxied) {
-							collectedClasses.addAll(collectInheritance(v));
-						}
-					}
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-			}
-		}
-	}
-
-	private boolean isProxied(Object o) {
-		if (o == null) {
-			return false;
-		}
-		int h = System.identityHashCode(o);
-
-		if (!proxies.containsKey(h)) {
-			return false;
-		}
-		for (WeakReference<Object> wr : proxies.get(h)) {
-			if (wr.get() == o) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Test
 	public void test() throws Exception {
 
-		Session s = sessionFactory.getCurrentSession();
+		try {
+			Session s = sessionFactory.getCurrentSession();
 
-		Transaction t = s.getTransaction();
+			Transaction t = s.getTransaction();
 
-		t.begin();
+			t.begin();
 
-		A a = new A();
-		a.setId(1L);
-		a.setName("name");
-		s.persist(a);
+			A a = new A();
+			a.setId(1L);
+			a.setName("name");
+			s.persist(a);
 
-		t.commit();
+			t.commit();
 
-		sessionFactory.close();
+			s = sessionFactory.openSession();
+			s.clear();
+			t = s.getTransaction();
+			t.begin();
+			a = s.load(A.class, 1L);
+			a.getName();
+			t.commit();
+
+			sessionFactory.close();
+		} finally {
+			this.dumpTestEvents(TestEvents.getTestEvents());
+		}
 
 	}
 }

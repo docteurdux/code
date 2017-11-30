@@ -23,6 +23,10 @@ public class ProxyTest extends AbstractTest {
 		public String foo2();
 	}
 
+	public static interface I3 {
+		public Object foo();
+	}
+
 	public static class C implements I1, I2 {
 
 		@Override
@@ -71,9 +75,21 @@ public class ProxyTest extends AbstractTest {
 
 	}
 
+	@Test
 	public void test2() {
 		I1 i1 = (I1) Proxy.newProxyInstance(classLoader, interfaces, stringInvocationHandler);
 		aeq("foo1", i1.foo1());
+	}
+
+	@Test
+	public void test3() {
+		I3 i3 = (I3) Proxy.newProxyInstance(classLoader, interfaces, new InvocationHandler() {
+			@Override
+			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+				return proxy;
+			}
+		});
+		aeqr(i3, i3.foo());
 	}
 
 }
