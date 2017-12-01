@@ -16,12 +16,14 @@ import javax.persistence.Table;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.cfgxml.internal.CfgXmlAccessServiceInitiator;
 import org.hibernate.boot.internal.MetadataBuilderImpl;
 import org.hibernate.boot.internal.SessionFactoryBuilderImpl;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.boot.registry.StandardServiceInitiator;
+import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.internal.BootstrapServiceRegistryImpl;
@@ -57,6 +59,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Instrumenter;
 import com.github.docteurdux.test.TestEvents;
 import com.mysql.jdbc.Driver;
 
@@ -64,6 +67,12 @@ import dud.java.sql.DelegatingDriver;
 import dus.hibernate.core.HibernateCoreSummaryTest;
 
 public class SessionFactoryImplTest extends AbstractTest {
+
+	static {
+		// Instrumenter.instrument("org.hibernate.internal.SessionFactoryImpl");
+		// Instrumenter.instrument("org.hibernate.boot.registry.internal.StandardServiceRegistryImpl");
+		// Instrumenter.instrument("org.hibernate.boot.internal.MetadataBuilderImpl");
+	}
 
 	private ConfigurationServiceImpl configurationService;
 	private IntegratorServiceImpl integratorService;
@@ -76,14 +85,27 @@ public class SessionFactoryImplTest extends AbstractTest {
 	@SuppressWarnings("rawtypes")
 	private List<ProvidedService> providedServices;
 	private Map<Object, Object> standardServiceRegistryConfigurationMap;
-	private StandardServiceRegistryImpl standardServiceRegistryImpl;
+	private StandardServiceRegistry standardServiceRegistryImpl;
 	private MetadataSources metadataSources;
-	private MetadataBuilderImpl metadataBuilderImpl;
+	private MetadataBuilder metadataBuilderImpl;
 	private MetadataImplementor metadataImplementor;
 	private SessionFactoryBuilderImpl sessionFactoryBuilderImpl;
 	private SessionFactory sessionFactory;
 	private Map<Object, Object> initialConfigurationSettings;
 	private Set<String> ids = new HashSet<>();
+
+	public static class CL extends ClassLoader {
+
+		public CL(ClassLoader parent) {
+			super(parent);
+		}
+
+		@Override
+		public Class<?> loadClass(String name) throws ClassNotFoundException {
+			System.out.println("Loading " + name);
+			return super.loadClass(name);
+		}
+	}
 
 	@Entity
 	@Table(name = "A")
@@ -233,16 +255,17 @@ public class SessionFactoryImplTest extends AbstractTest {
 		metadataBuilderImpl = new MetadataBuilderImpl(metadataSources, standardServiceRegistryImpl);
 		metadataBuilderImpl.applyPhysicalNamingStrategy(physicalNamingStrategy);
 
-		metadataImplementor = metadataBuilderImpl.build();
+		metadataImplementor = ((MetadataBuilderImpl) metadataBuilderImpl).build();
 
 		sessionFactoryBuilderImpl = new SessionFactoryBuilderImpl(metadataImplementor);
 
 		sessionFactory = sessionFactoryBuilderImpl.build();
 
-		dumpTree(sessionFactory, "sessionFactory", 0);
+		// dumpTree(sessionFactory, "sessionFactory", 0);
 
 	}
 
+	@SuppressWarnings("unused")
 	private void dumpTree(Object o, String name, int depth) throws Exception {
 		if (o == null) {
 			System.out.println(name + " : null");
@@ -305,7 +328,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 			sessionFactory.close();
 		} finally {
-			this.dumpTestEvents(TestEvents.getTestEvents());
+			// this.dumpTestEvents(TestEvents.getTestEvents());
 		}
 
 	}
