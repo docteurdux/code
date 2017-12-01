@@ -38,7 +38,7 @@ public class ClassPoolTest extends AbstractTest {
 		for (CtMethod m : ca.getMethods()) {
 			if (!"java.lang.Object".equals(m.getDeclaringClass().getName())) {
 				String n = m.getName();
-				System.out.println(n);
+//				System.out.println(n);
 				m.insertBefore("dux.javassist.ClassPoolTest.hello(\"" + n + "\");");
 			}
 		}
@@ -48,12 +48,13 @@ public class ClassPoolTest extends AbstractTest {
 		for (CtMethod m : cc.getMethods()) {
 			if ("dux.javassist.ClassPoolTest$B".equals(m.getDeclaringClass().getName())) {
 				String n = m.getName();
-				System.out.println(n);
+//				System.out.println(n);
 				m.insertBefore("dux.javassist.ClassPoolTest.hello(\"" + n + "\");");
 			}
 		}
 		Class cl = cc.toClass();
-		B b = (B) cl.newInstance();
+		//B b = (B) cl.newInstance();
+		B b = new B();
 		System.out.println(TestEvents.getIdentity(b));
 		System.out.println(b.bar());
 		System.out.println(b.foo());
