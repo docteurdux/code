@@ -22,6 +22,10 @@ public class Proxyfier {
 		return o;
 	}
 
+	public static void addProxy(Object o) {
+		proxies.add(TestEvents.getIdentity(o));
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <T> T proxify(Object delegate) {
 		if (delegate == null) {
@@ -34,7 +38,7 @@ public class Proxyfier {
 						if (proxy == HANDLE) {
 							return delegate;
 						}
-						if(args==null) {
+						if (args == null) {
 							args = new Object[] {};
 						}
 						if (method.getReturnType() == Void.class) {

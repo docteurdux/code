@@ -55,6 +55,7 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 	private boolean mutable;
 	private String rootEntityName;
 	private EntityEntryFactory entityEntryFactory;
+	private boolean implementsLifecycle;
 
 	@Override
 	public Comparator getVersionComparator() {
@@ -623,8 +624,11 @@ public class DummyEntityPersister implements EntityPersister, Joinable, Loadable
 
 	@Override
 	public boolean implementsLifecycle() {
-		// TODO Auto-generated method stub
-		return false;
+		return implementsLifecycle;
+	}
+
+	public void setImplementsLifecycle(boolean implementsLifecycle) {
+		this.implementsLifecycle = implementsLifecycle;
 	}
 
 	@Override

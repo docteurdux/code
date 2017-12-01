@@ -5,6 +5,20 @@ import java.util.List;
 
 public class TestEvents {
 
+	public static class Identity {
+		
+		private String name;
+
+		public Identity(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+	}
+
 	private static List<TestEvent> testEvents = new ArrayList<>();
 
 	public static TestEvent record(Object source, String name, Object... params) {
@@ -18,6 +32,9 @@ public class TestEvents {
 	}
 
 	public static String getIdentity(Object o) {
+		if (o instanceof Identity) {
+			return ((Identity) o).getName();
+		}
 		return o.getClass().getName() + "@" + System.identityHashCode(o);
 	}
 

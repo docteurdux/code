@@ -45,6 +45,13 @@ public abstract class AbstractTest {
 	private static RuntimeException requireSourcesException;
 	private ObjectMapper om;
 
+	@SuppressWarnings("rawtypes")
+	public Map<String, Recorder> recorders = new HashMap<>();
+
+	public AbstractTest() {
+		recorders = new HashMap<>();
+	}
+
 	protected void at(Boolean b) {
 		Assert.assertTrue(b);
 	}
@@ -833,4 +840,14 @@ public abstract class AbstractTest {
 			}
 		}).collect(Collectors.toList());
 	}
+
+	protected boolean hasBeenCalled(String source, String name) {
+		for (TestEvent te : TestEvents.getTestEvents()) {
+			if (source.equals(te.getSource()) && name.equals(te.getName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

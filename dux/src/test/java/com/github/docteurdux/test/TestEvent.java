@@ -29,8 +29,10 @@ public class TestEvent {
 	public TestEvent(String source, String name, Object[] params) {
 		this(name);
 		this.source = source;
-		for (int i = 0; i < params.length; ++i) {
-			prop("arg" + i, json(sumup(params[i])));
+		if (params != null) {
+			for (int i = 0; i < params.length; ++i) {
+				prop("arg" + i, json(sumup(params[i])));
+			}
 		}
 	}
 
