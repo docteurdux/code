@@ -1,10 +1,13 @@
 package dux.org.hibernate.internal;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -39,6 +42,7 @@ import org.hibernate.engine.jndi.internal.JndiServiceInitiator;
 import org.hibernate.id.factory.internal.MutableIdentifierGeneratorFactoryInitiator;
 import org.hibernate.integrator.internal.IntegratorServiceImpl;
 import org.hibernate.integrator.spi.Integrator;
+import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.jmx.internal.JmxServiceInitiator;
 import org.hibernate.persister.internal.PersisterClassResolverInitiator;
 import org.hibernate.persister.internal.PersisterFactoryInitiator;
@@ -48,9 +52,9 @@ import org.hibernate.service.internal.ProvidedService;
 import org.hibernate.service.internal.SessionFactoryServiceRegistryFactoryInitiator;
 import org.hibernate.tool.hbm2ddl.ImportSqlCommandExtractorInitiator;
 import org.hibernate.tool.schema.internal.SchemaManagementToolInitiator;
+import org.jboss.logging.Logger;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import com.github.docteurdux.test.AbstractTest;
 import com.github.docteurdux.test.TestEvents;
@@ -79,6 +83,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 	private SessionFactoryBuilderImpl sessionFactoryBuilderImpl;
 	private SessionFactory sessionFactory;
 	private Map<Object, Object> initialConfigurationSettings;
+	private Set<String> ids = new HashSet<>();
 
 	@Entity
 	@Table(name = "A")
@@ -234,6 +239,43 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 		sessionFactory = sessionFactoryBuilderImpl.build();
 
+		dumpTree(sessionFactory, "sessionFactory", 0);
+
+	}
+
+	private void dumpTree(Object o, String name, int depth) throws Exception {
+		if (o == null) {
+			System.out.println(name + " : null");
+			return;
+		}
+
+		if (o instanceof Number) {
+			System.out.println(name + " : " + o);
+		} else if (o instanceof Boolean) {
+			System.out.println(name + " : " + o);
+		} else if (o instanceof String) {
+			System.out.println(name + " : " + o);
+		} else {
+			String identity = TestEvents.getIdentity(o);
+			if (ids.contains(identity)) {
+				System.out.println(name + " : " + identity);
+				return;
+			}
+			ids.add(identity);
+			if (o instanceof CoreMessageLogger || o instanceof Logger) {
+				System.out.println(name + " : " + identity);
+			} else {
+				System.out.println(name + " : " + identity);
+				Class<? extends Object> clazz = o.getClass();
+				while (clazz != null) {
+					for (Field f : clazz.getDeclaredFields()) {
+						f.setAccessible(true);
+						dumpTree(f.get(o), name + "." + f.getName(), depth + 1);
+					}
+					clazz = clazz.getSuperclass();
+				}
+			}
+		}
 	}
 
 	@Test
