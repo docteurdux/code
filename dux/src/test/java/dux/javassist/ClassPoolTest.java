@@ -11,8 +11,6 @@ import javassist.ClassPool;
 
 public class ClassPoolTest extends AbstractTest {
 
-	private static ClassPool classPool = ClassPool.getDefault();
-
 	public static class A {
 		public String foo() {
 			return "foo";
@@ -33,7 +31,8 @@ public class ClassPoolTest extends AbstractTest {
 	@Test
 	public void test() throws Exception {
 
-		Instrumenter.instrument("dux.javassist.ClassPoolTest$B");
+		Class clazz = Instrumenter.instrument("dux.javassist.ClassPoolTest$B");
+		System.out.println(clazz.getClassLoader().getClass().getName());
 
 		B b = new B();
 

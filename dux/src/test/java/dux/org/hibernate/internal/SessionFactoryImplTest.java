@@ -18,10 +18,14 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.cfgxml.internal.CfgXmlAccessServiceInitiator;
 import org.hibernate.boot.internal.MetadataBuilderImpl;
 import org.hibernate.boot.internal.SessionFactoryBuilderImpl;
+import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
+import org.hibernate.boot.registry.BootstrapServiceRegistry;
+import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.boot.registry.StandardServiceInitiator;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl;
@@ -29,6 +33,7 @@ import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.internal.BootstrapServiceRegistryImpl;
 import org.hibernate.boot.registry.internal.StandardServiceRegistryImpl;
 import org.hibernate.boot.registry.selector.internal.StrategySelectorImpl;
+import org.hibernate.boot.registry.selector.spi.StrategySelector;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cache.internal.RegionFactoryInitiator;
 import org.hibernate.cfg.AvailableSettings;
@@ -44,6 +49,7 @@ import org.hibernate.engine.jndi.internal.JndiServiceInitiator;
 import org.hibernate.id.factory.internal.MutableIdentifierGeneratorFactoryInitiator;
 import org.hibernate.integrator.internal.IntegratorServiceImpl;
 import org.hibernate.integrator.spi.Integrator;
+import org.hibernate.integrator.spi.IntegratorService;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.jmx.internal.JmxServiceInitiator;
 import org.hibernate.persister.internal.PersisterClassResolverInitiator;
@@ -59,7 +65,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
-import com.github.docteurdux.test.Instrumenter;
 import com.github.docteurdux.test.TestEvents;
 import com.mysql.jdbc.Driver;
 
@@ -72,14 +77,17 @@ public class SessionFactoryImplTest extends AbstractTest {
 		// Instrumenter.instrument("org.hibernate.internal.SessionFactoryImpl");
 		// Instrumenter.instrument("org.hibernate.boot.registry.internal.StandardServiceRegistryImpl");
 		// Instrumenter.instrument("org.hibernate.boot.internal.MetadataBuilderImpl");
+		// Instrumenter.instrument("org.hibernate.engine.internal.StatefulPersistenceContext");
+		// Instrumenter.instrument("org.hibernate.dialect.MySQL57Dialect");
+		// Instrumenter.instrument("com.mysql.cj.mysqla.MysqlaSession");
 	}
 
-	private ConfigurationServiceImpl configurationService;
-	private IntegratorServiceImpl integratorService;
-	private StrategySelectorImpl strategySelector;
+	private ConfigurationService configurationService;
+	private IntegratorService integratorService;
+	private StrategySelector strategySelector;
 	private ClassLoaderService classLoaderService;
-	private PhysicalNamingStrategyStandardImpl physicalNamingStrategy;
-	private BootstrapServiceRegistryImpl bootstrapServiceRegistryImpl;
+	private PhysicalNamingStrategy physicalNamingStrategy;
+	private BootstrapServiceRegistry bootstrapServiceRegistryImpl;
 	@SuppressWarnings("rawtypes")
 	private List<StandardServiceInitiator> standardServiceInitiators;
 	@SuppressWarnings("rawtypes")
@@ -89,23 +97,10 @@ public class SessionFactoryImplTest extends AbstractTest {
 	private MetadataSources metadataSources;
 	private MetadataBuilder metadataBuilderImpl;
 	private MetadataImplementor metadataImplementor;
-	private SessionFactoryBuilderImpl sessionFactoryBuilderImpl;
+	private SessionFactoryBuilder sessionFactoryBuilderImpl;
 	private SessionFactory sessionFactory;
 	private Map<Object, Object> initialConfigurationSettings;
 	private Set<String> ids = new HashSet<>();
-
-	public static class CL extends ClassLoader {
-
-		public CL(ClassLoader parent) {
-			super(parent);
-		}
-
-		@Override
-		public Class<?> loadClass(String name) throws ClassNotFoundException {
-			System.out.println("Loading " + name);
-			return super.loadClass(name);
-		}
-	}
 
 	@Entity
 	@Table(name = "A")
@@ -328,7 +323,7 @@ public class SessionFactoryImplTest extends AbstractTest {
 
 			sessionFactory.close();
 		} finally {
-			// this.dumpTestEvents(TestEvents.getTestEvents());
+			this.dumpTestEvents(TestEvents.getTestEvents());
 		}
 
 	}

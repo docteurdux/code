@@ -1,5 +1,7 @@
 package com.github.docteurdux.test;
 
+import java.lang.reflect.Modifier;
+
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -8,7 +10,7 @@ public class Instrumenter {
 
 	private static ClassPool classPool = ClassPool.getDefault();
 
-	public static void instrument(String className) {
+	public static Class instrument(String className) {
 		try {
 			CtClass cc = classPool.get(className);
 			if (cc.getSuperclass() != null) {
@@ -17,22 +19,26 @@ public class Instrumenter {
 
 			}
 			for (CtMethod m : cc.getMethods()) {
+				if (Modifier.isStatic(m.getModifiers())) {
+					continue;
+				}
 				CtClass declaringClass = m.getDeclaringClass();
 				if (className.equals(declaringClass.getName())) {
 					String n = m.getName();
-					m.insertBefore("com.github.docteurdux.test.Instrumenter.hello(\"" + n + "\");");
+					m.insertBefore("com.github.docteurdux.test.Instrumenter.hello(this,\"" + n + "\", $args);");
 				}
 			}
-			cc.toClass();
+			return cc.toClass();
 		} catch (Exception ex) {
 			System.out.println("Failed to instrument " + className + " : " + ex.getClass().getSimpleName() + " : "
 					+ ex.getMessage());
 
 		}
+		return null;
 	}
 
-	public static void hello(String name) {
-		System.out.println("Hello from " + name);
+	public static void hello(Object o, String name, Object[] args) {
+		TestEvents.record(o, name, args);
 	}
 
 }
