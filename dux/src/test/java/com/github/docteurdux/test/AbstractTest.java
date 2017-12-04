@@ -850,4 +850,12 @@ public abstract class AbstractTest {
 		return false;
 	}
 
+	protected void include(Class<?> clazz) {
+
+	}
+	
+	protected Object isAbstract(Class<?> clazz) {
+		return Modifier.isAbstract(clazz.getModifiers());
+	}
+
 }
