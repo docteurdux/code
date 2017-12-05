@@ -11,17 +11,22 @@ import org.junit.Test;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.jdbc.datasource.lookup.DataSourceLookup;
 import org.springframework.jdbc.datasource.lookup.DataSourceLookupFailureException;
+import org.springframework.jdbc.datasource.lookup.IsolationLevelDataSourceRouter;
 
 import com.github.docteurdux.test.AbstractTest;
 import com.github.docteurdux.test.Next;
 import com.github.docteurdux.test.Previous;
 import com.github.docteurdux.test.Recorder;
+import com.github.docteurdux.test.Related;
+import com.github.docteurdux.test.Topic;
 
 import dux.org.springframework.beans.factory.InitializingBeanTest;
 import dux.org.springframework.core.ConstantsTest;
 
 @Previous(InitializingBeanTest.class)
+@Topic(AbstractRoutingDataSource.class)
 @Next(ConstantsTest.class)
+@Related({ IsolationLevelDataSourceRouter.class })
 public class AbstractRoutingDataSourceTest extends AbstractTest {
 	@Test
 	public void test() throws SQLException {
