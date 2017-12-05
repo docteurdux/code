@@ -61,7 +61,9 @@ public class Recorder<T> {
 
 	public static <T> Recorder<T> create(String name, AbstractTest t, Class<T> clazz) {
 		Recorder<T> r = new Recorder<T>(name, clazz);
-		t.recorders.put(name, r);
+		if (t != null) {
+			t.recorders.put(name, r);
+		}
 		return r;
 	}
 

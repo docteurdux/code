@@ -853,9 +853,22 @@ public abstract class AbstractTest {
 	protected void include(Class<?> clazz) {
 
 	}
-	
+
 	protected Object isAbstract(Class<?> clazz) {
 		return Modifier.isAbstract(clazz.getModifiers());
+	}
+
+	protected void next(Class<?> clazz) {
+	}
+	
+	protected void ateq(String name, String method, Object arg0) {
+		for (TestEvent te : TestEvents.getTestEvents()) {
+			if (name.equals(te.getSource()) && method.equals(te.getName())) {
+				aeq(arg0, te.getProps().get("arg0"));
+				return;
+			}
+		}
+		fail();
 	}
 
 }
