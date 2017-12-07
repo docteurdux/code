@@ -114,4 +114,10 @@ public class TestEvent {
 		return result;
 	}
 
+	public static ObjectMapper getOm() {
+		return om;
+	}
+	
+	
+
 }

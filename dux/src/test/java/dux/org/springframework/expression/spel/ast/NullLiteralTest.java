@@ -24,5 +24,7 @@ public class NullLiteralTest extends AbstractTest {
 		ClassWriter classWriter = new ClassWriter(0);
 		CodeFlow cf = new CodeFlow("className", classWriter);
 		nl.generateCode(mv, cf);
+		byte[] bytes = classWriter.toByteArray();
+		dumpBytes(bytes);
 	}
 }

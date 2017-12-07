@@ -47,6 +47,7 @@ public abstract class AbstractTest {
 
 	@SuppressWarnings("rawtypes")
 	public Map<String, Recorder> recorders = new HashMap<>();
+	private int baeqOffset;
 
 	public AbstractTest() {
 		recorders = new HashMap<>();
@@ -860,7 +861,7 @@ public abstract class AbstractTest {
 
 	protected void next(Class<?> clazz) {
 	}
-	
+
 	protected void ateq(String name, String method, Object arg0) {
 		for (TestEvent te : TestEvents.getTestEvents()) {
 			if (name.equals(te.getSource()) && method.equals(te.getName())) {
@@ -871,4 +872,44 @@ public abstract class AbstractTest {
 		fail();
 	}
 
+	protected void baeq(byte[] actual, int... expected) {
+		for (int ex : expected) {
+			aeq((byte) ex, actual[baeqOffset]);
+			++baeqOffset;
+		}
+	}
+
+	protected void baeq(byte[] actual, byte[] expected) {
+		for (int ex : expected) {
+			aeq((byte) ex, actual[baeqOffset]);
+			++baeqOffset;
+		}
+	}
+
+	protected void baeqEnd(byte[] actual) {
+		aeq(baeqOffset, actual.length);
+	}
+
+	protected void baeqOffset(int offset) {
+		baeqOffset = offset;
+	}
+
+	protected void dumpBytes(byte[] bytes) {
+		boolean sep = false;
+		for (byte b : bytes) {
+			if (sep) {
+				System.out.print(", ");
+			}
+			System.out.print(String.format("0x%02X ", b));
+			sep = true;
+		}
+	}
+
+	protected byte[] bytes(int... ints) {
+		byte[] bytes = new byte[ints.length];
+		for (int i = 0; i < ints.length; ++i) {
+			bytes[i] = (byte) ints[i];
+		}
+		return bytes;
+	}
 }
