@@ -65,6 +65,90 @@ public class SpelExpressionParserTest extends AbstractTest {
 		ex = parser.parseExpression("foo=\"bar\"");
 		ex.getValue(a);
 		aeq("bar", a.getFoo());
+		
+		ex = parser.parseExpression("1?:2");
+		aeq(1, ex.getValue(a));
+		
+		ex = parser.parseExpression("true?1:2");
+		aeq(1, ex.getValue(a));
+		
+		ex = parser.parseExpression("true||false");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("true or false");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("true&&false");
+		aeq(false, ex.getValue(a));
+		
+		ex = parser.parseExpression("true and false");
+		aeq(false, ex.getValue(a));
+		
+		ex = parser.parseExpression("1<2");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("1<=2");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("2>1");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("2>=1");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("2==2");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("2!=1");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("\"a\" instanceof T(java.lang.String)");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("\"a\" matches '^a$'");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("2 between {1,3}");
+		aeq(true, ex.getValue(a));
+		
+		ex = parser.parseExpression("1+2");
+		aeq(3, ex.getValue(a));
+		
+		ex = parser.parseExpression("2-1");
+		aeq(1, ex.getValue(a));
+		
+		ex = parser.parseExpression("+2");
+		aeq(2, ex.getValue(a));
+		
+		ex = parser.parseExpression("1*2");
+		aeq(2, ex.getValue(a));
+		
+		ex = parser.parseExpression("4/2");
+		aeq(2, ex.getValue(a));
+		
+		ex = parser.parseExpression("2%4");
+		aeq(2, ex.getValue(a));
+		
+		ex = parser.parseExpression("2^1");
+		aeq(2, ex.getValue(a));
+		
+		ex = parser.parseExpression("2^1");
+		aeq(2, ex.getValue(a));
+		
+		ex = parser.parseExpression("!true");
+		aeq(false, ex.getValue(a));
+		
+		ex = parser.parseExpression("(2)");
+		aeq(2, ex.getValue(a));
+		
+		ex = parser.parseExpression("null");
+		aeq(null, ex.getValue(a));
+		
+		ex = parser.parseExpression("new String(\"a\")");
+		aeq("a", ex.getValue(a));
+		
+		ex = parser.parseExpression("{a:2}[a]");
+		aeq(2, ex.getValue(a));
 
 		// ex = parser.parseExpression("f=x->(x+1),f(1)");
 		// aeq(2, ex.getValue());
