@@ -67,4 +67,8 @@ public class Recorder<T> {
 		return r;
 	}
 
+	public static <T> Recorder<T> create(Class<T> clazz) {
+		return create(clazz.getSimpleName(), null, clazz);
+	}
+
 }
