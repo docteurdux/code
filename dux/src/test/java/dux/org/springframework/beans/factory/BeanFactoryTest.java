@@ -5,11 +5,11 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import org.springframework.core.ResolvableType;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.HTMLRenderer;
 import com.github.docteurdux.test.RunnableWhichThrow;
 import com.github.docteurdux.test.Topic;
 
@@ -18,9 +18,18 @@ public class BeanFactoryTest extends AbstractTest {
 	@Test
 	public void test() {
 
+		/* first */
+		
+		new Runnable() {
+			@Override
+			public void run() {
+
+			}
+		}.run();
+
 		/*
 		 * The org.springframework.beans.factory.BeanFactory interface defines methods
-		 * for obtaining beans
+		 * for obtaining beans.
 		 */
 
 		/*
@@ -124,5 +133,10 @@ public class BeanFactoryTest extends AbstractTest {
 			}
 		});
 
+	}
+
+	@Test
+	public void test2() throws NoSuchMethodException, SecurityException, Exception {
+		HTMLRenderer.renderToHTML2(getClass());
 	}
 }

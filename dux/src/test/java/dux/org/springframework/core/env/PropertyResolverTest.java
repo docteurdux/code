@@ -1,11 +1,15 @@
 package dux.org.springframework.core.env;
 
-import org.glassfish.config.support.PropertyResolver;
 import org.junit.Test;
+import org.springframework.core.env.PropertyResolver;
+import org.springframework.core.env.PropertySources;
+import org.springframework.core.env.PropertySourcesPropertyResolver;
 
+import com.github.docteurdux.test.Prerequisites;
 import com.github.docteurdux.test.Topic;
 
 @Topic(PropertyResolver.class)
+@Prerequisites({PropertySourcesTest.class})
 public class PropertyResolverTest {
 
 	@Test
@@ -21,5 +25,8 @@ public class PropertyResolverTest {
 		resolvePlaceholders(String)
 		resolveRequiredPlaceholders(String)
 		*/
+
+		PropertySources propertySources = null;
+		PropertySourcesPropertyResolver r = new PropertySourcesPropertyResolver(propertySources);
 	}
 }
