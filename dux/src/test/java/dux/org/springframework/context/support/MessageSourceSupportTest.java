@@ -46,12 +46,15 @@ public class MessageSourceSupportTest extends AbstractTest {
 
 		MSS s = new MSS();
 
+		/*-
 		s.setAlwaysUseMessageFormat(alwaysUseMessageFormat);
 		s.createMessageFormat(msg, locale);
 		s.formatMessage(msg, args, locale);
 		s.isAlwaysUseMessageFormat();
 		s.renderDefaultMessage(defaultMessage, args, locale);
 		s.resolveArguments(args, locale);
+		*/
+
 		/*-
 		MessageSourceSupport()
 		setAlwaysUseMessageFormat(boolean)

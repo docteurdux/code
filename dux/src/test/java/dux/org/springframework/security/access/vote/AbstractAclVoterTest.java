@@ -1,0 +1,5 @@
+package dux.org.springframework.security.access.vote;
+
+public class AbstractAclVoterTest {
+
+}
