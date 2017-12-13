@@ -8,15 +8,16 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Related;
 import com.github.docteurdux.test.Topic;
 
 @Topic(AnnotatedElement.class)
+@Related({GenericDeclarationTest.class})
 public class AnnotatedElementTest extends AbstractTest {
 
 	@Retention(RetentionPolicy.RUNTIME)
