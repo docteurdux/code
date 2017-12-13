@@ -13,7 +13,7 @@ import com.github.docteurdux.test.Related;
 import com.github.docteurdux.test.Topic;
 
 @Topic(AnonymousAuthenticationToken.class)
-@Related({ AbstractAuthenticationTokenTest.class })
+@Related({ AbstractAuthenticationTokenTest.class, AnonymousAuthenticationProviderTest.class })
 public class AnonymousAuthenticationTokenTest extends AbstractTest {
 	@Test
 	public void test() {

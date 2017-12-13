@@ -10,7 +10,7 @@ import com.github.docteurdux.test.Related;
 import com.github.docteurdux.test.Topic;
 
 @Topic(RememberMeAuthenticationToken.class)
-@Related({ AbstractAuthenticationTokenTest.class })
+@Related({ AbstractAuthenticationTokenTest.class, RememberMeAuthenticationProviderTest.class })
 public class RememberMeAuthenticationTokenTest extends AbstractTest {
 	@Test
 	public void test() {

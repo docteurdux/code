@@ -9,9 +9,13 @@ import javax.security.auth.Subject;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.Related;
 import com.github.docteurdux.test.Topic;
 
+import dux.org.springframework.security.core.AuthenticationTest;
+
 @Topic(Principal.class)
+@Related({ AuthenticationTest.class })
 public class PrincipalTest extends AbstractTest {
 	@Test
 	public void test() {
