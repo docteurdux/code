@@ -6,12 +6,14 @@ import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
+import org.springframework.web.servlet.View;
 
 import com.github.docteurdux.test.AbstractTest;
 import com.github.docteurdux.test.RunnableWhichThrow;
@@ -380,5 +382,13 @@ public class ClassTest extends AbstractTest {
 		toGenericString()
 		toString()
 		 */
+		
+		aeq(false, Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class<?>[] { View.class },
+				new InvocationHandler() {
+					@Override
+					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						return null;
+					}
+				}).getClass().isSynthetic());
 	}
 }

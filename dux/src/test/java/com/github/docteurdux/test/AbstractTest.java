@@ -381,23 +381,34 @@ public abstract class AbstractTest {
 	}
 
 	protected void expect(Class<?> clazz, RunnableWhichThrow runnableWhichThrow) {
-		Exception cex = null;
+		Throwable cex = null;
 		try {
 			runnableWhichThrow.run();
 			fail();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			runnableWhichThrow.inspect(e);
 			cex = e;
 		}
 		aeq(clazz, cex.getClass());
 	}
 
-	protected void expect(Class<?> clazz, String msg, RunnableWhichThrow runnableWhichThrow) {
-		Exception cex = null;
+	protected void expect(RunnableWhichThrow runnableWhichThrow) {
+		Throwable cex = null;
 		try {
 			runnableWhichThrow.run();
 			fail();
-		} catch (Exception e) {
+		} catch (Throwable e) {
+			runnableWhichThrow.inspect(e);
+			cex = e;
+		}
+	}
+
+	protected void expect(Class<?> clazz, String msg, RunnableWhichThrow runnableWhichThrow) {
+		Throwable cex = null;
+		try {
+			runnableWhichThrow.run();
+			fail();
+		} catch (Throwable e) {
 			aeq(msg, e.getMessage());
 			runnableWhichThrow.inspect(e);
 			cex = e;

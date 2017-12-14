@@ -84,7 +84,7 @@ public class MapLazyInitializerTest extends AbstractTest {
 			}
 
 			@Override
-			public void inspect(Exception e) {
+			public void inspect(Throwable e) {
 				aeq("dynamic-map entity representation", e.getMessage());
 			}
 		});

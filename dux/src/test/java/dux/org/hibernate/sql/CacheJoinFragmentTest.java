@@ -30,7 +30,7 @@ public class CacheJoinFragmentTest extends AbstractTest {
 			}
 
 			@Override
-			public void inspect(Exception e) {
+			public void inspect(Throwable e) {
 				aeq("Cache does not support full outer joins", e.getMessage());
 			}
 		});

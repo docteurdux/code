@@ -1,35 +1,33 @@
-package dux.org.springframework.ui.context;
+package dux.org.springframework.ui.context.support;
 
 import org.junit.Test;
 import org.springframework.context.MessageSource;
 import org.springframework.context.support.StaticMessageSource;
-import org.springframework.ui.context.Theme;
 import org.springframework.ui.context.support.SimpleTheme;
 
 import com.github.docteurdux.test.AbstractTest;
-import com.github.docteurdux.test.Prerequisites;
 import com.github.docteurdux.test.Related;
 import com.github.docteurdux.test.Topic;
 
-import dux.org.springframework.context.MessageSourceTest;
-import dux.org.springframework.ui.context.support.SimpleThemeTest;
+import dux.org.springframework.ui.context.ThemeTest;
 
-@Topic(Theme.class)
-@Prerequisites(MessageSourceTest.class)
-@Related(SimpleThemeTest.class)
-public class ThemeTest extends AbstractTest {
+@Topic(SimpleTheme.class)
+@Related(ThemeTest.class)
+public class SimpleThemeTest extends AbstractTest {
 	@Test
 	public void test() {
 
-		/* A org.springframework.ui.context.Theme has a name and a message source */
+		/*
+		 * org.springframework.ui.context.support.SimpleTheme is the most simple
+		 * implementation of org.springframework.ui.context.Theme possible
+		 */
 
-		/* org.springframework.ui.context.support.SimpleTheme implements Theme */
+		/* Spring does not define any other implementation of the Theme interface */
 
 		MessageSource messageSource = new StaticMessageSource();
 		SimpleTheme theme = new SimpleTheme("name", messageSource);
 
 		aeq("name", theme.getName());
 		aeqr(messageSource, theme.getMessageSource());
-
 	}
 }

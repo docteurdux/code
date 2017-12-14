@@ -203,7 +203,16 @@
 			<artifactId>ehcache</artifactId>
 			<version>3.4.0</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.apache.myfaces.core</groupId>
+			<artifactId>myfaces-impl</artifactId>
+			<version>2.2.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.weld</groupId>
+			<artifactId>weld-core</artifactId>
+			<version>2.4.5.Final</version>
+		</dependency>
 
 	</dependencies>
 </project>
