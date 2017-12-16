@@ -923,4 +923,34 @@ public abstract class AbstractTest {
 		}
 		return bytes;
 	}
+
+	protected void cleanupSources(String mvnName) throws IOException {
+
+		String userDir = System.getProperty("user.dir");
+
+		for (String cp : System.getProperty("java.class.path").split(";")) {
+			if (cp.contains(mvnName)) {
+				cp = cp.replace(".jar", "-sources.jar");
+				File f = new File(cp);
+				if (f.exists()) {
+					ZipFile z = new ZipFile(cp);
+					Enumeration<? extends ZipEntry> entries = z.entries();
+					while (entries.hasMoreElements()) {
+						ZipEntry entry = entries.nextElement();
+						String name = entry.getName();
+						if (name.endsWith(".java")) {
+							String targetFileName = userDir + "/src/main/java/" + name;
+							File targetFile = new File(targetFileName);
+							if (targetFile.exists()) {
+								System.out.println(targetFile.getAbsolutePath());
+								targetFile.delete();
+							}
+						}
+					}
+					z.close();
+				}
+			}
+		}
+
+	}
 }
