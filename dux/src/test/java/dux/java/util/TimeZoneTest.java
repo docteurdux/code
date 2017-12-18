@@ -20,7 +20,6 @@ import com.github.docteurdux.test.Topic;
 @Topic(TimeZone.class)
 public class TimeZoneTest extends AbstractTest {
 
-	@Test
 	public void translationTest() {
 		Map<String, String> sameAs = new HashMap<>();
 		for (String l : new String[] { "", "ar", "ar_AE", "ar_BH", "ar_DZ", "ar_EG", "ar_IQ", "ar_JO", "ar_KW", "ar_LB",
@@ -90,6 +89,20 @@ public class TimeZoneTest extends AbstractTest {
 
 	@Test
 	public void test() {
+
+		TimeZone tzTimbuktu = TimeZone.getTimeZone("Africa/Timbuktu");
+		TimeZone tzBissau = TimeZone.getTimeZone("Africa/Bissau");
+		TimeZone tzMonrovia = TimeZone.getTimeZone("Africa/Monrovia");
+
+		aeq(false, tzTimbuktu.useDaylightTime());
+		aeq(false, tzBissau.useDaylightTime());
+		aeq(false, tzMonrovia.useDaylightTime());
+		aeq(0, tzTimbuktu.getRawOffset());
+		aeq(0, tzBissau.getRawOffset());
+		aeq(0, tzMonrovia.getRawOffset());
+		aeq(false, tzTimbuktu.hasSameRules(tzBissau));
+		aeq(false, tzTimbuktu.hasSameRules(tzMonrovia));
+		aeq(false, tzBissau.hasSameRules(tzMonrovia));
 
 		List<List<String>> groups = new ArrayList<>();
 		for (String id : TimeZone.getAvailableIDs()) {
@@ -354,8 +367,8 @@ public class TimeZoneTest extends AbstractTest {
 					break;
 				}
 			}
-			System.out.println(groups.toString() + (found ? " *" : "") + " " + l2.getDisplayLanguage(Locale.ENGLISH) + "/"
-					+ l2.getDisplayCountry(Locale.ENGLISH));
+			System.out.println(groups.toString() + (found ? " *" : "") + " " + l2.getDisplayLanguage(Locale.ENGLISH)
+					+ "/" + l2.getDisplayCountry(Locale.ENGLISH));
 		}
 
 		if (t()) {
