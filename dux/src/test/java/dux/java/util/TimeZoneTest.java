@@ -1,7 +1,15 @@
 package dux.java.util;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -12,7 +20,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.github.docteurdux.test.AbstractTest;
 import com.github.docteurdux.test.Topic;
@@ -87,25 +106,43 @@ public class TimeZoneTest extends AbstractTest {
 		}
 	}
 
+	private String formatOffset(int offset) {
+		StringBuffer buf = new StringBuffer();
+		if (offset < 0) {
+			buf.append("-");
+			offset = -offset;
+		}
+		offset = offset / 1000;
+		int seconds = offset % 60;
+		offset = offset / 60;
+		int minutes = offset % 60;
+		offset = offset / 60;
+		buf.append(offset);
+		buf.append("h");
+		if (minutes != 0) {
+			buf.append(minutes);
+			buf.append("m");
+		}
+		if (seconds != 0) {
+			buf.append(seconds);
+			buf.append("s");
+		}
+		return buf.toString();
+	}
+
 	@Test
-	public void test() {
+	public void test() throws ParserConfigurationException, TransformerConfigurationException, TransformerException,
+			TransformerFactoryConfigurationError, IOException {
 
-		TimeZone tzTimbuktu = TimeZone.getTimeZone("Africa/Timbuktu");
-		TimeZone tzBissau = TimeZone.getTimeZone("Africa/Bissau");
-		TimeZone tzMonrovia = TimeZone.getTimeZone("Africa/Monrovia");
-
-		aeq(false, tzTimbuktu.useDaylightTime());
-		aeq(false, tzBissau.useDaylightTime());
-		aeq(false, tzMonrovia.useDaylightTime());
-		aeq(0, tzTimbuktu.getRawOffset());
-		aeq(0, tzBissau.getRawOffset());
-		aeq(0, tzMonrovia.getRawOffset());
-		aeq(false, tzTimbuktu.hasSameRules(tzBissau));
-		aeq(false, tzTimbuktu.hasSameRules(tzMonrovia));
-		aeq(false, tzBissau.hasSameRules(tzMonrovia));
-
+		// compute groups
 		List<List<String>> groups = new ArrayList<>();
 		for (String id : TimeZone.getAvailableIDs()) {
+//			if (!id.startsWith("Europe/")) {
+//				continue;
+//			}
+			if (!TimeZone.getTimeZone(id).getDisplayName(Locale.ROOT).equals("Central European Time")) {
+				continue;
+			}
 			if (groups.isEmpty()) {
 				groups.add(new ArrayList<>(Arrays.asList(new String[] { id })));
 			} else {
@@ -123,6 +160,193 @@ public class TimeZoneTest extends AbstractTest {
 				}
 			}
 		}
+
+		// initialize arrays
+		TimeZone[] timeZones = new TimeZone[groups.size()];
+		int[] pOffsets = new int[groups.size()];
+		for (int i = 0; i < timeZones.length; ++i) {
+			timeZones[i] = TimeZone.getTimeZone(groups.get(i).get(0));
+		}
+
+		int[] initialOffsets = new int[timeZones.length];
+		for (int i = 0; i < initialOffsets.length; ++i) {
+			initialOffsets[i] = timeZones[i].getOffset(0);
+		}
+
+		DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.FRENCH);
+		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+		class Transition {
+			public long time;
+			public String timeS;
+			public String id;
+			public String name;
+			public int pOffset;
+			public String pOffsetS;
+			public int offset;
+			public String offsetS;
+			public int num;
+
+			public Transition(long time, String timeS, String id, String name, int pOffset, String pOffsetS, int offset,
+					String offsetS, int num) {
+				this.time = time;
+				this.timeS = timeS;
+				this.id = id;
+				this.name = name;
+				this.pOffset = pOffset;
+				this.pOffsetS = pOffsetS;
+				this.offset = offset;
+				this.offsetS = offsetS;
+				this.num = num;
+			}
+		}
+
+		List<Transition> transitions = new ArrayList<>();
+
+		// dump transitions
+		long maxTime = System.currentTimeMillis();
+		long timeIncrement = 6 * 60 * 60 * 1000;
+		long loopCount = 0;
+		for (long time = 0; time < maxTime; time += timeIncrement) {
+			for (int timeZoneIdx = 0; timeZoneIdx < timeZones.length; ++timeZoneIdx) {
+				++loopCount;
+				int offset = timeZones[timeZoneIdx].getOffset(time);
+				if (offset != pOffsets[timeZoneIdx]) {
+					calendar.setTimeInMillis(time);
+					String timeS = formatter.format(calendar.getTimeInMillis());
+					String pOffsetS = formatOffset(pOffsets[timeZoneIdx]);
+					String offsetS = formatOffset(offset);
+					String id = timeZones[timeZoneIdx].getID();
+					String name = timeZones[timeZoneIdx].getDisplayName(Locale.ROOT);
+					System.out.println(timeS + " " + id + " " + name + " " + pOffsetS + " => " + offsetS);
+					transitions.add(new Transition(time, timeS, id, name, pOffsets[timeZoneIdx], pOffsetS, offset,
+							offsetS, timeZoneIdx));
+				}
+				pOffsets[timeZoneIdx] = offset;
+			}
+		}
+		System.out.println(loopCount + " loops");
+		System.out.println(transitions.size() + " transitions");
+
+		// generate svg
+
+		Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+		document.setXmlStandalone(true);
+		Element svg = document.createElement("svg");
+		svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+		document.appendChild(svg);
+
+		StringBuffer[] lines = new StringBuffer[timeZones.length];
+		for (int i = 0; i < timeZones.length; ++i) {
+			lines[i] = new StringBuffer();
+		}
+		int minx = 0;
+		long miny = 0;
+		int maxx = 0;
+		long maxy = 0;
+		int delta = 200;
+		int xscale = 80000;
+		int timeScale = 10000000*5;
+
+		for (int i = 0; i < lines.length; ++i) {
+			Object xp = initialOffsets[i] / xscale + i * delta;
+			lines[i].append(" " + xp + "," + 0);
+		}
+
+		for (Transition t : transitions) {
+			int xp = (t.pOffset - initialOffsets[t.num]) / xscale + t.num * delta;
+			int x = (t.offset - initialOffsets[t.num]) / xscale + t.num * delta;
+			long y = t.time / timeScale;
+			if (x < minx) {
+				minx = x;
+			}
+			if (x > maxx) {
+				maxx = x;
+			}
+			if (y < miny) {
+				miny = y;
+			}
+			if (y > maxy) {
+				maxy = y;
+			}
+			lines[t.num].append(" " + xp + "," + y);
+			lines[t.num].append(" " + x + "," + y);
+
+			Element text = document.createElement("text");
+			text.setAttribute("x", "" + x);
+			text.setAttribute("y", "" + y);
+			text.setAttribute("text-anchor", "middle");
+
+			Element tspan = document.createElement("tspan");
+			tspan.setAttribute("x", "" + x);
+			tspan.setAttribute("y", "" + y);
+			tspan.appendChild(document.createTextNode(formatOffset(t.offset)));
+			text.appendChild(tspan);
+
+			tspan = document.createElement("tspan");
+			tspan.setAttribute("x", "" + x);
+			tspan.setAttribute("y", "" + (y + 20));
+			calendar.setTimeInMillis(t.time);
+			tspan.appendChild(document.createTextNode(formatter.format(calendar.getTime())));
+			text.appendChild(tspan);
+
+			svg.appendChild(text);
+
+		}
+
+		long now = System.currentTimeMillis();
+		for (int i = 0; i < lines.length; ++i) {
+			int x = (timeZones[i].getOffset(now) - initialOffsets[i]) / xscale + i * delta;
+			long y = now / timeScale;
+			lines[i].append(" " + x + "," + y);
+		}
+		for (int i = 0; i < lines.length; ++i) {
+			Element polyline = document.createElement("polyline");
+			polyline.setAttribute("points", lines[i].toString());
+			polyline.setAttribute("style", "fill:none;stroke:black");
+			svg.appendChild(polyline);
+		}
+
+		svg.setAttribute("viewBox", (minx - 100) + " " + (miny - 100) + " " + (maxx + 100) + " " + (maxy + 100));
+		svg.setAttribute("width", "" + (maxx - minx));
+		svg.setAttribute("height", "" + (maxy - miny));
+
+		for (int i = 0; i < lines.length; ++i) {
+			Element text = document.createElement("text");
+			text.setAttribute("x", "" + i * delta);
+			text.setAttribute("y", "50");
+			text.setAttribute("text-anchor", "middle");
+
+			Element tspan = document.createElement("tspan");
+			tspan.setAttribute("x", text.getAttribute("x"));
+			tspan.setAttribute("y", "50");
+			tspan.appendChild(document.createTextNode(timeZones[i].getID()));
+			text.appendChild(tspan);
+
+			tspan = document.createElement("tspan");
+			tspan.setAttribute("x", text.getAttribute("x"));
+			tspan.setAttribute("y", "70");
+			tspan.appendChild(document.createTextNode(timeZones[i].getDisplayName(Locale.ROOT)));
+			text.appendChild(tspan);
+
+			tspan = document.createElement("tspan");
+			tspan.setAttribute("x", text.getAttribute("x"));
+			tspan.setAttribute("y", "90");
+			tspan.appendChild(document.createTextNode(formatOffset(initialOffsets[i])));
+			text.appendChild(tspan);
+
+			svg.appendChild(text);
+		}
+
+		File output = new File("output.svg");
+		FileWriter fw = new FileWriter(output);
+		TransformerFactory.newInstance().newTransformer().transform(new DOMSource(document), new StreamResult(fw));
+		System.out.println(output.getAbsolutePath());
+
+		if (t()) {
+			return;
+		}
+
 		for (List<String> group : groups) {
 			Collections.sort(group);
 			for (String id : group) {
