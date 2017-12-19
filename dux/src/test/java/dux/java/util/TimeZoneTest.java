@@ -134,48 +134,6 @@ public class TimeZoneTest extends AbstractTest {
 	public void test() throws ParserConfigurationException, TransformerConfigurationException, TransformerException,
 			TransformerFactoryConfigurationError, IOException {
 
-		// compute groups
-		List<List<String>> groups = new ArrayList<>();
-		for (String id : TimeZone.getAvailableIDs()) {
-//			if (!id.startsWith("Europe/")) {
-//				continue;
-//			}
-			if (!TimeZone.getTimeZone(id).getDisplayName(Locale.ROOT).equals("Central European Time")) {
-				continue;
-			}
-			if (groups.isEmpty()) {
-				groups.add(new ArrayList<>(Arrays.asList(new String[] { id })));
-			} else {
-				TimeZone tz = TimeZone.getTimeZone(id);
-				boolean groupFound = false;
-				for (List<String> group : groups) {
-					if (TimeZone.getTimeZone(group.get(0)).hasSameRules(tz)) {
-						group.add(id);
-						groupFound = true;
-						break;
-					}
-				}
-				if (!groupFound) {
-					groups.add(new ArrayList<>(Arrays.asList(new String[] { id })));
-				}
-			}
-		}
-
-		// initialize arrays
-		TimeZone[] timeZones = new TimeZone[groups.size()];
-		int[] pOffsets = new int[groups.size()];
-		for (int i = 0; i < timeZones.length; ++i) {
-			timeZones[i] = TimeZone.getTimeZone(groups.get(i).get(0));
-		}
-
-		int[] initialOffsets = new int[timeZones.length];
-		for (int i = 0; i < initialOffsets.length; ++i) {
-			initialOffsets[i] = timeZones[i].getOffset(0);
-		}
-
-		DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.FRENCH);
-		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-
 		class Transition {
 			public long time;
 			public String timeS;
@@ -200,6 +158,63 @@ public class TimeZoneTest extends AbstractTest {
 				this.num = num;
 			}
 		}
+
+		// compute groups
+		List<List<String>> groups = new ArrayList<>();
+		for (String id : TimeZone.getAvailableIDs()) {
+			// if (!id.startsWith("Pacific/")) {
+			// continue;
+			// }
+			// if (!TimeZone.getTimeZone(id).getDisplayName(Locale.ROOT).equals("Central
+			// European Time")) {
+			// continue;
+			// }
+			if (groups.isEmpty()) {
+				groups.add(new ArrayList<>(Arrays.asList(new String[] { id })));
+			} else {
+				TimeZone tz = TimeZone.getTimeZone(id);
+				boolean groupFound = false;
+				for (List<String> group : groups) {
+					if (TimeZone.getTimeZone(group.get(0)).hasSameRules(tz)) {
+						group.add(id);
+						groupFound = true;
+						break;
+					}
+				}
+				if (!groupFound) {
+					groups.add(new ArrayList<>(Arrays.asList(new String[] { id })));
+				}
+			}
+		}
+
+		Collections.sort(groups, new Comparator<List<String>>() {
+			@Override
+			public int compare(List<String> l1, List<String> l2) {
+				TimeZone tz1 = TimeZone.getTimeZone(l1.get(0));
+				TimeZone tz2 = TimeZone.getTimeZone(l2.get(0));
+				int result = tz1.getDisplayName(Locale.ROOT).compareTo(tz2.getDisplayName(Locale.ROOT));
+				if (result == 0) {
+					return new Integer(tz1.getOffset(0)).compareTo(tz2.getOffset(0));
+				}
+				return result;
+			}
+
+		});
+
+		// initialize arrays
+		TimeZone[] timeZones = new TimeZone[groups.size()];
+		int[] pOffsets = new int[groups.size()];
+		for (int i = 0; i < timeZones.length; ++i) {
+			timeZones[i] = TimeZone.getTimeZone(groups.get(i).get(0));
+		}
+
+		int[] initialOffsets = new int[timeZones.length];
+		for (int i = 0; i < initialOffsets.length; ++i) {
+			initialOffsets[i] = timeZones[i].getOffset(0);
+		}
+
+		DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.FRENCH);
+		Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
 		List<Transition> transitions = new ArrayList<>();
 
@@ -246,10 +261,10 @@ public class TimeZoneTest extends AbstractTest {
 		long maxy = 0;
 		int delta = 200;
 		int xscale = 80000;
-		int timeScale = 10000000*5;
+		int timeScale = 10000000 * 5;
 
 		for (int i = 0; i < lines.length; ++i) {
-			Object xp = initialOffsets[i] / xscale + i * delta;
+			Object xp = i * delta;
 			lines[i].append(" " + xp + "," + 0);
 		}
 
@@ -269,28 +284,37 @@ public class TimeZoneTest extends AbstractTest {
 			if (y > maxy) {
 				maxy = y;
 			}
-			lines[t.num].append(" " + xp + "," + y);
-			lines[t.num].append(" " + x + "," + y);
+			if (t.time != 0) {
+				lines[t.num].append(" " + xp + "," + y);
+				lines[t.num].append(" " + x + "," + y);
 
-			Element text = document.createElement("text");
-			text.setAttribute("x", "" + x);
-			text.setAttribute("y", "" + y);
-			text.setAttribute("text-anchor", "middle");
+				Element text = document.createElement("text");
+				text.setAttribute("x", "" + x);
+				text.setAttribute("y", "" + y);
+				text.setAttribute("text-anchor", "middle");
 
-			Element tspan = document.createElement("tspan");
-			tspan.setAttribute("x", "" + x);
-			tspan.setAttribute("y", "" + y);
-			tspan.appendChild(document.createTextNode(formatOffset(t.offset)));
-			text.appendChild(tspan);
+				Element tspan = document.createElement("tspan");
+				tspan.setAttribute("x", "" + x);
+				tspan.setAttribute("y", "" + y);
+				tspan.appendChild(document.createTextNode(formatOffset(t.offset)));
+				text.appendChild(tspan);
 
-			tspan = document.createElement("tspan");
-			tspan.setAttribute("x", "" + x);
-			tspan.setAttribute("y", "" + (y + 20));
-			calendar.setTimeInMillis(t.time);
-			tspan.appendChild(document.createTextNode(formatter.format(calendar.getTime())));
-			text.appendChild(tspan);
+				tspan = document.createElement("tspan");
+				tspan.setAttribute("x", "" + x);
+				tspan.setAttribute("y", "" + (y + 20));
+				calendar.setTimeInMillis(t.time);
+				tspan.appendChild(document.createTextNode(formatter.format(calendar.getTime())));
+				text.appendChild(tspan);
 
-			svg.appendChild(text);
+				tspan = document.createElement("tspan");
+				tspan.setAttribute("x", "" + x);
+				tspan.setAttribute("y", "" + (y + 40));
+				calendar.setTimeInMillis(t.time);
+				tspan.appendChild(document.createTextNode(t.id));
+				text.appendChild(tspan);
+
+				svg.appendChild(text);
+			}
 
 		}
 
@@ -307,33 +331,67 @@ public class TimeZoneTest extends AbstractTest {
 			svg.appendChild(polyline);
 		}
 
-		svg.setAttribute("viewBox", (minx - 100) + " " + (miny - 100) + " " + (maxx + 100) + " " + (maxy + 100));
+		svg.setAttribute("viewBox", (minx - 100) + " " + (miny - 400) + " " + (maxx + 100) + " " + (maxy + 100));
 		svg.setAttribute("width", "" + (maxx - minx));
 		svg.setAttribute("height", "" + (maxy - miny));
 
 		for (int i = 0; i < lines.length; ++i) {
+
+			Integer y = -40;
+			Integer x = i * delta;
+
 			Element text = document.createElement("text");
-			text.setAttribute("x", "" + i * delta);
-			text.setAttribute("y", "50");
-			text.setAttribute("text-anchor", "middle");
 
-			Element tspan = document.createElement("tspan");
-			tspan.setAttribute("x", text.getAttribute("x"));
-			tspan.setAttribute("y", "50");
-			tspan.appendChild(document.createTextNode(timeZones[i].getID()));
-			text.appendChild(tspan);
+			Element tspan = null;
 
 			tspan = document.createElement("tspan");
-			tspan.setAttribute("x", text.getAttribute("x"));
-			tspan.setAttribute("y", "70");
-			tspan.appendChild(document.createTextNode(timeZones[i].getDisplayName(Locale.ROOT)));
-			text.appendChild(tspan);
-
-			tspan = document.createElement("tspan");
-			tspan.setAttribute("x", text.getAttribute("x"));
-			tspan.setAttribute("y", "90");
+			tspan.setAttribute("x", x.toString());
+			tspan.setAttribute("y", y.toString());
 			tspan.appendChild(document.createTextNode(formatOffset(initialOffsets[i])));
 			text.appendChild(tspan);
+			y -= 20;
+
+			tspan = document.createElement("tspan");
+			tspan.setAttribute("x", x.toString());
+			tspan.setAttribute("y", y.toString());
+			tspan.appendChild(document.createTextNode(timeZones[i].getDisplayName(false, TimeZone.SHORT, Locale.ROOT)));
+			text.appendChild(tspan);
+			y -= 20;
+
+			String name = timeZones[i].getDisplayName(Locale.ROOT);
+			if (name.startsWith("Australian")) {
+				name = name.replaceAll("[()]", "");
+				String[] parts = name.split(" ");
+				for (int pidx = parts.length-1; pidx >= 0; --pidx) {
+					tspan = document.createElement("tspan");
+					tspan.setAttribute("x", x.toString());
+					tspan.setAttribute("y", y.toString());
+					tspan.appendChild(document.createTextNode(parts[pidx]));
+					text.appendChild(tspan);
+					y -= 20;
+				}
+			} else {
+				tspan = document.createElement("tspan");
+				tspan.setAttribute("x", x.toString());
+				tspan.setAttribute("y", y.toString());
+				tspan.appendChild(document.createTextNode(name));
+				text.appendChild(tspan);
+				y -= 20;
+			}
+
+			for (String id : groups.get(i)) {
+				tspan = document.createElement("tspan");
+				tspan.setAttribute("x", x.toString());
+				tspan.setAttribute("y", y.toString());
+				tspan.appendChild(document.createTextNode(id));
+				text.appendChild(tspan);
+				y -= 20;
+			}
+			y += 20;
+
+			text.setAttribute("x", x.toString());
+			text.setAttribute("y", y.toString());
+			text.setAttribute("text-anchor", "middle");
 
 			svg.appendChild(text);
 		}
