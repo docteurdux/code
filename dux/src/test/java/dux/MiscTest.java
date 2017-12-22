@@ -4,10 +4,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.annotation.XmlID;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.junit.Test;
 
 import com.github.docteurdux.test.AbstractTest;
@@ -77,6 +76,8 @@ public class MiscTest extends AbstractTest {
 		aeq(false, String.class.isPrimitive());
 
 		aeq(true, new Long(1) instanceof Number);
-		aeq(true, ((Object)(1L)) instanceof Number);
+		aeq(true, ((Object) (1L)) instanceof Number);
 	}
+
+	
 }
