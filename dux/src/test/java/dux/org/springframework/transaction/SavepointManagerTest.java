@@ -1,0 +1,29 @@
+package dux.org.springframework.transaction;
+
+import org.junit.Test;
+import org.springframework.transaction.SavepointManager;
+
+import com.github.docteurdux.test.AbstractTest;
+import com.github.docteurdux.test.ExtendedBy;
+import com.github.docteurdux.test.Extends;
+import com.github.docteurdux.test.Recorder;
+import com.github.docteurdux.test.Related;
+import com.github.docteurdux.test.Topic;
+
+@Topic(SavepointManager.class)
+@Extends({})
+@ExtendedBy({})
+@Related({})
+public class SavepointManagerTest extends AbstractTest {
+	@Test
+	public void test() {
+
+		Object savepoint = null;
+
+		SavepointManager m = Recorder.create(SavepointManager.class).p();
+
+		m.createSavepoint();
+		m.releaseSavepoint(savepoint);
+		m.rollbackToSavepoint(savepoint);
+	}
+}
